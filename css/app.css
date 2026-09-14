@@ -1,0 +1,764 @@
+/* ============================================================================
+   Church Budget Platform — application stylesheet
+   Tokens per docs/03_DESIGN_SYSTEM.md, then components C-01…C-20 as sections.
+   One family (Source Sans 3). No mono. No tracked-uppercase labels.
+   Spacing comes from --pad and --gap only.
+   ========================================================================= */
+
+/* ---------------------------------------------------------------- tokens -- */
+:root{
+  --paper:#F4F5F3; --card:#FFFFFF; --ink:#22303B; --slate:#4A5761; --muted:#5C6770;   /* v1.2.1 R1: 5.3:1 on --paper (was #69747E = 4.36) */
+  --line:#E2E5E1; --line2:#EDEFEC;
+  --brass:#85672A;   /* v1.2.1 R2: white text 5.3:1 (was #9A7833 = 4.11); --brass-tint keeps the lighter hue for bars/chips */ --brass-tint:#9A7833; --verd:#366E63;   /* v1.2.1 R1: 5.3:1 on --verd-bg (was #3F7E72 = 4.28) */ --glass:#3C63A0; --rose:#A3423E;
+  /* v1.2.3 audit — the deep-rose sibling, for rose TEXT on a tinted surface,
+     the way --s3-ink already exists for --s3. Same hue (2°), one step
+     darker: --rose itself measures 3.86–4.28:1 on the eight country tints
+     once P5's expansion wash is over them and fails AA; this is 4.85:1 at
+     worst. Fills, dots, borders and rules keep --rose. */
+  --rose-ink:#8B3835;
+  --rose-bg:#FBF4F3; --brass-bg:#FBF8F1; --verd-bg:#F5FAF8;
+  --s1:#3F7E72; --s2:#3C63A0; --s3:#9A7833; --s4:#98A1A8; --sx:#A3423E;
+  /* v1.2.1 R1 — text-safe variants: the s3/s4 fills stay pastel for bars, the words use these */
+  --s3-ink:#85672A; --s4-ink:#5F6A72;
+  --gantt-fill:#E7F0F5; --gantt-edge:#7FA8C4;
+  --gantt-fill2:#EFEAF6; --gantt-edge2:#9280BC;
+
+  --sans:'Source Sans 3',-apple-system,'Segoe UI',system-ui,sans-serif;
+  --comfort:'Atkinson Hyperlegible','Source Sans 3',-apple-system,system-ui,sans-serif;
+  --f:var(--sans);
+
+  --r:6px; --pad:20px; --gap:14px;
+  --shadow:0 1px 2px rgba(34,48,59,.04), 0 4px 14px rgba(34,48,59,.04);
+  --gantt-label:178px;
+}
+body.comfort{--f:var(--comfort)}
+
+/* -------------------------------------------------------- accent tones -- */
+/* v1.2.5.1 — the Tone picker (top bar) recolours ONLY the warm brand-accent
+   family, as one coherent hue: --brass and --s3-ink are the dark primary
+   (white text on a filled control AND text on --paper, both AA-verified),
+   --brass-tint / --s3 the lighter fill for bars & chips, --brass-bg a very
+   light tint for chip/phase backgrounds. Every other token — rose, verd,
+   glass, the country --cc-* tints and all neutrals — is left untouched, so
+   the app's semantics and clean light base never change with the tone.
+   Contrast (white-on-primary / primary-on-#F4F5F3):
+     espresso-mocha 5.29 / 4.84   champagne-gold 5.05 / 4.61
+     terracotta-clay 5.27 / 4.82  slate-blue 6.03 / 5.51
+     forest-green 5.89 / 5.38     olive-sage 5.83 / 5.33
+     ink-indigo 8.35 / 7.63       (all ≥ 4.5 AA). */
+:root[data-tone="espresso-mocha"]{
+  --brass:#85672A; --brass-tint:#9A7833; --brass-bg:#FBF8F1; --s3:#9A7833; --s3-ink:#85672A;
+}
+:root[data-tone="champagne-gold"]{
+  --brass:#8A6A1F; --brass-tint:#B08A34; --brass-bg:#FBF6E8; --s3:#B08A34; --s3-ink:#8A6A1F;
+}
+:root[data-tone="terracotta-clay"]{
+  --brass:#A85436; --brass-tint:#C47A55; --brass-bg:#FBF2ED; --s3:#C47A55; --s3-ink:#A85436;
+}
+:root[data-tone="slate-blue"]{
+  --brass:#3C63A0; --brass-tint:#5D7FB5; --brass-bg:#EFF3FA; --s3:#5D7FB5; --s3-ink:#3C63A0;
+}
+:root[data-tone="forest-green"]{
+  --brass:#366E63; --brass-tint:#4C8A7C; --brass-bg:#F0F7F4; --s3:#4C8A7C; --s3-ink:#366E63;
+}
+:root[data-tone="olive-sage"]{
+  --brass:#5E6B24; --brass-tint:#7C8B3C; --brass-bg:#F5F7EA; --s3:#7C8B3C; --s3-ink:#5E6B24;
+}
+:root[data-tone="ink-indigo"]{
+  --brass:#46468C; --brass-tint:#6B6BB0; --brass-bg:#F1F1FA; --s3:#6B6BB0; --s3-ink:#46468C;
+}
+
+/* ------------------------------------------------------------------ base -- */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{max-width:100%}
+body{font-family:var(--f);background:var(--paper);color:var(--ink);
+  font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased;
+  overflow-wrap:break-word;overflow-x:hidden}
+button{font:inherit;cursor:pointer;background:none;border:none;color:inherit}
+a{color:inherit}
+summary{list-style:none;cursor:pointer}
+summary::-webkit-details-marker{display:none}
+summary::marker{content:''}
+.num{font-variant-numeric:tabular-nums}
+.hide{display:none !important}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ============================================ C-01 · app shell + sidebar == */
+.shell{display:grid;grid-template-columns:212px minmax(0,1fr);min-height:100vh}
+.side{background:#FBFCFA;border-right:1px solid var(--line);padding:20px 0;
+  position:sticky;top:0;height:100vh;min-width:0;display:flex;flex-direction:column}
+.brand{font-size:16px;font-weight:700;padding:0 20px 16px;
+  border-bottom:1px solid var(--line2);margin-bottom:12px;letter-spacing:-.01em}
+.brand small{display:block;font-size:11.5px;font-weight:600;color:var(--brass);margin-top:2px}
+.nav{min-width:0}
+.side a{display:flex;justify-content:space-between;align-items:center;gap:8px;
+  padding:9px 20px;font-size:14px;color:var(--slate);text-decoration:none}
+.side a:hover{background:#F1F3F0}
+.side a.on{background:#EDF0EC;color:var(--ink);font-weight:600;box-shadow:inset 3px 0 0 var(--brass)}
+.side .grp{font-size:11.5px;font-weight:600;color:var(--muted);padding:18px 20px 6px}
+.badge{font-size:11.5px;font-weight:600;color:#fff;background:var(--rose);
+  border-radius:999px;padding:1px 8px;font-variant-numeric:tabular-nums;flex:none}
+.side .me{margin-top:auto;padding:14px 20px 0;border-top:1px solid var(--line2);
+  font-size:12.5px;color:var(--muted);min-width:0}
+.side .me b{display:block;color:var(--slate);font-size:12.5px}
+
+/* topbar (persona switcher lives here, top right) */
+.topbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:12px 28px;border-bottom:1px solid var(--line);background:#FBFCFA}
+.topbar .where{font-size:12.5px;color:var(--muted);min-width:0}
+.topbar .rt{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.persona{display:flex;align-items:center;gap:8px}
+.persona label{font-size:12.5px;font-weight:600;color:var(--muted)}
+.sel{font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink);
+  border:1px solid var(--line);
+  border-radius:var(--r);background:#fff;padding:7px 12px;white-space:nowrap;max-width:100%}
+.rolechip{font-size:11.5px;font-weight:600;color:var(--slate);background:#EDF0EC;
+  border-radius:999px;padding:2px 9px;white-space:nowrap}
+.rolechip.viewer{background:var(--rose-bg);color:var(--rose)}
+
+.main{padding:22px 28px 60px;min-width:0;max-width:1280px}
+
+/* ------------------------------------------------------------ page head -- */
+.pagehead{display:flex;align-items:center;gap:var(--gap);flex-wrap:wrap;margin-bottom:4px}
+.pagehead h1{font-size:25px;font-weight:700;letter-spacing:-.015em;min-width:0}
+.pagehead .sub{font-size:12.5px;color:var(--muted)}
+.pagehead .sp{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.crumb{font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:6px}
+
+/* ------------------------------------------------------- buttons / chips -- */
+.btn{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;
+  padding:7px 14px;border-radius:var(--r);border:1px solid var(--line);background:#fff;
+  color:var(--slate);white-space:nowrap;text-decoration:none}
+.btn:hover{border-color:var(--muted)}
+.btn.brass{background:var(--brass);border-color:var(--brass);color:#fff}
+.btn.brass:hover{border-color:var(--brass);filter:brightness(.95)}
+.btn.sm{font-size:12.5px;padding:4px 10px}
+.btn[disabled]{opacity:.45;pointer-events:none}
+
+/* v1.2.5.1 — accent-tone picker (top bar). A small label plus a row of round
+   swatches; each swatch always shows its OWN tone (static colours below), the
+   active one carries a ring. The row lives inside .rt, which already wraps, so
+   it never forces horizontal scroll down to 360px. */
+.tonepick{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tonelabel{font-size:11.5px;font-weight:600;color:var(--muted)}
+/* the visible dot stays ~18px; the button itself is a 32px hit area (padding
+   around the dot) so it is a proper tap target, not a sub-threshold one */
+.tone-sw{display:inline-flex;align-items:center;justify-content:center;
+  min-width:32px;min-height:32px;padding:7px;border:none;background:none;
+  border-radius:999px;line-height:0}
+.tone-sw .tone-dot{display:block;width:18px;height:18px;border-radius:999px;
+  background:var(--sw);box-shadow:inset 0 0 0 1px rgba(34,48,59,.18)}
+.tone-sw:hover .tone-dot{box-shadow:inset 0 0 0 1px rgba(34,48,59,.35)}
+/* selected: a paper gap then a ring in the tone's own primary — visible on
+   light and dark swatches alike */
+.tone-sw.on .tone-dot{box-shadow:0 0 0 2px var(--card),0 0 0 3.5px var(--swr),inset 0 0 0 1px rgba(255,255,255,.35)}
+.tone-sw:focus-visible{outline:2px solid var(--glass);outline-offset:1px}
+.tone-sw:focus{outline:none}
+.tone-sw:focus-visible .tone-dot{box-shadow:inset 0 0 0 1px rgba(34,48,59,.35)}
+.tone-sw:active{transform:scale(.94)}
+/* static per-tone swatch colours (dot fill --sw / ring --swr) — independent of
+   the active tone so every swatch previews its own accent */
+.tone-sw[data-tone="espresso-mocha"]{--sw:#9A7833;--swr:#85672A}
+.tone-sw[data-tone="champagne-gold"]{--sw:#B08A34;--swr:#8A6A1F}
+.tone-sw[data-tone="terracotta-clay"]{--sw:#C47A55;--swr:#A85436}
+.tone-sw[data-tone="slate-blue"]{--sw:#5D7FB5;--swr:#3C63A0}
+.tone-sw[data-tone="forest-green"]{--sw:#4C8A7C;--swr:#366E63}
+.tone-sw[data-tone="olive-sage"]{--sw:#7C8B3C;--swr:#5E6B24}
+.tone-sw[data-tone="ink-indigo"]{--sw:#6B6BB0;--swr:#46468C}
+
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:var(--gap) 0}
+.chip{font-size:12.5px;font-weight:600;padding:5px 12px;border-radius:999px;
+  border:1px solid var(--line);background:#fff;color:var(--slate);white-space:nowrap}
+.chip .n{font-size:11.5px;font-weight:600;color:var(--muted);margin-left:5px;
+  font-variant-numeric:tabular-nums}
+.chip:hover{border-color:var(--muted)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.chip.on .n{color:#C6CEC9}
+.filters .sep{width:1px;height:20px;background:var(--line);margin:0 3px}
+.search{font:inherit;font-size:12.5px;color:var(--ink);border:1px solid var(--line);
+  border-radius:999px;background:#fff;padding:5px 14px;min-width:262px;flex:0 1 300px}
+.search::placeholder{color:var(--muted)}
+.search:focus{outline:none;border-color:var(--brass);box-shadow:0 0 0 3px rgba(154,120,51,.12)}
+@media(max-width:520px){.search{min-width:0;flex:1 1 100%}}
+
+/* -------------------------------------------------------- cards / C-02 --- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--shadow);padding:var(--pad);min-width:0}
+.card + .card{margin-top:var(--gap)}
+.card h2{font-size:14px;font-weight:600;color:var(--slate);margin-bottom:var(--gap)}
+.card h2 .more{float:right;font-weight:600;font-size:12.5px;color:var(--glass);cursor:pointer}
+.card p{font-size:14px;color:var(--slate)}
+.card p + p{margin-top:8px}
+
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--gap);margin-bottom:var(--gap)}
+.kpi{background:#fff;border:1px solid var(--line);border-left:3px solid var(--line);
+  border-radius:var(--r);box-shadow:var(--shadow);padding:16px 18px;min-width:0}
+.kpi.alert{border-left-color:var(--rose)}
+.kpi .k{font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.kpi .v{font-size:25px;font-weight:700;letter-spacing:-.01em;line-height:1.15;
+  font-variant-numeric:tabular-nums}
+.kpi.alert .v{color:var(--rose)}
+.kpi .d{font-size:12.5px;color:var(--muted);margin-top:5px}
+
+/* attention pill (shared micro-layout) */
+.tagpill{flex:none;min-width:60px;text-align:center;font-size:12.5px;font-weight:700;
+  font-variant-numeric:tabular-nums;padding:3px 6px;border-radius:999px;
+  border:1.5px solid var(--line);color:var(--slate);background:#fff}
+.tagpill.rose{border-color:#E5C6C4;color:var(--rose);background:var(--rose-bg)}
+.tagpill.brass{border-color:#E2D3B4;color:var(--brass);background:var(--brass-bg)}
+
+/* coverage cell (bar ∣ right-aligned %) */
+.covcell{display:inline-grid;grid-template-columns:56px 48px;align-items:center;gap:8px}
+.covbar{width:56px;height:5px;border-radius:999px;background:#EFF1EE;overflow:hidden}
+.covbar i{display:block;height:100%;background:var(--verd);border-radius:999px}
+.covbar.warn i{background:var(--brass)}
+.covbar.over i{background:var(--rose)}
+.covcell .cv{text-align:right;font-variant-numeric:tabular-nums;font-size:12.5px}
+.covcell .cv.neg{color:var(--rose);font-weight:700}
+
+/* ============================================== C-04 · data table ======== */
+.tblwrap{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tblwrap .tbl{min-width:560px}
+.tbl th{font-size:12.5px;font-weight:600;color:var(--muted);text-align:left;
+  padding:0 12px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl th.r,.tbl td.r{text-align:right}
+.tbl td{padding:12px;border-bottom:1px solid var(--line2);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl td.r{font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl .neg{color:var(--rose);font-weight:700}
+.tbl .dim{color:var(--muted)}
+
+/* ================================== C-04/C-05 · P3 register + rows ======= */
+.list{border:1px solid var(--line);border-radius:var(--r);background:#fff;
+  box-shadow:var(--shadow);overflow:hidden}
+.lhead,.prow{display:grid;
+  grid-template-columns:minmax(0,1fr) 196px 116px 136px 30px;
+  gap:12px;align-items:center;padding:11px 16px}
+.lhead{background:#FAFBFA;border-bottom:1px solid var(--line);
+  font-size:12.5px;font-weight:600;color:var(--muted)}
+.lhead .r{text-align:right}
+
+/* country group header — carries the derived committed total */
+.ghd{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:10px 16px;background:#F6F8F5;border-bottom:1px solid var(--line);
+  border-top:1px solid var(--line)}
+.list .ghd:first-of-type{border-top:none}
+.ghd b{font-size:14px;font-weight:700}
+.ghd .cnt{font-size:12.5px;color:var(--muted)}
+.ghd .rt{margin-left:auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  font-size:12.5px;color:var(--muted)}
+.ghd .rt .money{font-variant-numeric:tabular-nums;color:var(--slate);font-weight:600}
+.ghd .rt .over{color:var(--rose);font-weight:700;font-variant-numeric:tabular-nums}
+
+details.prj{border-bottom:1px solid var(--line2)}
+details.prj:last-of-type{border-bottom:none}
+summary.prow:hover{background:#FBFCFA}
+details.prj[open] summary.prow{background:#F8FAF8}
+.pname{min-width:0}
+.pname .id{font-size:12.5px;font-weight:600;color:var(--brass);
+  font-variant-numeric:tabular-nums}
+.pname b{display:block;font-weight:600;font-size:14px;line-height:1.35;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pname small{display:block;color:var(--muted);font-size:12.5px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stage{min-width:0}
+.stage small{display:block;font-size:12.5px;color:var(--muted);margin-top:3px;
+  font-variant-numeric:tabular-nums}
+.stage small.hot{color:var(--rose);font-weight:600}
+.stage small.warm{color:var(--brass);font-weight:600}
+.amt{font-size:14px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;
+  font-weight:600}
+.amt small{display:block;font-size:12.5px;color:var(--muted);font-weight:400}
+.chev{color:var(--muted);font-size:11.5px;text-align:right;transition:transform .18s}
+details.prj[open] .chev{transform:rotate(180deg)}
+
+/* ============================================= C-13 · status pill ======== */
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;
+  padding:2px 10px;border-radius:999px;border:1px solid currentColor;
+  white-space:nowrap;line-height:1.6}
+.pill .dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex:none}
+/* v1.2.3 audit — --s1 (#3F7E72) is the STATUS 1 identity colour, kept for
+   dots, bars and rules; as TEXT it measures 4.33:1 on --paper and fails AA,
+   the same trap --s3 already has an --s3-ink for (CORE_API §7: use
+   --s3-ink / --s4-ink for status TEXT). --verd is the same green family one
+   step darker and is already the token for "status-1 green that has to be
+   read", so the pill borrows it rather than introducing a ninth colour. */
+.p-s1{color:var(--verd)}.p-s2{color:var(--s2)}.p-s3{color:var(--s3-ink)}
+.p-s4{color:var(--s4-ink)}.p-sx{color:var(--sx)}
+
+/* ============================================= C-17 · progress bar ======= */
+.prog{display:flex;align-items:center;gap:8px;min-width:0}
+.pb{flex:1;max-width:76px;height:6px;border-radius:999px;background:#EAEDEA;overflow:hidden;flex-shrink:0}
+.pb i{display:block;height:100%;background:var(--verd);border-radius:999px}
+.pb.mid i{background:var(--brass)}
+.prog .pc{font-size:12.5px;color:var(--slate);white-space:nowrap;font-variant-numeric:tabular-nums}
+.prog .na{font-size:12.5px;color:var(--muted);font-style:italic;min-width:0;
+  overflow:hidden;text-overflow:ellipsis}
+
+/* ============================================= expanded panel ============ */
+.panel{padding:6px 16px 20px;background:#FCFDFC;border-top:1px solid var(--line2)}
+.ph{font-size:12.5px;font-weight:600;color:var(--slate);margin:16px 0 9px;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ph .r{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+.gnote{font-size:12.5px;color:var(--muted);margin-top:9px}
+.gnote a{color:var(--glass);font-weight:600}
+.pmeta{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:2px}
+.pmeta b{color:var(--slate);font-weight:600}
+
+/* ============================ C-16 · stage stepper (v1.2.3 reframe) ======
+   ToR 12 Sep, item 1 — "align each process width to be the same": the four
+   rungs are one grid, four equal tracks, full width, everywhere U.stepper
+   renders (P3, P4, P6, P10, P13). Item 2 — the frame below (.sl-sub, filled
+   by U.rungSubline) is row 2 of the SAME grid; ui.js pins its grid-column
+   start to the rung that is current, so its left edge is the current rung's
+   left edge, not a floating block that could belong to any of the four. */
+.stepline{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px var(--sl-gap,18px)}
+.sl{position:relative;display:flex;flex-direction:column;gap:3px;min-width:0;
+  font-size:12.5px;padding:7px 11px;border:1px solid var(--line);border-radius:var(--r);
+  background:#fff;color:var(--slate)}
+.sl-row{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;min-width:0}
+.sl b{font-weight:600;min-width:0;overflow-wrap:break-word;hyphens:auto;-webkit-hyphens:auto}
+.sl small{display:block;color:var(--muted);font-size:12.5px;font-variant-numeric:tabular-nums;
+  white-space:normal;overflow-wrap:break-word}
+.sl .mk{font-weight:700;flex:none}
+.sl.ok{border-color:#B9D2C9;color:var(--verd);background:var(--verd-bg)}
+.sl.ok small{color:#4F6E66}   /* v1.2.1 R1 */
+.sl.wait{border-color:#E3C2BF;color:var(--rose);background:#FCF6F5}
+.sl.wait small{color:#8E5C59}
+.sl.todo{border-style:dashed;color:var(--muted)}
+/* the connector between rungs: a line in the column gap, not a grid cell of
+   its own — repeat(4,…) would no longer be four EQUAL tracks if a fifth,
+   narrower "conn" item sat between them. .conn/.conn.ok stay defined as-is:
+   U.stepline (the generic pill-row helper) still emits them for anything
+   else that wants a plain connected row. */
+.conn{width:16px;height:1.5px;background:var(--line);flex:none}
+.conn.ok{background:#B9D2C9}
+.sl:not(:first-child)::before{content:'';position:absolute;top:17px;
+  left:calc(var(--sl-gap,18px) * -1);width:var(--sl-gap,18px);height:1.5px;background:var(--line)}
+.sl.sl-prevok::before{background:#B9D2C9}
+
+/* ================================================= C-06 · gantt ========== */
+.gantt{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:#fff}
+.gantt-scroll{overflow-x:auto}
+/* v1.0.4 — the today pill is absolutely positioned at the very top of the
+   inner block and would otherwise print over a month-group heading; the pad gives
+   it a lane of its own above the month row */
+.gantt-inner{min-width:640px;position:relative;padding-top:var(--k-tmlane)}
+.gm,.grow2{display:grid;grid-template-columns:var(--gantt-label) minmax(0,1fr)}
+.gm{border-bottom:1px solid var(--line);background:#FAFBFA}
+.gm .gl{border-right:1px solid var(--line);padding:7px 12px;font-size:12.5px;
+  font-weight:600;color:var(--muted)}
+.mrow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+.mh{text-align:center;padding:7px 4px;font-size:12.5px;color:var(--slate);
+  border-left:1px solid var(--line2)}
+.grow2{border-bottom:1px solid var(--line2)}
+.grow2:last-child{border-bottom:none}
+.grow2 .gl{padding:8px 12px;border-right:1px solid var(--line);display:flex;
+  flex-direction:column;justify-content:center;min-width:0}
+.grow2 .gl b{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.grow2 .gl small{color:var(--muted);font-size:12.5px;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.track{position:relative;display:grid;grid-template-columns:repeat(16,minmax(0,1fr));
+  align-items:center;min-height:40px;
+  background-image:linear-gradient(to right,var(--line2) 0 1px,transparent 1px 100%);
+  background-size:calc(100%/16) 100%}
+.bar{grid-row:1;align-self:center;z-index:2;height:26px;border-radius:999px;margin:0 3px;
+  background:var(--gantt-fill);border:1px solid var(--gantt-edge);
+  display:flex;align-items:center;padding:0 11px;gap:7px;font-size:12.5px;color:var(--ink);
+  white-space:nowrap;overflow:hidden;position:relative}
+.bar .fill{position:absolute;left:0;top:0;bottom:0;background:rgba(63,126,114,.22);
+  border-radius:999px 0 0 999px}
+.bar .fill.full{border-radius:999px}
+.bar span{position:relative;z-index:1;overflow:hidden;text-overflow:ellipsis}
+.bar.v2{background:var(--gantt-fill2);border-color:var(--gantt-edge2)}
+.bar.plan{background:#F5F6F4;border-style:dashed;color:var(--muted)}
+.bar i{width:7px;height:7px;border-radius:50%;background:var(--gantt-edge);flex:none;
+  position:relative;z-index:1}
+.bar.v2 i{background:var(--gantt-edge2)}
+.bar.plan i{background:var(--s4)}
+/* v1.2.3 — the "today · <date>" pill is gone (ToR's Overall item); K.todayMark
+   (uikit) now draws the chapel marker (uikit.css §9) and calls the line here
+   with cls:''. K.todayMark reads `o.cls || 'k'` — an empty string is falsy in
+   JS, so it falls through to the default prefix and the line comes out
+   ".k-today", not the old ".today"; this rule is renamed to match rather than
+   the marker having to know this chart's old name for its line. */
+.k-today{position:absolute;top:var(--k-tmlane);bottom:0;width:1.5px;background:var(--rose);opacity:.7;
+  z-index:5;pointer-events:none;margin-left:-.75px}
+
+/* ---------------------------------------------------------- foot strip -- */
+.foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  padding:13px 4px 0;font-size:12.5px;color:var(--muted)}
+.foot b{color:var(--ink);font-variant-numeric:tabular-nums}
+.foot .neg{color:var(--rose);font-weight:600;font-variant-numeric:tabular-nums}
+
+/* ------------------------------------------------------------- notices -- */
+.pagenote{font-size:12.5px;color:var(--muted);margin-top:16px;max-width:78ch}
+.hintbar{margin:var(--gap) 0 0;padding:10px 14px;border:1px solid var(--line);
+  border-left:3px solid var(--brass);border-radius:var(--r);background:#fff;
+  font-size:12.5px;color:var(--slate)}
+.phasetag{display:inline-block;font-size:11.5px;font-weight:600;color:var(--brass);
+  background:var(--brass-bg);border:1px solid #E2D3B4;border-radius:999px;padding:1px 9px}
+.stubgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap);margin-top:var(--gap)}
+.stublist{list-style:none;font-size:14px;color:var(--slate)}
+.stublist li{padding:7px 0;border-bottom:1px solid var(--line2);display:flex;gap:10px}
+.stublist li:last-child{border-bottom:none}
+.stublist li::before{content:'·';color:var(--brass);font-weight:700}
+
+/* ================================ C-03 · aligned budget bar (v1.0.1) ===== */
+/* Every row in a column shares one scale, so .ubar-rule lands on the same x
+   down the whole column and reads as one continuous 100% line. Anything past
+   it is the same 135° rose hatch the dashboard already uses for an over-run. */
+.ubar-wrap{display:flex;align-items:center;gap:10px;min-width:0}
+/* #EFF1EE is the same empty-track neutral the C-03 dashboard bar already uses,
+   so a bar reads identically wherever it appears */
+.ubar{position:relative;flex:1 1 auto;min-width:0;height:16px;border-radius:999px;
+  background:#EFF1EE}
+.ubar-wrap.sm .ubar{height:10px}
+.ubar-fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px 0 0 999px;
+  background:var(--verd)}
+.ubar-fill.warn,.ubar-fill.over{background:var(--brass)}
+.ubar-over{position:absolute;top:0;bottom:0;border-radius:0 999px 999px 0;
+  background:repeating-linear-gradient(135deg,
+    rgba(163,66,62,.20) 0 5px, rgba(163,66,62,.42) 5px 10px)}
+.ubar-rule{position:absolute;top:-7px;bottom:-7px;width:2px;background:var(--ink);
+  border-radius:2px;opacity:.55}
+.ubar-val{flex:none;min-width:52px;text-align:right;font-size:12.5px;font-weight:600;
+  color:var(--slate);font-variant-numeric:tabular-nums}
+.ubar-val.neg{color:var(--rose)}
+
+/* ------------------------------------------------- generic field (C-11) -- */
+/* the one plain input the shell owns; page stylesheets keep their own */
+.fld{font-size:12.5px;font-family:inherit;color:var(--ink);background:var(--card);
+  border:1px solid var(--line);border-radius:var(--r);padding:7px 11px;
+  min-width:0;max-width:100%}
+.fld:focus{outline:2px solid var(--glass);outline-offset:1px}
+.fld.wide{width:100%;display:block}
+.fldlab{display:block;font-size:12.5px;font-weight:600;color:var(--slate);margin-bottom:6px}
+.fldrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:var(--gap)}
+.fldrow .fld{flex:1 1 240px}
+
+/* ============================================== C-12 · modal (base) ====== */
+.modal-wrap{position:fixed;inset:0;background:rgba(34,48,59,.32);z-index:80;
+  display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:#fff;border-radius:8px;box-shadow:0 20px 50px rgba(34,48,59,.24);
+  padding:var(--pad);max-width:460px;width:100%}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:8px}
+.modal p{font-size:14px;color:var(--slate)}
+.modal .acts{display:flex;gap:8px;justify-content:flex-end;margin-top:var(--gap)}
+
+/* ============================================ C-20 · scope selector ====== */
+.scope{position:relative}
+.scope-btn{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;
+  color:var(--ink);border:1px solid var(--line);border-radius:var(--r);background:#fff;
+  padding:7px 12px;white-space:nowrap}
+.scope-btn .chip{font-size:11.5px;font-weight:700;background:#EDF0EC;border-radius:999px;
+  padding:1px 8px;color:var(--slate);border:none}
+
+/* ========================================================= responsive ==== */
+@media(max-width:1020px){
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stubgrid{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:880px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .side{position:static;height:auto;flex-direction:column;padding:14px 0 0;
+    border-right:none;border-bottom:1px solid var(--line)}
+  .brand{padding:0 16px 12px;margin-bottom:0}
+  .nav{display:flex;gap:2px;overflow-x:auto;padding:8px 10px;border-top:1px solid var(--line2)}
+  .side .grp{display:none}
+  .side a{padding:7px 12px;border-radius:var(--r);white-space:nowrap;font-size:12.5px}
+  .side a.on{box-shadow:inset 0 -3px 0 var(--brass)}
+  .side .me{margin:0;padding:10px 16px;border-top:1px solid var(--line2)}
+  .side .me b{display:inline;margin-right:6px}
+  .topbar{padding:10px 16px}
+  .main{padding:18px 16px 48px}
+}
+@media(max-width:860px){
+  .lhead,.prow{grid-template-columns:minmax(0,1fr) 120px 26px;row-gap:8px}
+  .lhead .c-stage,.lhead .c-prog{display:none}
+  .stage{grid-column:1/-1;order:4;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .stage small{margin:0}
+  .prog{grid-column:1/-1;order:5}
+  .prog .pb{max-width:120px}
+}
+@media(max-width:520px){
+  .kpis{grid-template-columns:minmax(0,1fr)}
+  .main{padding:16px 12px 44px}
+  .lhead,.prow{padding:11px 12px}
+  .panel{padding:6px 12px 18px}
+  .ghd{padding:10px 12px}
+  .pagehead h1{font-size:20px}
+  .topbar .rt{width:100%;margin-left:0}
+  .sel{max-width:100%}
+}
+
+/* ---------------------------------------------------- v1.0.2 brand mark -- */
+/* "Church Budget&Project MS" — chapel glyph in gold with a slow lux shimmer
+   sweep and three twinkling glints. Deliberate client-requested accent; the
+   effect stays inside the brand block and uses the brass family only. */
+.brand-v2{display:flex;align-items:center;gap:10px;min-width:0}
+.brand-v2 .btxt{min-width:0}
+.brand-v2 .bname{display:block;font-size:14px;line-height:1.15;color:var(--ink)}
+.bico{width:30px;height:30px;flex:none;overflow:visible}
+.bico .bico-door{fill:#FDFBF6}
+.bico{filter:drop-shadow(0 1px 2px rgba(154,120,51,.35))}
+.bico g{animation:bico-lux 5.5s ease-in-out infinite}
+@keyframes bico-lux{
+  0%,100%{filter:brightness(1)}
+  46%{filter:brightness(1)}
+  52%{filter:brightness(1.28) saturate(1.15)}
+  58%{filter:brightness(1)}
+}
+.bico .glint{fill:#E9D9A8;opacity:0}
+.bico .g1{animation:bico-glint 5.5s ease-in-out infinite .2s}
+.bico .g2{animation:bico-glint 5.5s ease-in-out infinite 1.9s}
+.bico .g3{animation:bico-glint 5.5s ease-in-out infinite 3.4s}
+@keyframes bico-glint{
+  0%,100%{opacity:0;transform:scale(.4)}
+  6%{opacity:.95;transform:scale(1.15)}
+  12%{opacity:0;transform:scale(.4)}
+}
+/* v1.2.1 R4 — touch targets on narrow screens (P10, role homes, chips) */
+@media (max-width:768px){
+  .btn.sm,.btn{min-height:40px;padding-top:8px;padding-bottom:8px}
+  .chip,.p6-chips .chip,.cchip{min-height:36px;padding-top:6px;padding-bottom:6px}
+  .p6-id,.gs-link,.p6-card a:not(.btn){display:inline-block;padding:8px 0;min-height:32px}
+  .cchip .x,.p2-scx,.p2-sc-x,[data-p2="scope-remove"]{min-width:28px;min-height:28px}
+  .topbar .btn.sm{min-height:36px}
+}
+@media (prefers-reduced-motion:reduce){
+  .bico g,.bico .glint{animation:none}
+  .bico .glint{opacity:.5}
+}
+
+/* Add-on module chip beside a nav label (TimeBlock, D-07).
+   v1.0.3 · the chip now reads "Required Licenses", so the nav label has to be
+   allowed to shrink and the chip to wrap under it at narrow sidebar widths. */
+.side a > span{min-width:0;overflow-wrap:break-word}
+.side a .addon{display:inline-block;font-size:11.5px;font-weight:600;color:var(--brass);
+  border:1px solid #E2D3B4;border-radius:999px;padding:0 6px;margin-left:7px;
+  vertical-align:1px;background:#FDFBF6;letter-spacing:0;white-space:nowrap}
+.p5-addon{font-size:11.5px;font-weight:600;color:var(--brass);
+  border:1px solid #E2D3B4;border-radius:999px;padding:1px 8px;margin-left:8px;
+  vertical-align:3px;background:#FDFBF6}
+
+/* ============================================================================
+   v1.0.3 · C-21 country identity palette
+   ----------------------------------------------------------------------------
+   Client-approved deviation from design rule 4 ("no tinted cards"): the seven
+   seeded countries carry a flag-derived pastel identity so a country band on P3
+   and a country section on P11 read as the same object. Three tones per country,
+   defined ONCE here and nowhere else:
+
+     --cc-<code>-bold   pastel, header/band background (BOLD tone)
+     --cc-<code>-light  pastel, row-area / section background (LIGHT tone)
+     --cc-<code>-line   saturated flag accent, for 3px rules and borders only
+
+   Contrast, measured against the tokens actually printed on them:
+     ink  #22303B on every -bold  ≥ 10.1:1     (AA/AAA normal text)
+     slate#4A5761 on every -bold  ≥  5.5:1     (AA normal text)
+     rose #A3423E on every -bold  ≥  4.6:1     (AA — the over/alert value)
+     -line vs its own -bold       ≥  4.0:1     (AA non-text, 3px rules)
+   The two flag-yellow lines (IND saffron, MMR golden) are darkened from the
+   literal flag hex so a 3px rule clears 3:1 on both the pastel and white.
+
+   Nothing else in the app may inherit these: the ONLY consumers are the .cc-*
+   utility classes below, and the only elements that carry a .cc-* class are the
+   P3 country band / body / chip and the P11 country header / row / pin. */
+:root{
+  --cc-bgd-bold:#D2E7DE; --cc-bgd-light:#F1F8F4; --cc-bgd-line:#2E6B54;
+  --cc-npl-bold:#F4D8DE; --cc-npl-light:#FBF2F4; --cc-npl-line:#A63446;
+  --cc-khm-bold:#D6E0F3; --cc-khm-light:#F1F4FA; --cc-khm-line:#33518F;
+  --cc-ind-bold:#FCE3C3; --cc-ind-light:#FDF6EC; --cc-ind-line:#9C6318;
+  --cc-mmr-bold:#F6EBB8; --cc-mmr-light:#FCF9EA; --cc-mmr-line:#7F6F1A;
+  --cc-lao-bold:#F5DBD5; --cc-lao-light:#FBF3F1; --cc-lao-line:#2C4E8A;
+  /* v1.0.4 · HKG. The flag is red and white, but red is already spoken for by
+     NPL crimson and LAO, so the identity comes from the bauhinia flower on the
+     flag instead: a violet family that stays its own colour beside both. */
+  --cc-hkg-bold:#E3DCF0; --cc-hkg-light:#F5F2FA; --cc-hkg-line:#5B4A8A;
+  /* neutral fallback for any country the palette does not know */
+  --cc-x-bold:#E4E7E3;   --cc-x-light:#F7F8F6;   --cc-x-line:#69747E;
+}
+
+/* The utility classes expose the trio under three generic names, so every page
+   stylesheet writes var(--ccb) / var(--ccl) / var(--ccx) and stays completely
+   palette-agnostic — an eighth country is one line here and nothing else. */
+.cc-x  {--ccb:var(--cc-x-bold);  --ccl:var(--cc-x-light);  --ccx:var(--cc-x-line)}
+.cc-bgd{--ccb:var(--cc-bgd-bold);--ccl:var(--cc-bgd-light);--ccx:var(--cc-bgd-line)}
+.cc-npl{--ccb:var(--cc-npl-bold);--ccl:var(--cc-npl-light);--ccx:var(--cc-npl-line)}
+.cc-khm{--ccb:var(--cc-khm-bold);--ccl:var(--cc-khm-light);--ccx:var(--cc-khm-line)}
+.cc-ind{--ccb:var(--cc-ind-bold);--ccl:var(--cc-ind-light);--ccx:var(--cc-ind-line)}
+.cc-mmr{--ccb:var(--cc-mmr-bold);--ccl:var(--cc-mmr-light);--ccx:var(--cc-mmr-line)}
+.cc-lao{--ccb:var(--cc-lao-bold);--ccl:var(--cc-lao-light);--ccx:var(--cc-lao-line)}
+.cc-hkg{--ccb:var(--cc-hkg-bold);--ccl:var(--cc-hkg-light);--ccx:var(--cc-hkg-line)}
+
+/* the flag glyph: colour emoji, so it must never inherit a text colour or a
+   tabular-numeral setting; sized to sit on the label baseline */
+.ccflag{font-style:normal;font-size:14px;line-height:1;flex:none;
+  font-variant-numeric:normal;letter-spacing:0;display:inline-flex;align-items:center;vertical-align:-1px}
+/* v1.2.1 R3 — inline SVG flags (renders the same on Windows; emoji flags fell back to letters) */
+.ccflag svg{width:16px;height:12px;border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.08);display:block}
+.dwcc .ccflag svg,.p11-cc .ccflag svg{width:14px;height:10.5px}
+
+/* ================================ v1.1.0 · gate step (U.gateStep · C-15b) ==
+   One fragment, four surfaces (P3 panel, P4 tracker, P6 inbox, P10). Chips
+   reuse the pill grammar already in this file — no new colours, no new
+   family, nothing that a page stylesheet has to know about. */
+.gs{min-width:0}
+.gs-hd{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.gs-hd b{font-size:14px;font-weight:600}
+.gs-mode{font-size:11.5px;font-weight:600;color:var(--muted)}
+.gs-line{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:5px}
+.gs-sub{font-size:12.5px;color:var(--muted);margin-top:4px}
+.gs-sub b{color:var(--slate);font-weight:600}
+.gs-src{font-size:11.5px;font-weight:600;color:var(--slate);background:#EFF1EE;
+  border:1px solid var(--line);border-radius:999px;padding:1px 9px;white-space:nowrap}
+.gs-src.adv{color:var(--brass);border-color:#E2D3B4;background:var(--brass-bg)}
+.gs-ref{font-size:12.5px;color:var(--muted)}
+.gs-sync{font-size:11.5px;font-weight:600;border:1px solid var(--line);border-radius:999px;
+  padding:1px 9px;color:var(--muted);white-space:nowrap}
+.gs-sync.ok{color:var(--verd);border-color:#B9D2C9;background:var(--verd-bg)}
+.gs-sync.queued{color:var(--brass);border-color:#E2D3B4;background:var(--brass-bg)}
+.gs-sync.failed{color:var(--rose);border-color:#E5C6C4;background:var(--rose-bg)}
+.gs-link{font-size:12.5px;font-weight:600;color:var(--glass);text-decoration:none;white-space:nowrap}
+.gs-link:hover{text-decoration:underline}
+
+/* --------- v1.1.0 · P10 quick-view rows for proposals and contracts -------
+   The two new lists reuse .p10-card exactly (css/p10.css); what they add is a
+   card that is itself the link, which a <button> needs spelling out. Kept here
+   rather than in p10.css so the whole v1.1.0 UI delta sits in one file. */
+.p10-link{display:block;width:100%;text-align:left;text-decoration:none;color:inherit}
+.p10-link:hover{border-color:var(--brass)}
+
+/* ======================================================= v1.2.0 FLOW =====
+   WP2 · the four-rung stepper's new parts, plus the shared list grammars the
+   needs-you row, the worker task list, the chain line and the portfolio bar
+   row are drawn with. Nothing above this fence is touched. */
+.sl.sl-cur{box-shadow:0 0 0 2px rgba(0,0,0,.045)}
+.sl.sl-dead{border-color:#E3C2BF;color:var(--rose);background:#FCF6F5}
+.sl.sl-dead s{text-decoration:line-through;opacity:.75}
+.sl-tag{font-size:11.5px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;
+  color:#fff;background:var(--rose);border-radius:999px;padding:1px 7px;margin-left:2px}
+/* v1.2.3 (ToR 12 Sep, item 2/3) — the frame under the current rung. A plain
+   border by default; the left accent and tint pick up the worst tone among
+   the lines it holds (hot/warm), so a waiting gate still reads as the time
+   alert it is now that the alert lives inside the frame instead of floating
+   as its own rose sentence above it. Grid-column start comes from ui.js. */
+.sl-sub{display:block;grid-column:var(--sl-c4,1)/-1;
+  margin-top:8px;padding:9px 13px;font-size:12.5px;color:var(--muted);
+  background:#fff;border:1px solid var(--line);border-left:3px solid var(--line);
+  border-radius:var(--r);min-width:0}
+.sl-sub.warm{border-left-color:var(--brass);background:var(--brass-bg)}
+.sl-sub.hot{border-left-color:var(--rose);background:var(--rose-bg)}
+/* audit G2 — the four-rung ladder inside Needs-you rows (P6, P10, P14) */
+.p6-inline-step{margin-top:8px}
+/* v1.2.3 audit — this ladder is ALWAYS two tracks, at every viewport. It
+   lives inside a compact card whose width is set by that card's grid, not by
+   the viewport, so the media query above cannot see it: at 1440 its four
+   rungs are 84px each and every one of the four labels broke mid-word
+   ("Implementation" needs ~81px of text at this 11.5px step against 70px of
+   box). Two tracks give it ~180px and all four read on one line. The pin
+   follows for the same reason it does below 1024. */
+.p6-inline-step .stepline{row-gap:4px;--sl-gap:8px;
+  grid-template-columns:repeat(2,minmax(0,1fr))}
+.p6-inline-step .sl-sub{grid-column:var(--sl-c2,1)/-1}
+.p6-inline-step .sl:nth-child(3)::before{display:none}
+.p6-inline-step .sl{padding:2px 7px;font-size:11.5px}
+.p6-inline-step .sl small{display:none}
+.p6-inline-step .sl-sub{margin-top:4px;padding:5px 8px;font-size:12.5px}
+.p6-inline-step.compact .sl-sub{display:none}
+.p6-inline-step.compact .sl{padding:1px 6px;font-size:11.5px}
+.sl-line{display:block;font-variant-numeric:tabular-nums}
+.sl-line.warm{color:#8E5C59}
+.sl-line.hot{color:var(--rose);font-weight:600}
+/* ------------------------------------------ stepper · narrow tier (v1.2.3
+   audit ruling on the open item "at 390px the rung labels wrap mid-word").
+   Confirmed: at 390 the four tracks are 63.75px inside a P3 expansion and
+   78px in the P4 header, against ~88px for "Implementation", so every rung
+   label broke mid-word and the tallest ran to four lines (measured
+   getBoundingClientRect heights 78/58/39/58 at 390). It never clipped and
+   never scrolled, but four ragged pillar-of-letters rungs is not a stepper.
+   The ruling is the first of ToR's two options: below 1024px the stepper is
+   two equal tracks, two rows, and .sl-sub's pin follows it via --sl-c2
+   (ui.js emits both), so the frame's left edge is still its own rung's.
+
+   1023 and not 560, which is where this landed first and was wrong: the
+   host card's width does NOT track the viewport monotonically — the sidebar
+   collapses to a top strip at 880 (see .side's own query), so a P3 expansion
+   is 152.8px per rung at 768 but only 126.8px at 900. Measured across P3's
+   expansion, P4's header and P6's Gates segment at 640/680/720/760/780/820/
+   860/900, "Implementation" breaks mid-word anywhere the rung falls under
+   ~135px, and the whole 600–900 band does. A breakpoint set from 390 alone
+   would have left the defect alive across the entire tablet range while
+   looking fixed on a phone. 1023 is the first tier boundary above the worst
+   case; at 1024 the narrowest of the three hosts still gives 157.8px.
+
+   The connector that draws in the column gap is dropped on the rung that
+   starts the second row — there is nothing to its left to connect to. */
+@media (max-width:1023px){
+  .stepline{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .sl-sub{grid-column:var(--sl-c2,1)/-1}
+  .sl:nth-child(3)::before{display:none}
+}
+.sl-gates{display:flex;flex-wrap:wrap;gap:10px 14px;margin-top:2px}
+/* the "manual" explanation (T-08 · ToR item 3) — one line, once per frame,
+   not repeated per chip; reuses the .gnote grammar already in this file */
+.gs-note{flex:0 0 100%;font-size:12.5px;color:var(--muted);margin-top:2px}
+
+/* ---- worker task list (GOV.UK grammar: whole row, sentence-case tag) ---- */
+.tasklist{list-style:none;margin:8px 0 0;padding:0;border-top:1px solid var(--line)}
+.tasklist li{border-bottom:1px solid var(--line)}
+.tasklist a{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:9px 4px;text-decoration:none;color:var(--ink);font-size:14px}
+.tasklist a:hover{background:rgba(0,0,0,.02)}
+.tasklist .tl-lab{font-weight:600}
+.tasklist .tl-tag{font-size:11.5px;font-weight:600;border-radius:999px;padding:2px 9px;
+  border:1px solid var(--line);color:var(--slate);background:#fff;white-space:nowrap}
+.tasklist .tl-tag.tl-done{border-color:#B9D2C9;color:var(--verd);background:var(--verd-bg)}
+.tasklist .tl-tag.tl-blocked{border-style:dashed;color:var(--muted)}
+.tasklist .tl-tag.tl-na{border-style:dashed;color:var(--muted)}
+.tasklist li.tl-done .tl-lab{color:var(--muted);font-weight:500}
+
+/* ---- who did what, when ---- */
+.chain{list-style:none;margin:6px 0 0;padding:0;font-size:12.5px;color:var(--muted)}
+.chain li{display:flex;gap:8px;align-items:baseline;padding:1px 0}
+.chain b{color:var(--slate);font-weight:600;flex:none}
+.chain span{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chain time{flex:none;font-variant-numeric:tabular-nums}
+
+/* ---- bullet bar row (needs-you row + portfolio ordered list) ---- */
+.cbar-row{display:flex;align-items:center;gap:14px;padding:9px 4px;text-decoration:none;
+  color:var(--ink);border-bottom:1px solid var(--line)}
+.cbar-row:hover{background:rgba(0,0,0,.02)}
+.cbar-name{flex:0 0 200px;display:flex;flex-direction:column;font-size:14px}
+.cbar-name small{color:var(--muted);font-size:11.5px}
+.cbar-bar{flex:1 1 auto;min-width:120px}
+.cbar-fig{flex:0 0 170px;text-align:right;display:flex;flex-direction:column}
+.cbar-fig small{color:var(--muted);font-size:11.5px}
+.p6-card .cbar-row{display:block;border-bottom:0;padding:2px 0 0;max-width:460px}
+.p6-card .cbar-row .p2-bwrap{padding:18px 0 0}
+.p6-card .cbar-row .p2-bar{height:12px}
+
+/* ---- the inline reason composer (T-10 · p6r-*) ---- */
+.p6-inline{margin-top:8px;padding:8px;border:1px solid var(--line);border-radius:var(--r);
+  background:#fff}
+.p6-inline textarea{width:100%;min-height:44px;font:inherit;font-size:12.5px}
+.p6-iacts{display:flex;gap:8px;margin-top:6px}
+.p6-inline-step{margin-top:4px}
+.p6-card.is-focused{box-shadow:0 0 0 2px var(--glass)}
+
+/* ====================================================== v1.2.0 SHELL =====
+   WP4 · exactly two shell-level additions: the tint that tells the admin
+   console apart from a persona home (T-11), and the pre-render placeholder
+   app.js paints while persistence restores (T-01). Nothing above this fence
+   is touched. */
+.shell-admin .topbar{background:linear-gradient(180deg,#FBF8F1 0%,#F7F3E9 100%);
+  border-bottom-color:#E4D9BE}
+.shell-admin .side{background:#FAF8F2;border-right-color:#E7DFCB}
+.shell-admin .side a.on{box-shadow:inset 3px 0 0 var(--brass);background:#F2EDDF}
+.shell-admin .main{box-shadow:inset 0 3px 0 -1px rgba(154,120,51,.28)}
+
+.restoring{display:flex;align-items:center;justify-content:center;min-height:100vh;
+  font-size:14px;color:var(--muted);letter-spacing:.01em}

@@ -1,0 +1,425 @@
+/* ============================================================================
+   P5 cross-project timeline · P9 administration.
+   Namespaced .p5- / .p9-, tokens and card anatomy from css/app.css.
+   Same Gantt grammar as C-06: pill bars, month grid, one rose line for today.
+   ========================================================================= */
+
+/* ================================================= P5 · controls ========= */
+/* the group-by chips and phase legend live in K.viewBar's own status segment
+   (.k-bstatus, uikit.css) — no page-owned wrapper needed around them */
+.p5-glab{font-size:12.5px;font-weight:600;color:var(--muted);margin-right:2px}
+.p5-legend{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto;
+  flex:1 1 430px;justify-content:flex-end;min-width:0;font-size:12.5px;color:var(--muted)}
+.p5-key{width:14px;height:8px;border-radius:999px;flex:none;margin-left:6px;
+  background:var(--gantt-fill);border:1px solid var(--gantt-edge)}
+.p5-key.v2{background:var(--gantt-fill2);border-color:var(--gantt-edge2);margin-left:3px}
+.p5-key.plan{background:#F5F6F4;border-style:dashed;border-color:var(--s4)}
+.p5-key.over{background:var(--rose-bg);border-color:#D8A9A6}
+.p5-key.mile{width:9px;height:9px;border-radius:2px;transform:rotate(45deg);
+  background:var(--brass);border:none}
+.p5-key.today{width:2px;height:12px;border-radius:0;background:var(--rose);border:none}
+
+/* country chips in the K.viewBar country segment (v1.2.2) — same .k-chip the
+   kit's own filter strip uses, so a chip looks identical wherever it appears */
+.p5-cchips{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* ================================================= P5 · the chart ======== */
+.p5-card{padding:0;overflow:hidden}
+.p5-scroll{overflow-x:auto}
+/* --p5-flag (v1.2.2): a fixed column reserved on EVERY row — head, group
+   header, the collapsed summary and the expanded phase row — so the visible
+   timeline area is the same pixel width everywhere and the month grid / today
+   line line up exactly whether a row is open or closed. Only the collapsed
+   summary row and the head actually draw into it. */
+/* v1.2.2 audit — --p5-flag 132px -> 152px. At 132 the cell gave .k-ftxt 83px
+   against the 88px "over by 59 d" needs, so every number-bearing flag on this
+   page ellipsised to "over by 5…" — which reads as 5 days, not 59. Sized for
+   the widest FIGURE ("197 d waiting"), not the widest sentence: "you: Request
+   submitted" is 169px and still ellipsises, but it carries no number and keeps
+   its title. Same rule the P12 register follows for its money column. */
+/* v1.2.3 audit — padding-top reserves the lane K.todayMark's chapel sits in,
+   exactly as .gantt-inner (app.css) has done since v1.0.4 for the same
+   marker. Without it the marker's own top:1px would land on the month-head
+   row; with it the glyph has 22px of its own above the head and the today
+   line (top:0 → the padding box) runs up through the lane to meet it.
+   min-width is a floor only: pages/p5.js overrides it inline with a value
+   computed from the month COUNT, so a month label never has to ellipsise
+   (see the .p5-mh rule below). */
+.p5-inner{position:relative;min-width:760px;padding-top:var(--k-tmlane);
+  --p5-lab:236px;--p5-flag:152px}
+
+.p5-head,.p5-grp,.p5-row,.p5-sum{
+  display:grid;grid-template-columns:var(--p5-lab) minmax(0,1fr) var(--p5-flag)}
+.p5-head{background:#FAFBFA;border-bottom:1px solid var(--line)}
+.p5-head .p5-lab{font-size:12.5px;font-weight:600;color:var(--muted);padding:7px 12px}
+.p5-head .p5-fcell{font-size:12.5px;font-weight:600;color:var(--muted)}
+.p5-months{display:flex;min-width:0}
+/* v1.2.3 audit — was nowrap + ellipsis, which cut every month head below
+   1280 ("Jul ’…", "M…" at 1024 and 768) and destroyed the year with it. A
+   chart's own scale may not be unreadable at any width, and a half-eaten
+   year is a wrong number on a date axis. The label now WRAPS instead: the
+   year drops onto a second line when the column is narrow and rejoins the
+   month when it is wide, so nothing is ever cut. pages/p5.js sizes
+   .p5-inner from the month count so even the wrapped form always has its
+   ~42px; align-items on the flex row keeps every head the same height. */
+.p5-mh{text-align:center;padding:7px 4px;font-size:12.5px;color:var(--slate);
+  border-left:1px solid var(--line2);white-space:normal;line-height:1.25;
+  overflow-wrap:normal;word-break:keep-all;min-width:0}
+.p5-mh:first-child{border-left:none}
+
+.p5-lab{border-right:1px solid var(--line);padding:8px 12px;min-width:0;
+  display:flex;flex-direction:column;justify-content:center}
+.p5-lab b{font-weight:600;font-size:16px;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis}
+/* v1.2.3 audit — wraps, never truncates, and reserves two lines. This line is
+   "<id> · <owner> · <status>" and it carries a project id; cutting it is the
+   same defect Projects' stage line and Needs-you's meta line were both fixed
+   for in this pass, so all three collapsed-row grammars now behave alike.
+   The two-line reserve is unconditional, so a row whose meta fits on one
+   line is exactly as tall as its neighbour whose meta needs two. */
+.p5-lab small{color:var(--muted);font-size:12.5px;line-height:1.4;
+  white-space:normal;overflow-wrap:normal;word-break:normal;min-height:35px}
+.p5-lab small.unowned{color:var(--rose);font-weight:600}
+.p5-id{font-style:normal;font-weight:600;color:var(--brass);font-variant-numeric:tabular-nums}
+.p5-lab small.unowned .p5-id{color:var(--brass)}
+
+.p5-grp{background:#F6F8F5;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.p5-grp:first-of-type{border-top:none}
+.p5-grp .p5-lab{padding:9px 12px;border-right:none}
+.p5-grp .p5-lab b{font-size:16px;font-weight:700}
+.p5-grp .p5-lab small{white-space:normal;line-height:1.4}
+
+/* the flag column on every group/head row stays reserved but empty — nothing
+   to render, so no extra rule needed beyond the shared grid template above */
+
+.p5-row{border-bottom:1px solid var(--line2);color:inherit}
+.p5-row:last-child{border-bottom:none}
+.p5-row:hover{background:#FBFCFA}
+/* v1.2.5 S3 (F10) — the selected-row marker class `sel` collides with the
+   global select-input style `.sel` (app.css), which carries padding:7px 12px +
+   a 1px border. On a .p5-row (a grid) that leaked a 13px left shift (12px pad +
+   1px border) onto only the selected task row's label column, indenting it
+   deeper than its siblings. Reset the leaked box model here; the row keeps only
+   its own selected-state background. No markup/logic change. */
+.p5-row.sel{background:#FBFCFA;padding:0;border:0;border-radius:0}
+
+/* ---------------------------------------- P5 · collapsed row (v1.2.2) ---- */
+/* One item = the always-present summary button, plus its panel only while
+   open. The button carries the CORE_API §2 row contract: fixed label column,
+   one consolidated bar, the attention flag — nothing here is ever draggable,
+   even for an editor, so a click anywhere on the row does exactly one thing. */
+.p5-sum{width:100%;text-align:left;background:none;border:0;margin:0;padding:0;
+  font:inherit;color:inherit;cursor:pointer;border-bottom:1px solid var(--line2)}
+.p5-sum:hover{background:#FBFCFA}
+.p5-sum:focus-visible{outline:2px solid var(--glass);outline-offset:-2px}
+.p5-item[data-open="true"] .p5-sum{background:#FBFCFA;border-bottom:none}
+.p5-item:last-child .p5-sum{border-bottom:none}
+.p5-panel{border-bottom:1px solid var(--line2);background:#FBFCFA}
+.p5-panel .p5-row{border-bottom:none}
+.p5-item:last-child .p5-panel{border-bottom:none}
+
+/* ---------------------------------- P5 · expansion tint + indent (v1.2.3) -
+   ToR: "indent details from each project, with background colour change to
+   be more bold but related to header." Every .p5-item now carries the
+   project's own .cc-<code> utility class (app.css C-21), so --ccb/--ccl/
+   --ccx are already in scope here — this file adds no new colour, it only
+   goes a step DARKER than the band's own --ccb (a thin dark wash over the
+   exact same colour, never a second hue), so "inside this project" reads as
+   bolder than the plain white row above it while staying obviously the same
+   country. --muted measures 4.47:1 on --ccb and fails AA (CORE_API §7); the
+   wash only sharpens that risk, so every text colour under here is --slate
+   or --ink, never --muted. */
+.p5-panel{
+  background:linear-gradient(rgba(18,20,16,.09),rgba(18,20,16,.09)),
+             var(--ccb,#EDF0EC);
+}
+.p5-panel .p5-lab small,
+.p5-panel .p5-editnote,
+.p5-panel .p5-nlab,
+.p5-panel .p5-editlab .num{color:var(--slate)}
+/* v1.2.3 audit — the floating row note was the one text under here the rule
+   above missed, and it is the third time --muted on a country tint has got
+   through (CORE_API §7 predicted exactly this). Measured on the WASHED
+   tint, not on --ccb: --muted lands at 3.62–4.02:1 and --rose at
+   3.86–4.28:1 across the eight country colours, both below AA. --slate is
+   4.65 at worst; --rose-ink (app.css, same hue as --rose, one step darker)
+   is 4.85 at worst. Only the tinted panel is re-coloured — on the white
+   collapsed row the plain tokens already clear AA and stay. */
+.p5-panel .p5-note{color:var(--slate)}
+.p5-panel .p5-note.over{color:var(--rose-ink)}
+
+/* the indent itself: a rule and a step of left padding on the LABEL column
+   only reads the detail row as nested under the project above it — the
+   track column is untouched, so the month grid and the today line stay
+   pixel-identical to the summary row and to every other row on the page
+   (CORE_API contract; the v1.2.3 audit measured every row type's track
+   left/right and found one value on each). */
+.p5-panel .p5-lab{padding-left:30px;position:relative}
+.p5-panel .p5-lab::before{content:'';position:absolute;left:15px;top:0;bottom:0;
+  width:2px;background:var(--ccx,var(--line));opacity:.6}
+.p5-panel .p5-lab::after{content:'';position:absolute;left:15px;top:50%;
+  width:9px;height:2px;background:var(--ccx,var(--line));opacity:.6}
+
+.p5-fcell{display:flex;align-items:center;justify-content:flex-end;gap:8px;
+  padding:8px 14px 8px 8px;min-width:0;overflow:hidden}
+.p5-chev{font-size:11.5px;color:var(--muted);flex:none;line-height:1}
+.p5-sum:hover .p5-chev{color:var(--ink)}
+
+/* the single consolidated bar a collapsed row shows — one pill, its inner
+   segments coloured by phase (odd/even, same as the C-06 mini Gantt on P4) */
+.p5-cbar{position:absolute;top:50%;transform:translateY(-50%);height:26px;
+  min-width:6px;box-sizing:border-box;border-radius:999px;overflow:hidden;
+  background:var(--card);border:1px solid var(--gantt-edge);z-index:2}
+.p5-cbar.plan{background:#F5F6F4;border-style:dashed;border-color:var(--s4)}
+.p5-cbar.plan.over{background:var(--rose-bg);border-color:#D8A9A6}
+.p5-cseg{position:absolute;top:0;bottom:0;background:var(--gantt-fill)}
+.p5-cseg.v2{background:var(--gantt-fill2)}
+/* the record link is the label column only, so the balloons in the track can be
+   real controls without an interactive element nesting inside a link */
+.p5-plink{display:flex;flex-direction:column;justify-content:center;min-width:0;
+  text-decoration:none;color:inherit}
+.p5-plink:hover b{color:var(--glass)}
+
+.p5-track{position:relative;min-height:44px}
+.p5-track.grp{min-height:0}
+
+.p5-bar{position:absolute;top:50%;transform:translateY(-50%);z-index:2;
+  height:26px;min-width:26px;border-radius:999px;
+  background:var(--gantt-fill);border:1px solid var(--gantt-edge);
+  display:flex;align-items:center;gap:7px;padding:0 10px;font-size:12.5px;
+  color:var(--ink);white-space:nowrap;overflow:hidden}
+.p5-bar i{width:7px;height:7px;border-radius:50%;background:var(--gantt-edge);flex:none}
+/* a bar too short to carry its label reads as a marker, not a clipped pill */
+.p5-bar.tiny{min-width:18px;padding:0;justify-content:center}
+.p5-bar span{overflow:hidden;text-overflow:ellipsis}
+.p5-bar.v2{background:var(--gantt-fill2);border-color:var(--gantt-edge2)}
+.p5-bar.v2 i{background:var(--gantt-edge2)}
+.p5-bar.plan{background:#F5F6F4;border-style:dashed;border-color:var(--s4);color:var(--muted)}
+.p5-bar.plan i{background:var(--s4)}
+.p5-bar.plan.over{background:var(--rose-bg);border-color:#D8A9A6;color:var(--rose);font-weight:600}
+.p5-bar.plan.over i{background:var(--rose)}
+
+/* --------------------------------- P5 · project bar vs. task bars (v1.2.3)
+   The expanded track draws two tiers: the project's own timeline (.p5-pbar,
+   the same envelope the collapsed row's consolidated bar shows, now itself a
+   live balloon) and, underneath it, one .p5-bar.task per real phase at HALF
+   its height (ToR: "sub action timeline will be half slimmer than project
+   timeline"). A project with no real phases gets only the project bar — it
+   IS that project's one window, dashed/planned styling included, and it is
+   always draggable (ToR ask 3), so there is never a project with nothing to
+   adjust. Height changes only; overlay()/pos() maths — and so every x
+   position on this track — is untouched. */
+.p5-track.detail{min-height:60px}
+.p5-track.detail .p5-pbar{position:absolute;height:26px;top:9px;z-index:2;
+  border-radius:999px;box-sizing:border-box;
+  background:var(--gantt-fill);border:1px solid var(--gantt-edge);
+  display:flex;align-items:center;gap:7px;padding:0 10px;font-size:12.5px;
+  font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden}
+.p5-track.detail:not(.has-tasks) .p5-pbar{top:50%;transform:translateY(-50%)}
+.p5-track.detail .p5-pbar i{width:7px;height:7px;border-radius:50%;
+  background:var(--gantt-edge);flex:none}
+.p5-track.detail .p5-pbar span{overflow:hidden;text-overflow:ellipsis}
+.p5-track.detail .p5-pbar.plan{background:#F5F6F4;border-style:dashed;
+  border-color:var(--s4);color:var(--slate);font-weight:400}
+.p5-track.detail .p5-pbar.plan i{background:var(--s4)}
+.p5-track.detail .p5-pbar.plan.over{background:var(--rose-bg);border-color:#D8A9A6;
+  color:var(--rose);font-weight:600}
+.p5-track.detail .p5-pbar.plan.over i{background:var(--rose)}
+.p5-track.detail .p5-pbar.p5-live{cursor:grab;touch-action:none;
+  -webkit-user-select:none;user-select:none;-webkit-user-drag:none}
+.p5-track.detail .p5-pbar.p5-live:hover{border-color:var(--glass)}
+.p5-track.detail .p5-pbar.p5-live:active{cursor:grabbing}
+.p5-track.detail .p5-pbar.p5-live:focus-visible{outline:2px solid var(--glass);
+  outline-offset:2px}
+.p5-track.detail .p5-pbar.on{box-shadow:0 0 0 2px var(--brass)}
+
+.p5-track.detail.has-tasks .p5-bar.task{top:41px;transform:none;height:13px;
+  padding:0 8px;font-size:11.5px;gap:5px}
+.p5-track.detail.has-tasks .p5-bar.task i{width:5px;height:5px}
+.p5-track.detail.has-tasks .p5-bar.task.tiny{min-width:14px}
+/* the visual pill stays half-height per ToR's ask; the pointer/touch target
+   underneath it does not — an invisible pad restores a reasonable hit area
+   without widening what the eye sees, the same trick the target diamond
+   already uses below. */
+.p5-track.detail.has-tasks .p5-bar.task.p5-live::after{content:'';
+  position:absolute;top:-9px;bottom:-9px;left:-1px;right:-1px}
+
+.p5-mile{position:absolute;top:11px;z-index:4;width:9px;height:9px;
+  transform:translate(-50%,-50%) rotate(45deg);background:var(--brass);border-radius:2px}
+.p5-mile.over{background:var(--rose)}
+.p5-track.detail.has-tasks .p5-mile{top:22px}
+.p5-track.detail:not(.has-tasks) .p5-mile{top:50%}
+.p5-note{position:absolute;top:50%;transform:translateY(-50%);z-index:2;
+  padding-left:10px;font-size:12.5px;color:var(--muted);font-style:italic;white-space:nowrap}
+.p5-note.before{padding:0 10px 0 0;text-align:right}
+.p5-note.over{color:var(--rose);font-style:normal;font-weight:600}
+
+.p5-div{position:absolute;top:22px;bottom:0;width:1px;background:var(--line2);z-index:1}
+/* v1.2.4 — starts at the foot of the chapel's lane, so the line touches the
+   circle and never crosses it (ToR, 12 Sep). */
+.p5-today{position:absolute;top:var(--k-tmlane);bottom:0;width:1.5px;
+  background:var(--rose);opacity:.7;z-index:5;pointer-events:none;margin-left:-.75px}
+/* the "today · <date>" pill is gone (v1.2.3) — K.todayMark (uikit.css §9,
+   frozen) draws a small chapel perched on the line instead, positioned from
+   the same overlay(todayF) value the line itself uses; see p5.js. */
+.p5-empty{font-size:12.5px;color:var(--muted);font-style:italic;padding:6px 0}
+
+/* ============================== P5 · movable balloons (v1.0.1 item 8) ===== */
+/* A balloon is only ever a <button> where the persona may move the record, so
+   a viewer's chart carries no handle, no focus ring and no cursor change. */
+.p5-lead{font-size:14px;color:var(--slate);margin:0 0 var(--gap);max-width:86ch}
+
+.p5-bar.p5-live,.p5-mile.p5-live{cursor:grab;touch-action:none;
+  -webkit-user-select:none;user-select:none;-webkit-user-drag:none}
+.p5-bar.p5-live{text-align:left}
+.p5-mile.p5-live{padding:0}
+/* the diamond is 9px of ink; give the pointer a 23px target around it */
+.p5-mile.p5-live::after{content:'';position:absolute;top:-7px;right:-7px;
+  bottom:-7px;left:-7px}
+.p5-bar.p5-live:hover{border-color:var(--glass)}
+.p5-mile.p5-live:hover{box-shadow:0 0 0 3px rgba(60,99,160,.18)}
+.p5-bar.p5-live:active,.p5-mile.p5-live:active{cursor:grabbing}
+.p5-bar.p5-live:focus-visible,.p5-mile.p5-live:focus-visible{
+  outline:2px solid var(--glass);outline-offset:2px}
+/* the selected balloon — a brass ring, the same "you are editing this" mark the
+   rest of the demo uses, never a tinted card */
+.p5-bar.on{box-shadow:0 0 0 2px var(--brass)}
+.p5-mile.on{box-shadow:0 0 0 3px rgba(154,120,51,.45)}
+
+/* ------------------------- v1.0.3 · bar-end resize grips ----------------- */
+/* Two inert strips inside a live phase balloon. They only exist on a balloon
+   the persona may move, so a viewer's chart carries no resize cursor at all;
+   the middle of the bar keeps the whole-bar move. */
+.p5-h{position:absolute;top:0;bottom:0;width:9px;cursor:ew-resize;
+  border-radius:999px;z-index:3}
+.p5-h.l{left:0}
+.p5-h.r{right:0}
+/* a marker-width bar still gets both ends, narrower, so the middle survives */
+.p5-bar.tiny .p5-h{width:5px}
+/* the grip shows itself only under the pointer — the bar stays a clean pill */
+.p5-bar.p5-live:hover .p5-h,.p5-bar.p5-live.on .p5-h{
+  box-shadow:inset 0 0 0 1px var(--glass)}
+
+/* the keyboard tray, hung under the row it belongs to */
+.p5-edit{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0;
+  padding:9px 14px 9px 12px;background:#FAFBFA;border-bottom:1px solid var(--line2);
+  border-left:3px solid var(--brass)}
+.p5-editlab{font-size:12.5px;color:var(--slate);min-width:0}
+.p5-editlab b{font-weight:600;color:var(--ink)}
+.p5-editlab .num{font-variant-numeric:tabular-nums;color:var(--muted)}
+.p5-nudge{display:flex;gap:5px;flex:none;align-items:center}
+.p5-nlab{font-size:12.5px;font-weight:600;color:var(--muted);white-space:nowrap;
+  margin-right:1px}
+.p5-editnote{font-size:12.5px;color:var(--muted);min-width:0}
+.p5-editerr{font-size:12.5px;font-weight:600;color:var(--rose);
+  border-left:3px solid var(--rose);padding-left:9px;min-width:0}
+
+/* the live date, following the pointer while a balloon is dragged */
+.p5-tip{position:fixed;z-index:90;display:none;transform:translate(-50%,-180%);
+  background:var(--ink);color:#fff;border-radius:var(--r);padding:4px 10px;
+  font-family:var(--f);font-size:12.5px;font-weight:600;white-space:nowrap;
+  pointer-events:none;font-variant-numeric:tabular-nums;
+  box-shadow:0 6px 18px rgba(34,48,59,.28)}
+.p5-tip.on{display:block}
+
+/* ================================================= P9 · administration === */
+/* Seven tabs since v1.1.0. A tab strip that wraps stops reading as one strip:
+   at every width this stays a single row and scrolls sideways instead, with the
+   scrollbar itself hidden because the row is short and the overflow is obvious
+   from the clipped tab. The page never scrolls horizontally — only this row. */
+.p9-tabs{display:flex;gap:2px;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;
+  border-bottom:1px solid var(--line);
+  margin:var(--gap) 0}
+.p9-tabs::-webkit-scrollbar{display:none}
+.p9-tab{flex:none;font-size:12.5px;font-weight:600;color:var(--muted);padding:8px 13px;
+  border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.p9-tab:hover{color:var(--slate)}
+.p9-tab.on{color:var(--ink);border-bottom-color:var(--brass)}
+
+.p9-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap);
+  align-items:start}
+/* pre-existing v1.0.4 defect: app.css pins .tbl to min-width:560px, so the
+   four-column tier table outgrew its half of this row between 1020px (where the
+   row collapses) and ~1360px and painted over the card beside it. Inside a
+   .p9-two the table scrolls in its own wrapper instead. */
+.p9-two .tblwrap .tbl{min-width:0}
+.p9-two + .card{margin-top:var(--gap)}
+.p9-two .card + .card{margin-top:0}
+.p9-gate p + p{margin-top:8px}
+
+.p9-pill{display:inline-block;font-size:11.5px;font-weight:600;border-radius:999px;
+  padding:1px 9px;border:1px solid var(--line);color:var(--slate);white-space:nowrap}
+.p9-pill.verd{color:var(--verd);border-color:#B9D2C9;background:var(--verd-bg)}
+.p9-pill.brass{color:var(--brass);border-color:#E2D3B4;background:var(--brass-bg)}
+.p9-pill.rose{color:var(--rose);border-color:#E5C6C4;background:var(--rose-bg)}
+
+.p9-rights{font-size:12.5px;color:var(--slate)}
+.p9-sub{display:block;font-size:12.5px;color:var(--muted)}
+.p9-alertv{color:var(--rose);font-weight:700;font-variant-numeric:tabular-nums}
+.p9-note{font-size:12.5px;color:var(--muted);margin-top:11px}
+.p9-note.alert{border-left:3px solid var(--rose);padding-left:10px;color:var(--slate)}
+.p9-empty{font-size:12.5px;color:var(--muted);font-style:italic;padding:4px 0}
+
+.p9-kvs{display:grid;gap:0}
+.p9-kv{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:8px 0;
+  border-bottom:1px solid var(--line2);font-size:14px}
+.p9-kv:last-child{border-bottom:none}
+.p9-kv span{color:var(--slate);font-weight:600;font-size:12.5px}
+.p9-kv b{font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+.p9-kv small{grid-column:1/-1;font-size:12.5px;color:var(--muted)}
+
+.p9-prefs{display:flex;gap:var(--gap);align-items:flex-start;flex-wrap:wrap}
+.p9-prefs .p9-kv{flex:1 1 320px;border-bottom:none;padding:0}
+.p9-list{list-style:none;font-size:14px;color:var(--slate)}
+.p9-list li{padding:6px 0;border-bottom:1px solid var(--line2);display:flex;gap:9px}
+.p9-list li:last-child{border-bottom:none}
+.p9-list li::before{content:'·';color:var(--brass);font-weight:700}
+.p9-int{display:flex;justify-content:space-between;gap:10px;align-items:center;
+  padding:7px 0;border-bottom:1px solid var(--line2);font-size:14px;flex-wrap:wrap;min-width:0}
+.p9-int > span{min-width:0;overflow-wrap:anywhere}
+.p9-int .p9-pill{white-space:normal;text-align:center;min-width:0;overflow-wrap:anywhere}
+.p9-int:last-of-type{border-bottom:none}
+
+/* ===================================================== responsive ======== */
+/* 1100, not 1020: at 1024 each half is ~379px and the four-column tier table
+   still cannot fit one, so the row collapses before that rather than leaving a
+   table scrolling inside a column narrower than its own head. */
+@media(max-width:1100px){
+  .p9-two{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:760px){
+  .p5-legend{margin-left:0;width:100%}
+  /* v1.2.3 audit — --p5-flag stays 152px here. The v1.2.2 audit widened it
+     from 132 to 152 at the wide tier precisely because 132 gave .k-ftxt
+     83px against the 88px "over by 59 d" needs and every figure ellipsised
+     to "over by 5…"; this tier was left at 104px, which gives 64px, so the
+     SAME defect was still live at 390 and read "over b…" — no number at
+     all. The label column still narrows; the flag column may not, because
+     it is the one column on the page that carries a bare figure. */
+  .p5-inner{--p5-lab:180px}
+  /* …and the narrower label column needs a THREE-line reserve, not two: at
+     180px "WE26BGD0005 · Daniel K. · In development" wraps to three lines
+     while "WE26BGD0002 · Anik R. · Submitted" still fits in two, and four
+     of the sixteen rows were 94.5px tall against the rest at 77px. Measured
+     per tier, like every other reserve in this pass. */
+  .p5-lab small{min-height:53px}
+  /* K.viewBar's own .k-bacts assumes room for one or two short buttons; this
+     page's head carries a licence badge plus two buttons, which is more than
+     fits on one line under ~760px. Scoped to .p5-page so no other consumer
+     of the shared bar is affected. */
+  .p5-page .k-bacts{flex-direction:column;align-items:stretch;width:100%}
+  .p5-page .k-bacts > *{width:100%;text-align:center;justify-content:center}
+}
+@media(max-width:520px){
+  .p5-edit{gap:7px;padding:9px 10px}
+  .p5-editnote{width:100%}
+  .p5-fcell{padding:8px 10px 8px 6px;gap:5px}
+  .p9-prefs .p9-kv{flex:1 1 100%}
+  /* the integration rows carry long capsule text — stack them rather than
+     letting a nowrap capsule set the page width */
+  .p9-int{flex-direction:column;align-items:flex-start;gap:5px}
+  .p9-int .p9-pill{text-align:left}
+  .p9-kv{grid-template-columns:minmax(0,1fr)}
+  .p9-kv b{text-align:left}
+}

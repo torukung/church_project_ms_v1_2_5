@@ -1,0 +1,358 @@
+/* ============================================================================
+   v101-msg.css — Messages & alerts hub (#/messages, P11), v1.2.4 rebuild.
+   Every selector is prefixed .p11-. Tokens, spacing and type come from
+   css/app.css; nothing there is redefined here. One family, sentence case,
+   tabular numerals on every count/date, 3px left rule for the alert grammar,
+   every grid track a fixed px or minmax(0,1fr) so left edges hold across
+   every row at a given width (measured with getBoundingClientRect, not
+   eyeballed — see docs/CORE_API_v1.2.3.md §3 for why that discipline matters
+   here more than anywhere else on this page).
+
+   Six type colours (v1.2.4, item 1) are page-local literals — uikit.css/
+   app.css are frozen and carry no such tokens, and CORE_API §7's own
+   precedent (`.p11-kind.note` already used a literal border colour) is a
+   page defining its own hues in its own file. Each pair is ≥4.99:1 for its
+   own text on its own background (measured with the same relative-luminance
+   formula tools/ux_audit_v120.js uses); the two that ARE existing brand
+   tokens (approval → --brass, decision → --verd, question → --glass) are
+   named so a hue is never invented twice. */
+
+.p11-page{min-width:0}
+
+/* ------------------------------------------------- "N new since you arrived"
+   The 3px-rule alert grammar: a rule and a red number, never a tinted panel. */
+.p11-new{margin:var(--gap) 0 0;padding:10px 14px;background:#fff;
+  border:1px solid var(--line);border-left:3px solid var(--rose);
+  border-radius:var(--r);font-size:12.5px;color:var(--slate)}
+.p11-new b{color:var(--rose);font-weight:700;font-variant-numeric:tabular-nums}
+
+/* the per-user "cleared" banner (item 5) — same 3px-rule grammar, brass
+   because nothing was lost, only tidied; the Undo sits inline, not as a
+   second control block, so "in the same breath" is true of the layout too */
+.p11-cleared{margin:var(--gap) 0 0;padding:10px 14px;background:#fff;
+  border:1px solid var(--line);border-left:3px solid var(--brass);
+  border-radius:var(--r);font-size:12.5px;color:var(--slate);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.p11-cleared b{color:var(--brass);font-weight:700;font-variant-numeric:tabular-nums}
+.p11-undo{flex:none;font-size:12.5px;font-weight:700;color:var(--brass);
+  text-decoration:underline;text-underline-offset:2px;background:none;border:none;padding:4px 2px}
+.p11-undo:hover{color:var(--ink)}
+
+/* item 8 — the one-line pointer where "My alerts" used to sit */
+.p11-moved{margin:var(--gap) 0 0;font-size:12.5px;color:var(--muted)}
+.p11-moved a{color:var(--brass);font-weight:600;text-decoration:underline;text-underline-offset:2px}
+.p11-moved a:hover{color:var(--ink)}
+
+.p11-page .card{margin-top:var(--gap)}
+
+/* ====================================================== pinned projects === *
+   v1.2.4 (item 7) — the card's job is the unread messages on that project:
+   the count leads, every one of them is listed (not just the newest), each
+   is a link into the thread, and one button clears them all from here. */
+
+.p11-pins{display:flex;flex-wrap:wrap;gap:var(--gap);min-width:0}
+.p11-pin{flex:1 1 268px;min-width:0;display:flex;flex-direction:column;
+  border:1px solid var(--line);border-left:3px solid var(--ccx,var(--cc-x-line));
+  border-radius:var(--r);padding:13px 15px;background:#fff}
+.p11-pintop{display:flex;align-items:center;gap:8px;min-width:0}
+.p11-pinid{font-size:11.5px;font-weight:600;color:var(--brass);min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.p11-x{margin-left:auto;flex:none;font-size:12.5px;line-height:1;color:var(--muted);
+  border:1px solid var(--line);border-radius:999px;padding:3px 7px;background:#fff}
+.p11-x:hover{border-color:var(--rose);color:var(--rose)}
+.p11-pinname{display:block;font-size:14px;font-weight:600;line-height:1.35;margin-top:3px;
+  min-width:0;overflow-wrap:break-word}
+.p11-pinmeta{font-size:12.5px;color:var(--muted);margin-top:2px}
+.p11-pinmeta .ccflag{margin-right:5px;vertical-align:-1px}
+.p11-pincount{font-size:16px;font-weight:700;color:var(--slate);margin-top:8px}
+.p11-pincount b{font-size:20px;font-weight:700;color:var(--slate);margin-right:4px}
+.p11-pincount.hot,.p11-pincount.hot b{color:var(--rose)}
+.p11-pinlist{margin-top:9px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.p11-pinmsg{display:flex;align-items:flex-start;gap:8px;text-decoration:none;min-width:0;
+  padding:6px 7px;border-radius:var(--r);border:1px solid var(--line2)}
+.p11-pinmsg:hover{border-color:var(--brass);background:var(--brass-bg)}
+.p11-pinmsg .p11-kind{flex:none}
+.p11-pinmsgtx{min-width:0;display:flex;flex-direction:column;gap:1px}
+.p11-pinmsgtx b{font-size:12.5px;font-weight:600;color:var(--ink)}
+.p11-pinmsgtx span{font-size:12.5px;color:var(--slate);overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;max-width:34ch}
+.p11-pin .btn{margin-top:9px;align-self:flex-start}
+.p11-pinsnip{font-size:12.5px;color:var(--muted);margin-top:8px;font-style:italic;min-width:0;
+  overflow-wrap:break-word}
+.p11-link{display:inline-block;margin-top:10px;font-size:12.5px;font-weight:600;
+  color:var(--glass);text-decoration:none}
+.p11-link:hover{text-decoration:underline}
+.p11-pin .p11-link{margin-top:auto;padding-top:10px}
+
+/* ============================================================ empty states ==*/
+
+.p11-empty{padding:14px 0 4px}
+.p11-empty b{display:block;font-size:14px;font-weight:600}
+.p11-empty span{display:block;font-size:12.5px;color:var(--muted);margin-top:4px;max-width:72ch}
+.p11-emptyacts{margin-top:12px}
+.p11-err{margin:10px 0 0;padding:8px 12px;background:#fff;border:1px solid var(--line);
+  border-left:3px solid var(--rose);border-radius:var(--r);font-size:12.5px;
+  color:var(--rose);font-weight:600}
+
+/* ==================================================== multi-select toolbar ==*/
+
+.p11-toolbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:10px 2px;border-bottom:1px solid var(--line2);margin-bottom:2px;min-width:0}
+.p11-selall{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;
+  color:var(--slate);cursor:pointer}
+.p11-selcount{font-size:12.5px;color:var(--muted);flex:1 1 auto;min-width:0}
+.p11-toolbar .btn .n{margin-left:6px}
+
+/* =============================================================== the list = */
+
+.p11-list{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;
+  min-width:0}
+
+/* country / project / sender group header — same grammar as the P3 register:
+   pastel BOLD background, 3px rule in the flag accent when a country is
+   known, --slate for the label because --muted does not clear 4.5:1 on the
+   pastels (--slate clears 5.5:1+ on all seven, and on the neutral cc-x tint). */
+.p11-ghd{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:9px 14px;background:var(--ccb,var(--cc-x-bold));
+  border-bottom:1px solid var(--line);border-top:1px solid var(--line);
+  border-left:3px solid var(--ccx,var(--cc-x-line))}
+.p11-list > .p11-ghd:first-child{border-top:none}
+.p11-ghd b{font-size:14px;font-weight:700;color:var(--ink)}
+.p11-ghd .cnt{font-size:12.5px;color:var(--slate)}
+.p11-ghd .rt{margin-left:auto;font-size:12.5px;color:var(--slate);font-weight:600}
+.p11-ghd .rt.hot{color:var(--rose);font-weight:700}
+.p11-ghpid{font-size:11.5px;font-weight:600;color:var(--brass)}
+
+/* ---------------------------------------------------------------- the row --
+   Item 2/3: one fixed grid for every row at a given width, so column left
+   edges are identical row to row (tools/tmp_p11.js measures this, per row,
+   at all five widths). Column 1 is the type/country/project stack; the
+   frame after it is Date · Status(flag + unread tag + select) · Sender ·
+   Subject, each its own track — never a flex row where a neighbour's content
+   can push a column's start left or right. Row 2 of the grid is the one-line
+   body; row 3, only when open, is the expansion panel spanning every
+   column. */
+.p11-row{display:grid;
+  grid-template-columns:140px 82px 118px 118px minmax(120px,1fr);
+  column-gap:12px;row-gap:5px;align-items:start;
+  padding:12px 14px;min-width:0;
+  border-bottom:1px solid var(--line2);
+  box-shadow:inset 3px 0 0 var(--ccx,var(--cc-x-line))}
+.p11-row:last-child{border-bottom:none}
+.p11-row.open{background:#FCFDFC}
+/* a flagged row stacks the brass priority rule INSIDE the country rule —
+   both signals survive, neither becomes a tinted card */
+.p11-row.pri{box-shadow:inset 3px 0 0 var(--ccx,var(--cc-x-line)),
+  inset 6px 0 0 var(--brass)}
+
+/* -------------------------------------------------------------- column 1 --
+   type tag · country flag · project id, all left-aligned to the same edge,
+   one fixed width so the tag/flag/id column reads as a clean stack. */
+.p11-c1{grid-column:1;grid-row:1/3;display:flex;flex-direction:column;
+  align-items:flex-start;gap:5px;min-width:0}
+.p11-c1cc{font-size:11.5px;font-weight:600;color:var(--slate);white-space:nowrap;
+  display:inline-flex;align-items:center;gap:4px}
+.p11-c1cc .ccflag{font-size:12.5px}
+.p11-c1pid{font-size:11.5px;font-weight:700;color:var(--brass);text-decoration:none;
+  white-space:nowrap}
+.p11-c1pid:hover{text-decoration:underline}
+
+/* the kind tag — item 1: text and weight/colour only, no glyph, one FIXED
+   width for all six so the column is a clean stack regardless of label
+   length ("Approval note" is the longest at 13 characters and sets the
+   floor; measured at 11.5px/600, see tools/tmp_p11.js's run for the exact
+   px this shipped at). */
+.p11-kind{display:inline-flex;align-items:center;justify-content:center;
+  width:112px;max-width:112px;height:20px;flex:none;
+  font-size:11.5px;font-weight:700;letter-spacing:.01em;
+  border-radius:999px;white-space:nowrap;overflow:hidden}
+.p11-t-comment{background:#EEF0EC;color:#3F4B54}
+.p11-t-approval{background:var(--brass-bg);color:var(--brass)}
+.p11-t-question{background:#EAF0FA;color:var(--glass)}
+.p11-t-decision{background:#EAF6F1;color:var(--verd)}
+.p11-t-note{background:#F5F0FA;color:#5B4A8A}
+/* v1.2.4 AUDIT D7 — this pair was #EEF1F2/#4B565E, which is ΔE2000 2.6 from
+   Comment's #EEF0EC ground and 3.9 from its text: two of the six "a background
+   colour each" tags were, measurably, the same chip. System is the machine
+   voice, so it takes the separation on LIGHTNESS rather than hue (every pastel
+   hue slot is already spoken for, and pushing it blue collided with Question).
+   Re-measured: ΔE2000 to the nearest other tag ground is now 6.4 (Question) and
+   6.5 (Comment), to the nearest country band 7.2 (KHM), text 8.1:1 on its own
+   ground. */
+.p11-t-system{background:#D2D8DB;color:#2E3A42}
+
+/* ----------------------------------------------------------- the frame ---- */
+
+.p11-date{grid-column:2;grid-row:1;font-size:12.5px;color:var(--slate);
+  font-variant-numeric:tabular-nums;padding-top:2px;white-space:nowrap}
+
+/* min-height is load-bearing, not cosmetic: this cell holds three different
+   things (a 16px checkbox, an 11.5px read tag at 17.8px, a 12.5px flag glyph at
+   19.4px) and in the STACKED tier it is a row of its own, so its own height
+   lands straight in the row's. Measured at 900px before this line: four
+   distinct collapsed-row heights down one list (177.2 / 175.7 / 173.9 / 172.9),
+   tracking exactly which of the three that row happened to carry. One floor,
+   one row height. */
+.p11-status{grid-column:3;grid-row:1;display:flex;align-items:center;gap:7px;min-width:0;
+  min-height:20px}
+/* v1.2.2 audit lesson repeats here — a bare checkbox is the one control type
+   that does not inherit the app's font, so it renders Arial/13.33px and is
+   the reason ux_probe reports fonts=[Source Sans 3|Arial] on this page
+   unless every checkbox is told otherwise. font-family only: the full
+   `font` shorthand would also move the box's size. */
+.p11-chk{font-family:inherit;width:16px;height:16px;flex:none;accent-color:var(--brass)}
+.p11-flag{flex:none;color:var(--brass);font-size:12.5px;font-weight:700}
+.p11-unreadtag{font-size:11.5px;font-weight:700;color:var(--rose);white-space:nowrap}
+.p11-unreadtag:not(.on){font-weight:600;color:var(--muted)}
+/* v1.2.4 — an activity row has no per-user read state (read marks resolve
+   through CBP.commentById, which only knows state.comments). It gets a drawn
+   rule, not a character: a text node this faint measures 1.27:1 and is read as
+   a contrast failure on 33 rows, and a dash in the Read column also implies a
+   read state that does not exist. The .vh label carries the real meaning. */
+.p11-unreadtag.na{display:inline-flex;align-items:center;justify-content:center;
+  min-width:34px}
+.p11-unreadtag.na .p11-namark{display:block;width:10px;height:1px;
+  background:var(--line)}
+
+.p11-sender{grid-column:4;grid-row:1;font-size:12.5px;color:var(--ink);font-weight:600;
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-top:2px}
+
+.p11-subj{grid-column:5;grid-row:1;display:flex;align-items:baseline;gap:7px;min-width:0;
+  background:none;border:none;padding:2px 0;text-align:left;font:inherit;cursor:pointer}
+.p11-subj b{font-size:14px;font-weight:600;line-height:1.3;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.p11-row.unread .p11-subj b{font-weight:700}
+.p11-chev{flex:none;color:var(--muted);font-size:11.5px;margin-left:auto}
+
+/* v1.2.4 AUDIT D4 — still ONE line (ToR's ruling), but clamped rather than
+   nowrap+ellipsis. A character-level ellipsis cut lands wherever the pixels run
+   out, and it landed inside a date twice in the sweep: "…silence since the 14
+   Jul resubmission" rendered as "…silence since the 1…" at 1024, and "…the 30
+   Sep finish" as "…the 3…" at 390. That is the "197 read as 19" defect
+   CORE_API_v1.2.3 §3 forbids categorically ("nothing that carries a unit may
+   ellipsis-cut it"), and the body line carries figures, dates and money.
+   -webkit-line-clamp lays the text out with normal wrapping and cuts at the
+   line-1 break, which is a WORD boundary, so a number is never split; the full
+   text stays on `title`. Height is one line either way, so the row grid is
+   unchanged. */
+.p11-body{grid-column:2/6;grid-row:2;font-size:14px;line-height:1.45;color:var(--slate);
+  min-width:0;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;
+  overflow:hidden;overflow-wrap:break-word}
+/* the atomic figure box (see p11.js `atomicNums`). `display:inline-block` is
+   the whole point: an atomic inline-level box is painted whole or not at all,
+   so a date or an amount can never render as a shorter number that still looks
+   complete. Measured both ways before settling on the clamp above:
+   `text-overflow:ellipsis` does NOT honour the atomicity (it half-painted 112
+   figures across the sweep, e.g. "15 Sep" straddling the edge at 1440);
+   `-webkit-line-clamp` does (0 of 3920). */
+.p11-body .p11-n{display:inline-block;white-space:nowrap}
+.p11-row.unread .p11-body{font-weight:600;color:var(--ink)}
+
+.p11-panelwrap{grid-column:1/-1;grid-row:3}
+
+/* ------------------------------------------------- expanded thread panel - */
+
+.p11-panel{padding:14px 0 4px;border-top:1px solid var(--line2);margin-top:10px}
+.p11-pacts{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.p11-pacts .btn.on{border-color:#E2D3B4;color:var(--brass);background:var(--brass-bg)}
+.p11-ph{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  font-size:12.5px;font-weight:600;color:var(--slate);margin:0 0 8px}
+.p11-ph .num{font-weight:400;color:var(--muted)}
+
+.p11-feed{list-style:none;min-width:0}
+.p11-feed li{padding:9px 0 9px 12px;border-left:3px solid var(--line2);min-width:0}
+.p11-feed li + li{margin-top:2px}
+.p11-feed li.on{border-left-color:var(--brass)}
+.p11-feed li.unread{border-left-color:var(--rose)}
+.p11-fh{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;min-width:0}
+.p11-fh .p11-kind{width:auto;max-width:none;padding:1px 9px;height:auto}
+.p11-fh b{font-size:14px;font-weight:600}
+.p11-fh .num{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.p11-fh .p11-ed{font-size:12.5px;color:var(--muted)}
+.p11-fb{display:block;font-size:14px;line-height:1.55;color:var(--slate);margin-top:2px;
+  min-width:0;overflow-wrap:break-word}
+.p11-feed li.unread .p11-fb{font-weight:600;color:var(--ink)}
+
+.p11-fullbody{font-size:14px;line-height:1.55;color:var(--slate);margin:0 0 10px;
+  min-width:0;overflow-wrap:break-word}
+.p11-hint{font-size:12.5px;color:var(--muted);min-width:0;max-width:70ch}
+
+/* ------------------------------------------------------------ quick reply - */
+
+.p11-composer{margin-top:12px;border-top:1px solid var(--line2);padding-top:12px;
+  min-width:0}
+.p11-input{font:inherit;font-size:12.5px;line-height:1.55;color:var(--ink);width:100%;
+  padding:8px 11px;border:1px solid var(--line);border-radius:var(--r);background:#fff;
+  min-width:0;resize:vertical}
+.p11-input:focus{outline:none;border-color:var(--brass);
+  box-shadow:0 0 0 3px rgba(154,120,51,.12)}
+.p11-cacts{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.p11-list + .p11-err{margin-top:var(--gap)}
+.p11-ed{font-style:italic}
+
+/* =========================================================== responsive == */
+
+/* v1.2.4 AUDIT D1 — this breakpoint was 860px, read off the VIEWPORT, and the
+   grid above needs 640px of ROW content (140+82+118+118+120 + 4x12 gap + 28
+   padding). Those are not the same measurement, and CORE_API_v1.2.3 §3 says so
+   in as many words: the sidebar collapses to a top strip at 880px, so the card
+   is WIDER at 879 than at 881. Measured with getBoundingClientRect on every
+   width from 1040 down to 850: the row's content box is w-312 while the sidebar
+   is expanded and w-74 once it is not, so from 881 to 950 the row had 569-638px
+   for a 640px grid and overflowed by up to 71px — silently, because
+   .p11-list{overflow:hidden} clips it instead of scrolling, so no hscroll gate
+   and no ux_probe width (1440/1280/1024/768/390) ever saw it. The Subject
+   column, the chevron and the tail of the body line were painted outside the
+   card on 70 consecutive widths. The stacked tier now starts at 959px, the
+   first width at which the wide grid is proven to fit with headroom (960 gives
+   648px for 640). Do not lower it back toward the viewport number: re-measure
+   the ROW, not the window. */
+@media(max-width:959px){
+  /* one column, stacked in source order (c1 · date · status · sender ·
+     subject · body · panel) — every explicit grid-row/column the wide tier
+     sets is cleared back to auto, so placement falls out of document order
+     and every row's columns share the same x trivially, by having only one. */
+  .p11-row{grid-template-columns:minmax(0,1fr);row-gap:6px;padding:12px 14px}
+  .p11-c1{grid-column:1;grid-row:auto;flex-direction:row;align-items:center;gap:8px}
+  /* v1.2.5 S3 (F11) — in the stacked tier column-one is a horizontal strip
+     (kind · country · id). The kind tag is a fixed 112px, but the country code
+     is natural-width (IND 43.5px … MMR 51.8px), so the project id that follows
+     it started at a different x on every row (2–4px drift off the stack's
+     shared left edge). Pin the country cell to one width ≥ the widest code so
+     the id lands at the same x down the whole list. */
+  .p11-c1cc{min-width:54px}
+  .p11-date{grid-column:1;grid-row:auto;padding-top:0}
+  .p11-status{grid-column:1;grid-row:auto}
+  .p11-sender{grid-column:1;grid-row:auto;padding-top:0}
+  .p11-subj{grid-column:1;grid-row:auto}
+  .p11-body{grid-column:1;grid-row:auto}
+  .p11-panelwrap{grid-column:1;grid-row:auto}
+}
+@media(max-width:760px){
+  .p11-pin{flex:1 1 100%}
+}
+@media(max-width:520px){
+  .p11-row{padding:11px 12px}
+  .p11-ghd{padding:9px 12px}
+  .p11-panel{padding-left:0;padding-right:0}
+  .p11-pinmsgtx span{max-width:22ch}
+}
+
+/* v1.2.1 R4 pattern (app.css) already lifts .btn/.chip to 40/36px min-height
+   below 768px; the controls it does not know about — the raw checkboxes, the
+   borderless subject button, the bare project-id and "Admin › Alerts" links —
+   get the same 32px floor here (measured: unpadded these landed at 22x22 and
+   15px tall respectively, both under the touch-target minimum). The visible
+   checkbox glyph stays small; the box itself, which is what a tap actually
+   hits, does not. */
+@media(max-width:768px){
+  .p11-chk{width:32px;height:32px}
+  .p11-status{gap:4px}
+  .p11-subj{min-height:40px;align-items:center}
+  .p11-c1pid{padding:9px 0;display:inline-block;min-height:32px}
+  .p11-x{min-width:32px;min-height:32px}
+  .p11-undo{min-height:32px;padding:6px 4px}
+  .p11-moved a{display:inline-block;padding:9px 0;min-height:32px}
+  .p11-selall{min-height:32px}
+  .p11-link{min-height:32px;display:inline-flex;align-items:center}
+}

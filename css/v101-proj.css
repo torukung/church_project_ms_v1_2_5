@@ -1,0 +1,292 @@
+/* ============================================================================
+   v101-proj.css — builder A · P3 register reframe (v1.2.2) + P4 comments /
+   return flow (unchanged since v1.0.1 — P4 is not part of this pass).
+   Tokens and spacing come from app.css and uikit.css only (--paper --card
+   --ink --slate --muted --line --line2 --brass --verd --glass --rose
+   --rose-bg --r --pad --gap --shadow). One family, sentence-case labels,
+   tabular-nums on every money and count, every grid track minmax(0,1fr).
+
+   Type scale is the v1.2.2 six-step set and nothing else in this file:
+     11.5 tags/counts · 12.5 meta/body-secondary · 14 row title · 16 name ·
+     20 (unused here) · 25 (unused here)
+   ========================================================================= */
+
+/* ==================================== P3 · country chip identity ========== */
+/* The status and country chips are the kit's own .k-chip (uikit.css) so they
+   read identically to every other filter chip in the app — this file adds
+   exactly one thing on top: a selected COUNTRY chip keeps that country's own
+   flag-colour identity instead of the generic dark "on" fill, so it reads as
+   "Bangladesh" and not just "a chip that is on". Status chips need nothing
+   extra; they use the kit's default on-state. */
+.k-bcountry .k-chip.ccsel .ccflag{margin-right:1px}
+.k-bcountry .k-chip.ccsel.on{
+  background:var(--ccb,var(--glass));border-color:var(--ccx,var(--glass));
+  color:var(--ink);font-weight:600;box-shadow:inset 3px 0 0 var(--ccx,var(--glass))}
+.k-bcountry .k-chip.ccsel.on .n{background:rgba(34,48,59,.10);color:var(--slate)}
+.k-bcountry .k-chip.ccsel.on:hover{border-color:var(--ccx,var(--glass))}
+.k-bcountry .k-chip.ccsel.on:focus-visible{outline-color:var(--ccx,var(--glass))}
+
+/* ==================================== P3 · the register ==================== */
+.preg{min-width:0}
+
+/* five fixed columns, no wrap: name | status+gate | flag | budget | comments,
+   plus one narrow track that reserves the chevron's own space so it never
+   collides with the comments pill. Named areas so the responsive rewrites
+   below only ever change the grid, never the markup or the JS. */
+.preg .lhead,.xsum{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 208px 150px 128px 96px 22px;
+  grid-template-areas:"name stage flag budget cmt chev";
+  gap:14px;align-items:center;min-width:0}
+/* v1.2.5 S3 (F9) — the header row must sit in the SAME inset box the project
+   rows do, not span the full .preg. A row's content box is inset from .preg by
+   the country card (.cbody margin-left 12 + padding-left 12), the row card
+   border (1px) and the button's own padding (16px left / 40px right):
+   left = 12+12+1+16 = 41px, right = 12+1+40 = 53px. Match those insets here so
+   the header's fixed grid tracks line up with the rows' at every width the
+   header is shown (861px+; it is display:none below). */
+.preg .lhead{padding:9px 53px 9px 41px;font-size:11.5px;font-weight:600;color:var(--muted)}
+.preg .lhead .r{text-align:right}
+.l-name{grid-area:name}.l-stage{grid-area:stage}.l-flag{grid-area:flag}
+.l-budget{grid-area:budget}.l-cmt{grid-area:cmt}.l-chev{grid-area:chev}
+
+.cgrp{margin-bottom:var(--gap);min-width:0}
+
+/* project rows sit on white cards inset under the (always-open) country
+   band, joined to it by one hairline, so "country" can never be mistaken
+   for "project" — carried forward from v1.0.3 onto the kit's own band. */
+.cbody{margin-left:12px;padding:2px 12px 12px;
+  background:var(--ccl,var(--cc-x-light));
+  border-left:1px solid var(--ccx,var(--line));
+  border-radius:0 0 var(--r) var(--r)}
+.k-band + .cbody{border-radius:0 0 var(--r) var(--r)}
+
+/* ------------------------------------------------ C-05 collapsible row --- */
+/* CORE_API §2 markup contract: a button the kit's own delegated listener
+   toggles, not <details>, so a re-render can never lose open/closed state. */
+.xrow{position:relative;margin-top:8px;background:var(--card);
+  border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);
+  overflow:hidden}
+.xrow::before{content:"";position:absolute;left:-12px;top:24px;
+  width:12px;height:1px;background:var(--line)}
+.xrow[data-open="true"]{box-shadow:var(--shadow),inset 0 0 0 1px var(--line2)}
+
+.xsum{width:100%;font:inherit;text-align:left;color:inherit;background:none;
+  border:none;padding:11px 40px 11px 16px;position:relative;cursor:pointer}
+.xsum:hover{background:#FBFCFA}
+.xrow[data-open="true"] .xsum{background:#F8FAF8;border-bottom:1px solid var(--line2)}
+
+.xc{min-width:0}
+.xc-name{grid-area:name;display:flex;align-items:baseline;gap:8px;min-width:0}
+.xc-name .id{flex:none;font-size:11.5px;color:var(--muted)}
+.xc-name b{font-size:16px;font-weight:600;color:var(--ink);min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.xc-stage{grid-area:stage;min-width:0}
+.xstg{display:block;min-width:0}
+/* v1.2.3 audit — was nowrap + ellipsis in a 208px (176px at 1024) track, so
+   every figure on this line was cut: "gate · CHaS waiting 197 d" rendered
+   "…waiting 19…" (197 read as 19) and "in development · target 15 Sep (18 d)"
+   rendered "…target 1…". P6's own meta line was given exactly this rule in
+   this pass ("Nothing that carries a unit may ellipsis-cut it: the meta line
+   wraps, never truncates, and every row reserves TWO lines of meta height
+   regardless"); Projects is the same collapsed-row grammar and now follows
+   it, so the two pages read as one product and no day count is ever a
+   different number. min-height reserves the second line unconditionally, so
+   a row that needs one line is not shorter than its neighbour that needs
+   two — every collapsed row keeps the same height at a given width. */
+.xstg small{display:block;font-size:12.5px;line-height:1.4;color:var(--muted);
+  margin-top:3px;white-space:normal;overflow-wrap:normal;word-break:normal;
+  min-height:35px}
+.xstg small.hot{color:var(--rose);font-weight:600}
+.xstg small.warm{color:var(--brass);font-weight:600}
+
+.xc-flag{grid-area:flag;min-width:0}
+
+.xc-budget{grid-area:budget;text-align:right;min-width:0}
+.xc-budget b{font-size:14px;font-weight:600;color:var(--ink)}
+.xc-budget small{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+
+.xc-cmt{grid-area:cmt;display:flex;justify-content:flex-end;min-width:0}
+
+.xchev{grid-area:chev;position:absolute;right:14px;top:50%;
+  transform:translateY(-50%);color:var(--muted);font-size:11.5px}
+
+/* the conversation pill — count, plus a dot when something is unread for you */
+.cpill{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;
+  color:var(--slate);background:var(--card);border:1px solid var(--line);
+  border-radius:999px;padding:3px 10px;white-space:nowrap;position:relative}
+.cpill .ic{color:var(--muted);font-size:11.5px;line-height:1}
+.cpill:hover{border-color:var(--muted)}
+.cpill.none{color:var(--muted);border-style:dashed}
+.cpill.unread{color:var(--ink)}
+.cpill .dot{width:7px;height:7px;border-radius:50%;background:var(--rose);flex:none}
+.cpill:focus-visible{outline:2px solid var(--glass);outline-offset:1px}
+
+.cempty{border:1px solid var(--line);border-radius:var(--r);background:var(--card);
+  padding:var(--pad);display:flex;gap:10px;flex-wrap:wrap;align-items:baseline}
+.cempty b{font-size:14px;font-weight:700}
+.cempty span{font-size:12.5px;color:var(--muted)}
+
+/* ==================================== P3 · the expansion ==================
+   Inline segment tabs (K.segTabs) sit at the top; the body below them is
+   whichever one of Status / Timeline / Budget / Contract / Comments is
+   current. `.ph`, `.pmeta`, `.gnote`, `.stepline` are the app's shared
+   record-panel primitives (app.css / p4p6.css) — reused as-is, never
+   redeclared here. */
+.xpanel{padding:2px 16px 18px}
+.xprog{margin-top:12px}
+
+.xbud-row{display:flex;align-items:baseline;gap:10px;margin:14px 0 10px}
+.xbud-amt{font-size:20px;font-weight:700;color:var(--ink)}
+.xbud-lab{font-size:12.5px;color:var(--muted)}
+
+.xc-state{font-size:14px;color:var(--slate);margin:14px 0 4px}
+.xc-state b{color:var(--ink);font-weight:600}
+.xc-state .neg{color:var(--rose)}
+
+/* ==================================== P4 · breadcrumb + strips =========== */
+.p4-crumb{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.p4-crumb a{color:var(--glass);text-decoration:none}
+.p4-crumb a:hover{text-decoration:underline}
+.p4-crumb .sep{color:var(--muted);font-weight:400}
+.p4-crumb b{color:var(--ink);font-weight:600}
+.p4-crumb .pid{color:var(--brass);font-weight:600}
+
+/* alert rule: 3px left rule and a red value, no tinted card (design rule 4) */
+.p4-unread{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  margin:0 0 var(--gap);padding:10px 14px;background:var(--card);
+  border:1px solid var(--line);border-left:3px solid var(--rose);
+  border-radius:var(--r);font-size:12.5px;color:var(--slate)}
+.p4-unread b{font-size:16px;font-weight:700;color:var(--rose);line-height:1}
+.p4-unread .sp{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.p4-inlink{font:inherit;font-weight:600;color:var(--glass);text-decoration:underline;
+  padding:0;background:none;border:none}
+.p4-inlink:hover{color:var(--ink)}
+
+.p4-return{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  margin:0 0 var(--gap);padding:11px 14px;background:var(--card);
+  border:1px solid var(--line);border-left:3px solid var(--verd);
+  border-radius:var(--r);font-size:12.5px;color:var(--slate)}
+.p4-return b{font-size:14px;font-weight:700;color:var(--verd)}
+.p4-return .sp{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+
+.p4-desc{font-size:14px;color:var(--slate);line-height:1.5;margin-top:11px;
+  padding-top:11px;border-top:1px solid var(--line2)}
+.p4-desc.empty{color:var(--muted);font-style:italic;font-size:12.5px}
+
+/* ==================================== P4 · comments feed ================= */
+.cm-card{padding:0}
+.cm-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:13px var(--pad);border-bottom:1px solid var(--line)}
+.cm-htitle{min-width:0}
+.cm-htitle b{font-size:12.5px;font-weight:600;color:var(--slate)}
+.cm-htitle small{display:block;font-size:12.5px;color:var(--muted);margin-top:1px}
+.cm-hacts{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+
+.cm-feed{max-height:560px;overflow-y:auto;padding:4px var(--pad) 0}
+.cm{display:flex;gap:11px;padding:13px 0;border-bottom:1px solid var(--line2)}
+.cm:last-child{border-bottom:none}
+.cm.unread{border-left:3px solid var(--rose);padding-left:11px;margin-left:-14px}
+.cm-av{flex:none;width:30px;height:30px;border-radius:50%;background:#EDF0EC;
+  color:var(--slate);font-size:11.5px;font-weight:700;display:flex;
+  align-items:center;justify-content:center}
+.cm-av.note{background:var(--brass-bg);color:var(--brass)}
+.cm-b{min-width:0;flex:1}
+.cm-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:12.5px;
+  color:var(--muted);margin-bottom:4px}
+.cm-meta b{font-size:12.5px;font-weight:600;color:var(--ink)}
+.cm-meta .num{font-variant-numeric:tabular-nums}
+.cm-kind{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;
+  color:var(--brass);background:var(--brass-bg);border:1px solid #E2D3B4;
+  border-radius:999px;padding:1px 9px;white-space:nowrap}
+.cm-kind .ic{font-weight:700;line-height:1}
+.cm-flag{font-size:11.5px;font-weight:600;color:var(--rose);border:1px solid #E5C6C4;
+  border-radius:999px;padding:1px 9px;white-space:nowrap}
+.cm-edited{font-size:11.5px;color:var(--muted);font-style:italic}
+.cm-new{font-size:11.5px;font-weight:700;color:var(--rose)}
+.cm-txt{font-size:14px;line-height:1.5;overflow-wrap:anywhere}
+.cm-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.cm-edit{margin-top:4px}
+
+.cm-composer{border-top:1px solid var(--line);background:#FAFBFA;
+  padding:13px var(--pad)}
+.cm-composer.readonly{font-size:12.5px;color:var(--muted);font-style:italic;
+  border-radius:0 0 var(--r) var(--r)}
+.cm-crow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:9px}
+.cm-crow .sp{margin-left:auto;display:flex;gap:6px}
+.cm-hint{font-size:11.5px;color:var(--muted);flex:1 1 240px;min-width:0}
+.cm-foot{font-size:11.5px;color:var(--muted);padding:11px var(--pad) 13px;
+  border-top:1px solid var(--line2)}
+
+/* the audit stream says, once, where the conversation actually lives */
+.act-sep{font-size:11.5px;color:var(--muted);padding:11px var(--pad);
+  border-bottom:1px solid var(--line2)}
+
+/* ========================================================= responsive ==== */
+
+/* ---- P3 — CORE_API §7: bound at 1100 / 860 / 560, later queries win ----- */
+@media(max-width:1100px){
+  .preg .lhead,.xsum{grid-template-columns:minmax(0,1fr) 176px 132px 104px 40px 22px}
+  .xc-budget small{display:none}
+}
+/* v1.2.5 S3 (F13) — the sidebar-collapse trap. The register's own box is
+   NARROWEST just ABOVE the 880px sidebar collapse (expanded sidebar + narrow
+   viewport → row box ~574px at 881), not at the smallest viewports (at 861,
+   sidebar collapsed, the box is ~790px). So the 6-column single-row layout
+   overflowed its name column across 881–1000 (name track squeezed to 0–74px,
+   the flex:none project id bursting out) — a band no viewport tier reached,
+   because ≤860 keys off the viewport, not the box. Fold that expanded-narrow
+   band into the SAME stacked 2-row layout the ≤860 collapsed-narrow tier uses,
+   and hide the header there (it cannot align with a 2-row grid; F9 keeps it
+   only where the single-row layout is shown). 861–880 stays single-row: there
+   the sidebar has collapsed and the box is wide again. */
+@media(min-width:881px) and (max-width:1000px){
+  .preg .lhead{display:none}
+  .xsum{grid-template-columns:minmax(0,1fr) 132px 166px;
+    grid-template-areas:"name name stage" "flag budget cmt";
+    row-gap:8px;padding:11px 40px 11px 14px}
+  .xc-budget{text-align:left}
+  .xc-cmt{justify-content:flex-start}
+}
+@media(max-width:860px){
+  .preg .lhead{display:none}
+  /* v1.2.3 audit — FIXED tracks, not `auto auto`. Each .xsum is its own grid,
+     so auto tracks size to that ONE row's content: measured at 768 the stage
+     column started at 13 different x positions down a 16-row list and the
+     budget column at 14. The whole point of the fixed-track rewrite was that
+     "whatever a cell holds, its left edge is the same as every other row's",
+     and this tier was the one place it was not true. 132/166 are the same
+     budget and flag widths the 1100 tier uses (stage widened 150→166 in v1.2.5
+     S3 — the widest status pill, "1 Implementation"/"4 In Development", is
+     160px and burst a 150px stage track at 768; F13). */
+  .xsum{grid-template-columns:minmax(0,1fr) 132px 166px;
+    grid-template-areas:"name name stage" "flag budget cmt";
+    row-gap:8px;padding:11px 40px 11px 14px}
+  .xc-budget{text-align:left}
+  .xc-cmt{justify-content:flex-start}
+}
+@media(max-width:560px){
+  .xsum{grid-template-columns:minmax(0,1fr);
+    grid-template-areas:"name" "stage" "flag" "budget" "cmt";
+    row-gap:6px;padding:11px 34px 11px 12px}
+  .xrow::before{left:-8px;width:8px}
+  .cbody{margin-left:8px;padding-left:10px}
+  .xpanel{padding:2px 12px 16px}
+}
+
+/* ---- P4 — unchanged since v1.0.1, P4 is not part of this pass ---------- */
+@media(max-width:520px){
+  .cm-feed,.cm-head,.cm-composer,.cm-foot,.act-sep{padding-left:14px;padding-right:14px}
+  .cm.unread{margin-left:-8px}
+}
+
+/* ------------------------------------------- v1.2.2 · drill crumb (P4) ----
+   The way back when the record was reached by drilling the Budget chart
+   (Ask-gate 2.1) rather than opened from the register. A crumb, not a card:
+   the record's own header is the thing that should carry the eye. */
+.p4-drill{margin:0 0 10px}
+.p4-drill a{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;
+  font-weight:600;color:var(--brass);text-decoration:none;padding:3px 0}
+.p4-drill a:hover{color:var(--ink);text-decoration:underline;text-underline-offset:2px}
+@media (max-width:768px){.p4-drill a{min-height:32px}}

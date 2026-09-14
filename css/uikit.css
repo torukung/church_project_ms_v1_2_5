@@ -1,0 +1,410 @@
+/* ============================================================================
+   uikit.css — v1.2.2 shared view kit
+   Styles for everything uikit.js renders: the framed top bar, the filter and
+   sort strip, the collapsed row grammar, segment tabs, the attention flag,
+   the country band and the wide-table scroll cue.
+
+   Type scale is the v1.2.2 six-step set and nothing else:
+     11.5 tags · 12.5 meta · 14 body · 16 row/card title · 20 section · 25 page
+   Colours come from app.css :root. No literals except the two neutral washes
+   that already exist as --line2 blends.
+   ========================================================================= */
+
+/* ====================================================== 1 · framed bar ==== */
+
+/* v1.2.3 — one shared label-column width for the bar's Status/Country/Extra
+   segments AND the filter strip below them, so the two read as one
+   continuous grid instead of two independent alignments. Sized to fit
+   "Countries", the widest label any page passes as statusLabel/countryLabel
+   (Status 42px / Country 51px / Countries 62.5px / Stage 38px / View 31px
+   at 11.5px/600, measured), with a few px of breathing room. */
+:root{--k-labw:68px}
+
+.k-bar{display:flex;flex-direction:column;gap:0;background:var(--card);
+  border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);
+  margin-bottom:18px;overflow:hidden}
+
+.k-bseg{padding:14px var(--pad);border-top:1px solid var(--line2);min-width:0}
+.k-bseg:first-child{border-top:none}
+
+.k-bhead{padding-bottom:12px}
+.k-bhead .crumb{margin:0 0 6px;font-size:12.5px;color:var(--muted)}
+.k-bhrow{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;min-width:0}
+.k-bhrow h1{font-size:25px;font-weight:700;letter-spacing:-.02em;line-height:1.2;
+  margin:0;min-width:0}
+.k-bhrow .sub{font-size:12.5px;color:var(--muted);min-width:0}
+/* v1.2.2 audit — max-width:100% + min-width:0. `flex:none` alone is
+   `flex:0 0 auto`, so this row never shrank below its max-content width: at
+   390 it measured 715px on Budget and 644px on Contracts inside a 336px bar,
+   and because .k-bar is overflow:hidden with nothing to scroll, "Sync
+   dashboards", "Signature management" and the Expand all control were simply
+   cut off the right edge and could not be reached at all. flex:none still
+   stops the row being squeezed while there IS room; the cap makes it wrap
+   (it already declares flex-wrap) instead of overflowing once there is not. */
+.k-bacts{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;flex:none;
+  max-width:100%;min-width:0}
+
+/* v1.2.3 (ToR realign pass, cause A) — a fixed two-column grid, not a
+   flex row. Flex-wrap made the label and its chip row change places
+   depending on how much content each segment happened to carry: whichever
+   segment's chips were narrow enough sat beside the label, whichever
+   segment's chips were wide enough to force a wrap fell back to the
+   segment's own left padding instead of the label's width — two different
+   left edges for rows that read as one stack (Status above Country above
+   the filter strip). A grid reserves the label column's width up front, so
+   every segment's content starts at the SAME x regardless of how many
+   chips it holds or whether they wrap; a segment that hands K.viewBar more
+   than one content node (P5: a view control plus a legend) still lands in
+   column 2 on its own row, because the column is set on every non-label
+   child, not just the first one. --k-labw is sized to "Countries", the
+   widest label in play (Status/Country/Countries/Stage/View) — see the
+   `.k-flab` rule below for why the filter strip shares it. */
+.k-bstatus,.k-bcountry,.k-bextra{display:grid;
+  grid-template-columns:var(--k-labw) minmax(0,1fr);
+  column-gap:10px;row-gap:8px;align-items:start;background:#FBFCFA}
+.k-bstatus>*,.k-bcountry>*,.k-bextra>*{min-width:0}
+/* v1.2.3 fix — every non-label child used to be its own grid item, so a page
+   that passes loose chips (Projects does) got one full-width chip per line
+   instead of a wrapped row. K.viewBar now wraps the segment's content in ONE
+   .k-bwrap grid item that flex-wraps inside itself; the rule below still
+   catches any caller passing content the wrapper does not cover. */
+.k-bwrap{grid-column:2;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  min-width:0}
+.k-bstatus>:not(.k-blab),.k-bcountry>:not(.k-blab),.k-bextra>:not(.k-blab){
+  grid-column:2}
+.k-blab{grid-column:1;font-size:11.5px;font-weight:600;color:var(--muted);
+  padding-top:5px}
+
+/* ================================================== 2 · filter + sort ===== */
+
+.k-flt{display:flex;align-items:center;gap:10px 16px;flex-wrap:wrap;
+  padding:12px var(--pad);background:#FBFCFA;border:1px solid var(--line);
+  border-radius:var(--r);margin-bottom:10px;min-width:0}
+
+.k-fb{display:flex;align-items:center;gap:7px;min-width:0}
+.k-fb-chips{gap:8px}
+.k-fb-chips.wide{flex:1 1 100%}
+.k-fchips{display:flex;gap:6px;flex-wrap:wrap;min-width:0}
+/* v1.2.3 — same --k-labw as the bar's .k-blab (uikit.css §1), so the filter
+   strip's own labels (Owner, Sort, …) read as a continuation of the bar's
+   label column above them rather than a third, differently-sized alignment.
+   A label longer than the shared width (e.g. "Time in process") just takes
+   the room it needs — min-width only raises the floor for the short ones. */
+.k-flab{font-size:11.5px;font-weight:600;color:var(--muted);flex:none;
+  min-width:var(--k-labw)}
+
+.k-chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;
+  border:1px solid var(--line);background:var(--card);color:var(--slate);
+  border-radius:999px;padding:5px 11px;line-height:1.25;white-space:nowrap}
+.k-chip:hover{border-color:#CFD5CC;color:var(--ink)}
+.k-chip.on{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:600}
+.k-chip .n{font-size:11.5px;color:var(--muted);font-weight:600}
+.k-chip.on .n{color:#D6DCE0}
+.k-chip svg{width:14px;height:10px;flex:none;border-radius:1px}
+
+/* U.countryChips (ui.js) emits .cselect > .cchip and carries no look of its
+   own. Every page that draws its picker inside K.viewBar's frame — P7 and P12
+   today — reads from here; the role homes draw theirs in a card and keep their
+   own copy in home.css. Same declarations as .k-chip above, so a country chip
+   and a status chip are the same object.
+   (v1.2.2 audit: moved out of p12.css, where P7 was silently depending on it.) */
+.k-bar .cselect{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+.k-bar .cslab{font-size:11.5px;font-weight:600;color:var(--muted);flex:none}
+.k-bar .cshint{font-size:11.5px;color:var(--muted);flex:1 1 100%}
+.k-bar .cchip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;
+  border:1px solid var(--line);background:var(--card);color:var(--slate);
+  border-radius:999px;padding:5px 11px;line-height:1.25;white-space:nowrap}
+.k-bar .cchip:hover{border-color:#CFD5CC;color:var(--ink)}
+.k-bar .cchip.on{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:600}
+.k-bar .cchip .n{font-size:11.5px;color:var(--muted);font-weight:600}
+.k-bar .cchip.on .n{color:#D6DCE0}
+.k-bar .cchip svg{width:14px;height:10px;flex:none;border-radius:1px}
+/* C-21 — a selected COUNTRY chip keeps that country's own flag-colour
+   identity instead of the generic dark fill, the way v1.2.1 had it on every
+   page and P3 and the role homes still do. "All countries" is not a country,
+   so it keeps the dark treatment and is the one chip that never tints.
+   (v1.2.2 audit: P7 and P12 had lost this and read differently from P3.) */
+.k-bar .cchip.ccsel .ccflag{margin-right:1px}
+.k-bar .cchip.ccsel.on{background:var(--ccb,var(--glass));
+  border-color:var(--ccx,var(--glass));color:var(--ink);font-weight:600;
+  box-shadow:inset 3px 0 0 var(--ccx,var(--glass))}
+.k-bar .cchip.ccsel.on .n{background:rgba(34,48,59,.10);color:var(--slate)}
+.k-bar .cchip.ccsel.on:hover{border-color:var(--ccx,var(--glass))}
+.k-bar .cchip.ccsel.on:focus-visible{outline-color:var(--ccx,var(--glass))}
+
+.k-fsel{font:inherit;font-size:12.5px;color:var(--ink);background:var(--card);
+  border:1px solid var(--line);border-radius:var(--r);padding:5px 9px;
+  max-width:190px;min-width:0}
+.k-fsel:hover{border-color:#CFD5CC}
+
+.k-fdir{width:28px;height:28px;flex:none;border:1px solid var(--line);
+  border-radius:var(--r);background:var(--card);color:var(--slate);font-size:12.5px;
+  display:inline-flex;align-items:center;justify-content:center}
+.k-fdir:hover{border-color:#CFD5CC;color:var(--ink)}
+
+.k-ftog{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;
+  border:1px solid var(--line);background:var(--card);color:var(--slate);
+  border-radius:999px;padding:5px 12px;white-space:nowrap}
+.k-ftog .k-fdot{width:7px;height:7px;border-radius:50%;background:var(--line);flex:none}
+.k-ftog:hover{border-color:#CFD5CC;color:var(--ink)}
+.k-ftog.on{background:var(--rose-bg);border-color:var(--rose);color:var(--rose);font-weight:600}
+.k-ftog.on .k-fdot{background:var(--rose)}
+
+.k-fq{font:inherit;font-size:12.5px;color:var(--ink);background:var(--card);
+  border:1px solid var(--line);border-radius:var(--r);padding:6px 11px;
+  min-width:0;width:280px;max-width:100%}
+.k-fq:hover{border-color:#CFD5CC}
+.k-fb-q{flex:1 1 240px;min-width:0}
+.k-fright{margin-left:auto;display:flex;gap:8px;align-items:center;flex:none}
+
+.k-fsum{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  font-size:12.5px;color:var(--muted);padding:0 2px 12px;min-width:0}
+.k-fcount{font-weight:600;color:var(--slate)}
+.k-fon{min-width:0;overflow-wrap:anywhere}
+.k-fclear{font-size:12.5px;color:var(--brass);font-weight:600;text-decoration:underline;
+  text-underline-offset:2px;padding:2px 0}
+.k-fclear:hover{color:var(--ink)}
+
+/* ============================================== 3 · expand-all control ==== */
+
+.k-xall{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;
+  color:var(--slate);border:1px solid var(--line);background:var(--card);
+  border-radius:var(--r);padding:5px 11px;white-space:nowrap}
+.k-xall:hover{border-color:#CFD5CC;color:var(--ink)}
+.k-xall .n{font-size:11.5px;color:var(--muted);font-weight:600}
+.k-xchev{font-size:11.5px;line-height:1;color:var(--muted)}
+
+/* ================================================== 4 · segment tabs ====== */
+
+/* v1.2.5 S3 (F17) — was flex-wrap:wrap, so an open P3 row's segment strip
+   (Status · Timeline · Budget · Contract · Comments) wrapped to two rows at
+   390px, where the five tabs need ~446px in a ~309px panel — no amount of
+   padding trim fits five tabs there. Scroll instead of wrapping, the SAME
+   pattern the app's other tablists already use (.p9-tabs, .p4-tabs): one row,
+   overflow-x auto, overflow-y hidden so no accidental vertical scrollbar,
+   scrollbar visually hidden. The scroll CUE (edge fade + chevron) is R-18 and
+   deliberately NOT added here. Kit JS and tab logic untouched — layout only. */
+.k-seg{display:flex;gap:2px;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;
+  border-bottom:1px solid var(--line2);margin-bottom:14px;min-width:0}
+.k-seg::-webkit-scrollbar{display:none}
+.k-segb{position:relative;font-size:12.5px;font-weight:600;color:var(--muted);
+  padding:7px 12px 8px;border-bottom:2px solid transparent;margin-bottom:-1px;
+  white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.k-segb:hover{color:var(--ink)}
+.k-segb.on{color:var(--ink);border-bottom-color:var(--brass)}
+.k-segb .n{font-size:11.5px;font-weight:600;color:var(--muted)}
+.k-segb.on .n{color:var(--brass)}
+.k-segdot{width:6px;height:6px;border-radius:50%;background:var(--rose);flex:none}
+
+/* =================================================== 5 · attention flag === */
+
+/* v1.2.2 audit fix (R2) — max-width:100%. The ellipsis below was unreachable:
+   an inline-flex box with no max-width takes its max-content width, so a long
+   flag ("you: Signature requested") simply overflowed its grid track / table
+   cell and sat on the column beside it instead of truncating. This constrains
+   the flag to its own cell and lets the .k-ftxt ellipsis that is already
+   declared here do its job — it tightens the kit, it does not relax it. */
+.k-flag{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;
+  line-height:1.3;min-width:0;max-width:100%;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis}
+.k-flag .k-fdot{width:7px;height:7px;border-radius:50%;flex:none}
+.k-flag .k-ftxt{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.k-flag.over{color:var(--rose);font-weight:600}
+.k-flag.over .k-fdot{background:var(--rose)}
+.k-flag.needs{color:var(--brass);font-weight:600}
+.k-flag.needs .k-fdot{background:var(--brass)}
+.k-flag.wait{color:var(--s3-ink)}
+.k-flag.wait .k-fdot{background:var(--s3)}
+.k-flag.quiet{justify-content:center}
+/* The quiet state is a drawn rule, not a character: a text node this faint
+   measures 1.27:1 and is read as a contrast failure even though it carries no
+   information (the row's real state is on the .vh label). */
+.k-flag.quiet .k-fmark{display:block;width:10px;height:1px;background:var(--line)}
+
+/* =================================================== 6 · country band ===== */
+
+.k-band{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:11px 16px;background:var(--ccb,#F1F3F0);
+  border-bottom:1px solid var(--line2);min-width:0}
+.k-btitle{display:flex;align-items:center;gap:9px;min-width:0;flex:1 1 auto}
+.k-btitle b{font-size:16px;font-weight:700;letter-spacing:-.01em;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.k-btitle svg{width:20px;height:14px;flex:none;border-radius:2px;
+  box-shadow:0 0 0 1px rgba(34,48,59,.10)}
+.k-btitle .cnt{font-size:12.5px;color:var(--slate);flex:none}   /* v1.2.2: --muted is 4.47:1 on --ccb, just under AA */
+.k-bfigs{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  margin-left:auto;font-size:12.5px;color:var(--slate);min-width:0}
+.k-bfig{white-space:nowrap}
+.k-bfig b{font-weight:600;color:var(--ink)}
+.k-bfig.neg,.k-bfig.neg b{color:var(--rose)}
+.k-bfig.good b{color:var(--verd)}
+
+/* ================================================== 7 · wide-table cue ==== */
+
+.k-scroll{position:relative;min-width:0}
+.k-scrollin{overflow-x:auto;min-width:0}
+/* v1.2.2 audit — the cue gets a strip of its own. It is an OPAQUE pill and it
+   was anchored bottom:6px inside the scroll box, so on every short table it
+   landed on the last row's right-hand cells and hid them outright: 18 covered
+   figures across P7 Budget, P2 Dashboard and the P14/P15/P17 budget-track
+   card at 1024/768/390 — "$400,000", "$880,400", "$1,000,000", "71%" and the
+   rest, each one a number a reader would simply never see. The probe cannot
+   catch it (it skips position:absolute) and no gate looks at it. Reserving
+   the strip only in the .cue state keeps the cost at zero for the tables that
+   do not overflow, and the fade stops above the strip so the pill sits on
+   clean card, not on a half-faded number. */
+.k-scroll.cue{padding-bottom:24px}
+.k-scroll::after{content:'';position:absolute;top:0;right:0;bottom:0;width:34px;
+  pointer-events:none;opacity:0;transition:opacity .15s ease;
+  background:linear-gradient(to right,rgba(255,255,255,0),var(--card))}
+.k-scroll.cue::after{opacity:1;bottom:24px}
+.k-scue{position:absolute;right:8px;bottom:2px;font-size:11.5px;font-weight:600;
+  color:var(--muted);background:var(--card);border:1px solid var(--line);
+  border-radius:999px;padding:1px 8px;opacity:0;transition:opacity .15s ease;
+  pointer-events:none}
+.k-scroll.cue .k-scue{opacity:1}
+
+/* ==================================================== 8 · responsive ====== */
+
+@media (max-width:1100px){
+  .k-bfigs{gap:10px}
+  .k-fq{width:210px}
+}
+
+@media (max-width:1024px){
+  /* UX-05 — meta chains stop running long and take a second line */
+  .k-meta2{display:flex;flex-direction:column;gap:1px}
+  .k-meta2 .k-dot{display:none}
+}
+
+@media (max-width:860px){
+  .k-flt{gap:9px 12px}
+  .k-fb-q{flex:1 1 100%}
+  .k-fq{width:100%}
+  .k-fright{margin-left:0;flex:1 1 100%}
+}
+
+/* v1.2.3 — below 768 the label sits above its own content, one column, for
+   EVERY segment alike: the two-column grid above works whichever segment
+   happens to fit the width, so left uncorrected here the same "some rows
+   line up, some don't" defect would just reappear at phone width instead of
+   at desktop width. Resetting every child (label included) to column 1
+   stacks label then content in document order for all three segments, with
+   no per-page exception. */
+@media (max-width:768px){
+  .k-bhrow h1{font-size:20px}
+  .k-bseg{padding:12px 14px}
+  .k-chip,.k-ftog{min-height:36px}
+  .k-xall,.k-fdir,.k-fsel{min-height:36px}
+  /* v1.2.2 audit — the sort-direction button is the one new control in the
+     filter strip that is square-ish: 36px tall but 28px wide, the only new
+     category in touchSmall against the v1.2.1 baseline. Width to match. */
+  .k-fdir{min-width:36px}
+  .k-segb{min-height:40px}
+  .k-band{padding:10px 14px}
+  .k-bfigs{margin-left:0;flex:1 1 100%}
+
+  /* v1.2.3 — below 768 the label sits above its own content, one column,
+     for EVERY segment alike: the two-column grid above (§1) works well
+     whichever segment happens to fit the width, so left uncorrected here
+     the same "some rows line up, some don't" defect would reappear at
+     phone width instead of desktop width. Resetting every child (label
+     included) to column 1 stacks label then content in document order for
+     all three segments, with no per-page exception. */
+  .k-bstatus,.k-bcountry,.k-bextra{grid-template-columns:minmax(0,1fr);row-gap:6px}
+  /* same selector shape as the :not(.k-blab) rule in §1, so this actually
+     outranks it instead of losing on specificity to a same-source-order
+     rule that is still targeting column 2 — a plain `>*` here has lower
+     specificity than `>:not(.k-blab)` and silently loses, which is how this
+     shipped broken the first time: content kept requesting column 2 on a
+     one-column grid, so the grid just grew an implicit auto column instead
+     of actually stacking. */
+  .k-bwrap{grid-column:1}
+  .k-bstatus>:not(.k-blab),.k-bcountry>:not(.k-blab),.k-bextra>:not(.k-blab){
+    grid-column:1}
+  .k-blab{min-width:0;padding-top:0}
+}
+
+@media (max-width:480px){
+  .k-btitle b{font-size:14px}
+  .k-fchips{gap:5px}
+  .k-chip{padding:5px 9px}
+}
+
+/* ============================================== 9 · today marker (v1.2.3) ==
+   Replaces the "today · <date>" pill that used to sit inside the chart and
+   cover the bars behind it. The chapel perches on top of the today line and
+   only speaks when pointed at, so the line keeps its full height. */
+
+/* v1.2.3 audit fix — top:1px, NOT top:-9px. The marker is absolutely
+   positioned inside the chart's own inner block, and BOTH hosts clip above
+   it: U.gantt's .gantt-scroll declares overflow-x:auto (which makes
+   overflow-y compute to auto, so anything above y=0 is cut and cannot be
+   scrolled to) inside a .gantt with overflow:hidden, and P5's .p5-scroll /
+   .p5-card are the same pair. At -9px exactly half the chapel was sliced
+   off on every chart, and the tooltip — the only place the date lives now
+   that the pill is gone — rendered wholly above the clip and was NEVER
+   visible, by mouse or by keyboard. Both hosts reserve a lane at the top of
+   the inner block for this (.gantt-inner padding-top 26px, .p5-inner 22px),
+   so the marker sits INSIDE that lane and the whole glyph is drawn. */
+/* v1.2.4 — the chapel's halo is a circle, and a circle that the today line
+   crosses reads as a smudge rather than a marker. Two rules make it a marker:
+   the lane below is tall enough to hold the whole circle with a hair of air
+   above it, and the line starts at --k-tmlane, which is exactly where the
+   circle's lowest pixel is. They touch; they never overlap.
+     --k-tmd    the halo's diameter (the visible circle)
+     --k-tmlane the band a host must reserve above its first row
+   A host reserves the lane with padding-top and starts its own today line at
+   top:var(--k-tmlane) — see p5p9.css .p5-today and app.css .k-today. */
+:root{--k-tmd:24px; --k-tmlane:25px}
+
+.k-todaymark{position:absolute;top:1px;transform:translateX(-50%);z-index:6;
+  width:var(--k-tmd);height:var(--k-tmd);display:flex;align-items:center;
+  justify-content:center;color:var(--rose);cursor:help;line-height:0}
+.k-todaymark:focus{outline:none}
+.k-todaymark:focus-visible .k-tmico{outline:2px solid var(--brass);outline-offset:2px;
+  border-radius:2px}
+
+.k-tmico{width:14px;height:14px;display:block;position:relative;z-index:2;
+  transform-origin:50% 90%;animation:k-tmsway 6s ease-in-out infinite}
+
+/* the halo breathes behind the building — the "it is alive" cue, at an
+   amplitude you notice once and then stop seeing */
+.k-tmhalo{position:absolute;inset:0;border-radius:50%;z-index:1;
+  background:var(--rose);opacity:.10;animation:k-tmbreath 6s ease-in-out infinite}
+
+@keyframes k-tmsway{
+  0%,72%,100%{transform:rotate(0deg)}
+  78%{transform:rotate(-2deg)}
+  86%{transform:rotate(2deg)}
+  93%{transform:rotate(-1deg)}
+}
+@keyframes k-tmbreath{
+  0%,100%{opacity:.09}
+  50%{opacity:.22}
+}
+
+/* the date, on hover or keyboard focus only. It hangs BELOW the chapel, not
+   above it (v1.2.3 audit): the marker already sits in the top lane of a box
+   that clips, so a tip above it is simply never painted. Below, it opens
+   over the month-head row for as long as the pointer rests on the marker and
+   nowhere else — the chart at rest is untouched, which is the whole reason
+   the pill was removed. */
+.k-tmtip{position:absolute;top:calc(100% + 5px);left:50%;transform:translateX(-50%);
+  /* line-height:0 on .k-todaymark keeps the 14px glyph from adding leading;
+     it is inherited here too, which collapsed the pill to a 6px sliver with
+     the date bleeding out of it — invisible until the tip itself became
+     visible again (v1.2.3 audit). */
+  line-height:1.3;
+  white-space:nowrap;font-size:11.5px;font-weight:600;color:var(--rose);
+  background:var(--card);border:1px solid var(--line);border-radius:999px;
+  padding:2px 9px;box-shadow:var(--shadow);opacity:0;pointer-events:none;
+  transition:opacity .12s ease;z-index:3}
+.k-todaymark:hover .k-tmtip,
+.k-todaymark:focus-visible .k-tmtip{opacity:1}
+
+@media (prefers-reduced-motion:reduce){
+  .k-tmico,.k-tmhalo{animation:none}
+  .k-tmhalo{opacity:.14}
+}

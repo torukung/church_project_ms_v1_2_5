@@ -1,0 +1,636 @@
+/* ============================================================================
+   P4 project detail · P6 approvals inbox · C-08 / C-09 / C-10 / C-11 / C-15
+   Everything here is namespaced .p4- / .p6- / .act- and reuses the tokens and
+   the card anatomy from css/app.css. One family, sentence-case labels,
+   tabular numerals on every money and day value.
+   ========================================================================= */
+
+/* ================================================== P4 · header ========== */
+.p4-head{display:flex;align-items:flex-start;gap:var(--gap);flex-wrap:wrap;margin-bottom:8px}
+.p4-htitle{min-width:0;flex:1 1 320px}
+.p4-htitle h1{font-size:25px;font-weight:700;letter-spacing:-.015em;line-height:1.25}
+.p4-tags{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-top:7px}
+.p4-tag{font-size:12.5px;font-weight:600;color:var(--slate);background:#EFF1EE;
+  border-radius:999px;padding:2px 10px;white-space:nowrap}
+.p4-warn{font-size:12.5px;font-weight:600;color:var(--brass);background:var(--brass-bg);
+  border:1px solid #E2D3B4;border-radius:999px;padding:1px 10px;white-space:nowrap;
+  font-variant-numeric:tabular-nums}
+.p4-warn.hot{color:var(--rose);background:var(--rose-bg);border-color:#E5C6C4}
+.p4-hacts{display:flex;gap:8px;flex-wrap:wrap}
+.p4-hmeta{display:flex;gap:18px;flex-wrap:wrap;align-items:center;font-size:12.5px;
+  color:var(--muted);padding-bottom:var(--gap);border-bottom:1px solid var(--line)}
+.p4-hmeta b{color:var(--slate);font-weight:600}
+.p4-hprog{display:flex;align-items:center;gap:8px;min-width:0}
+
+/* ------------------------------------------- C-10 pinned decision banner - */
+.p4-pin{display:flex;gap:12px;align-items:flex-start;background:var(--card);
+  border:1px solid var(--line);border-left:3px solid var(--brass);border-radius:var(--r);
+  box-shadow:var(--shadow);padding:14px var(--pad);margin:var(--gap) 0}
+.p4-pinlab{flex:none;font-size:12.5px;font-weight:600;color:var(--brass)}
+.p4-pinbody{min-width:0;font-size:14px;color:var(--ink)}
+.p4-pinbody small{display:block;font-size:12.5px;color:var(--muted);margin-top:3px;
+  font-variant-numeric:tabular-nums}
+.p4-pinact{margin-left:auto;flex:none}
+.p4-pin.empty{display:block;border-left-color:var(--line);color:var(--muted);
+  font-size:12.5px;box-shadow:none;background:transparent;border-style:dashed;padding:11px 14px}
+
+/* ================================================== P4 · two-column ====== */
+.p4-cols{display:grid;grid-template-columns:minmax(0,1fr) 336px;gap:var(--gap);
+  align-items:start;margin-top:var(--gap)}
+.p4-main{min-width:0}
+.p4-aside{min-width:0;display:flex;flex-direction:column;gap:var(--gap)}
+.p4-aside .card + .card{margin-top:0}
+.p4-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap)}
+.p4-two + .card,.p4-two + .p4-two{margin-top:var(--gap)}
+.p4-two .card + .card{margin-top:0}
+
+/* ------------------------------------------------------------- tabs ----- */
+/* Seven tabs since v1.1.0 (Contracts). Same rule as the admin strip: one row
+   at every width, scrolled sideways rather than wrapped into three rows on a
+   phone. Only this row scrolls; the page does not. */
+.p4-tabs{display:flex;gap:2px;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;
+  border-bottom:1px solid var(--line);
+  margin-bottom:var(--gap)}
+.p4-tabs::-webkit-scrollbar{display:none}
+.p4-tab{flex:none;font-size:12.5px;font-weight:600;color:var(--muted);padding:8px 13px;
+  border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.p4-tab:hover{color:var(--slate)}
+.p4-tab.on{color:var(--ink);border-bottom-color:var(--brass)}
+.p4-tbadge{font-size:11.5px;font-weight:700;color:var(--rose);background:var(--rose-bg);
+  border-radius:999px;padding:0 7px}
+
+/* ---------------------------------------------------------- field lists - */
+.p4-fields{display:grid;gap:0}
+.p4-field{display:flex;justify-content:space-between;gap:12px;padding:6px 0;
+  border-bottom:1px solid var(--line2);font-size:14px}
+.p4-field:last-child{border-bottom:none}
+.p4-field span{color:var(--muted);font-size:12.5px;font-weight:600;flex:none}
+.p4-field b{font-weight:600;text-align:right;min-width:0;overflow-wrap:anywhere;
+  font-variant-numeric:tabular-nums}
+.p4-note{font-size:12.5px;color:var(--muted);margin-top:10px}
+.p4-note.alert{border-left:3px solid var(--rose);padding-left:10px;color:var(--slate)}
+.p4-err{font-size:12.5px;font-weight:600;color:var(--rose);border-left:3px solid var(--rose);
+  padding:2px 0 2px 10px;margin:8px 0}
+.p4-empty{font-size:12.5px;color:var(--muted);font-style:italic;padding:14px 0}
+
+/* ------------------------------------------------------- budget line ---- */
+.p4-bl{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:var(--gap);
+  align-items:center}
+.p4-blv span,.p4-blr span{display:block;font-size:16px;font-weight:700;
+  font-variant-numeric:tabular-nums;line-height:1.2}
+.p4-blr{text-align:right}
+.p4-blv small,.p4-blr small{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+.p4-blbar{height:7px;border-radius:999px;background:#EFF1EE;overflow:hidden}
+.p4-blbar i{display:block;height:100%;background:var(--brass);border-radius:999px}
+.p4-btbl td{font-size:14px}
+/* v1.2.5 S3 (F15) — the "This project" budget table is a 2-column label/value
+   list inside one half of the .p4-two split (~400px per card at 1440, ~320 at
+   1280), but it inherited the generic data-table floor .tblwrap .tbl{min-width:
+   560px}. At 560px it burst its card and its value column (nowrap money) was
+   laid out OVER the neighbouring country card — "$760,801" landing on "Country
+   ceiling". Drop the floor for THIS table so it fits its own card: the value
+   stays a clean right-flush column and the prose label wraps instead. Higher
+   specificity than the generic .tblwrap .tbl floor so it actually wins. */
+.tblwrap .tbl.p4-btbl{min-width:0}
+.p4-btbl td:first-child{white-space:normal;overflow-wrap:anywhere}
+/* v1.2.5 S3 (F15) — the budget country card holds money in its value column.
+   The default .p4-field lets the value break anywhere (overflow-wrap:anywhere)
+   and pins the label at its natural width (flex:none) — so a long label
+   ("Committed across statuses 1–4") squeezed the value until "$1,310,801"
+   wrapped to "$1,31 / 0,801". Flip the priority HERE only: the prose label
+   takes the flexible track and wraps, the figure is atomic and never splits.
+   Scoped to .p4-bfields so the Record/Stage/watchers fields (which hold free
+   text like the return reason and the watcher list) still wrap normally. */
+.p4-bfields .p4-field span{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+.p4-bfields .p4-field b{flex:none;white-space:nowrap;overflow-wrap:normal}
+
+/* ------------------------------------------------------- timeline card -- */
+.p4-thead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px;
+  font-weight:600;color:var(--slate);margin-bottom:var(--gap)}
+.p4-thead .r{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+
+/* ============================================ C-08 · approval panel ====== */
+.p4-steps{display:grid;gap:0}
+.p4-step{display:flex;gap:10px;align-items:flex-start;padding:8px 0;
+  border-bottom:1px solid var(--line2)}
+.p4-step:last-child{border-bottom:none}
+.p4-step .mk{flex:none;width:16px;text-align:center;font-weight:700;font-size:12.5px}
+.p4-step b{display:block;font-size:14px;font-weight:600}
+.p4-step small{display:block;font-size:12.5px;color:var(--muted);margin-top:1px;
+  font-variant-numeric:tabular-nums}
+.p4-step small b{display:inline;color:var(--slate)}
+.p4-step.ok .mk{color:var(--verd)}
+.p4-step.wait .mk{color:var(--brass)}
+.p4-step.hot .mk{color:var(--rose)}
+.p4-step.todo .mk,.p4-step.todo b{color:var(--muted)}
+
+/* ------------------------------------------- C-15 external gate tracker - */
+.p4-gate{border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);
+  padding:10px 0;margin:2px 0}
+.p4-glab{font-size:12.5px;font-weight:600;color:var(--brass);margin-bottom:8px}
+.p4-gsys{padding:9px 0;border-bottom:1px dashed var(--line)}
+.p4-gsys:last-of-type{border-bottom:none}
+.p4-gsys.hot{border-left:3px solid var(--rose);padding-left:10px}
+.p4-gh{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.p4-gh b{font-size:14px;font-weight:600}
+.p4-gp{font-size:12.5px;font-weight:600;border-radius:999px;padding:1px 9px;
+  border:1px solid var(--line);color:var(--slate);white-space:nowrap;
+  font-variant-numeric:tabular-nums}
+.p4-gp.ok{color:var(--verd);border-color:#B9D2C9;background:var(--verd-bg)}
+.p4-gp.wait{color:var(--brass);border-color:#E2D3B4;background:var(--brass-bg)}
+.p4-gp.hot{color:var(--rose);border-color:#E5C6C4;background:var(--rose-bg)}
+.p4-gp.todo{color:var(--muted);border-style:dashed}
+.p4-gsub{font-size:12.5px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums}
+.p4-gsub b{color:var(--slate);font-weight:600}
+.p4-grem{display:block;font-style:normal;font-size:12.5px;color:var(--slate);margin-top:3px}
+.p4-gbtns{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+
+/* ------------------------------------------------- A-07 ready prompt ---- */
+.p4-ready{border-left:3px solid var(--brass);padding:8px 0 8px 11px;margin:10px 0 2px}
+.p4-ready b{display:block;font-size:14px;font-weight:700;color:var(--brass)}
+.p4-ready small{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+.p4-ready.compact{margin:var(--gap) 0 0}
+
+/* ------------------------------------------------------- forms / inputs - */
+.p4-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap)}
+.p4-lab{display:block;font-size:12.5px;font-weight:600;color:var(--muted);min-width:0}
+.p4-lab.wide{grid-column:1/-1}
+.p4-input{display:block;width:100%;font:inherit;font-size:12.5px;color:var(--ink);
+  background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:7px 11px;
+  margin-top:5px;font-weight:400;min-width:0}
+.p4-input.sm{font-size:12.5px;padding:5px 10px;margin-top:7px}
+.p4-input:focus{outline:none;border-color:var(--brass);box-shadow:0 0 0 3px rgba(154,120,51,.12)}
+.p4-input[disabled]{background:#F7F8F6;color:var(--muted)}
+textarea.p4-input{resize:vertical;line-height:1.5}
+.p4-lab .sel{display:block;width:100%;margin-top:5px;font-weight:400;font-size:12.5px}
+.p4-actrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:var(--gap)}
+.p4-owner{display:flex;gap:11px;align-items:center;margin-bottom:11px}
+.p4-owner b{display:block;font-size:14px;font-weight:600}
+.p4-owner small{display:block;font-size:12.5px;color:var(--muted)}
+.p4-msub{font-size:12.5px;color:var(--muted);margin-bottom:11px;
+  font-variant-numeric:tabular-nums}
+.p4-modal{max-width:560px;max-height:88vh;overflow:auto}
+.p4-modal .p4-lab{margin-top:11px}
+
+/* ============================================== C-09 · activity stream === */
+.act-card{padding:0}
+.act-ftabs{display:flex;gap:2px;flex-wrap:wrap;padding:0 var(--pad);
+  border-bottom:1px solid var(--line)}
+.act-ftab{font-size:12.5px;font-weight:600;color:var(--muted);padding:10px 11px;
+  border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.act-ftab .n{font-size:11.5px;color:var(--muted);margin-left:3px}
+.act-ftab:hover{color:var(--slate)}
+.act-ftab.on{color:var(--ink);border-bottom-color:var(--brass)}
+.act-stream{max-height:560px;overflow-y:auto;padding:4px var(--pad) 0}
+
+.act-entry{display:flex;gap:11px;padding:13px 0 13px 11px;border-bottom:1px solid var(--line2);
+  border-left:3px solid var(--line)}
+.act-entry:last-child{border-bottom:none}
+.act-entry.t-question{border-left-color:#E2D3B4}
+.act-entry.t-question.open-q{border-left-color:var(--rose)}
+.act-entry.t-decision{border-left-color:var(--brass)}
+.act-entry.t-system{border-left-color:var(--line2)}
+.act-entry.t-system .act-txt{color:var(--muted)}
+.act-av{flex:none;width:30px;height:30px;border-radius:50%;background:#EDF0EC;
+  color:var(--slate);font-size:11.5px;font-weight:700;display:flex;align-items:center;
+  justify-content:center}
+.act-av.sys{background:#F3F5F2;color:var(--muted);font-size:12.5px}
+.act-b{min-width:0;flex:1}
+.act-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:12.5px;
+  color:var(--muted);margin-bottom:4px}
+.act-meta b{font-size:12.5px;font-weight:600;color:var(--ink)}
+.act-meta .num{font-variant-numeric:tabular-nums}
+.act-type{font-size:11.5px;font-weight:600;border-radius:999px;padding:1px 9px;
+  border:1px solid var(--line);color:var(--slate);white-space:nowrap}
+.act-type.t-question,.act-type.t-open{color:var(--rose);border-color:#E5C6C4;background:var(--rose-bg)}
+.act-type.t-decision,.act-type.t-pinned{color:var(--brass);border-color:#E2D3B4;background:var(--brass-bg)}
+.act-type.t-resolved{color:var(--verd);border-color:#B9D2C9;background:var(--verd-bg)}
+.act-type.t-system,.act-type.t-arch{color:var(--muted)}
+.act-edited{font-size:11.5px;color:var(--muted);font-style:italic}
+.act-txt{font-size:14px;line-height:1.5;overflow-wrap:anywhere}
+.act-mention{color:var(--glass);font-weight:600}
+.act-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.act-reply{margin-top:9px;padding-left:11px;border-left:2px solid var(--line)}
+.act-reply .act-txt{font-size:14px}
+.act-reply-box{margin-top:9px;padding-left:11px;border-left:2px solid var(--line)}
+.act-edit{margin-top:4px}
+
+/* -------------------------------------------------------- C-11 composer - */
+.act-composer{border-top:1px solid var(--line);background:#FAFBFA;padding:13px var(--pad);
+  border-radius:0 0 var(--r) var(--r)}
+.act-composer.readonly{font-size:12.5px;color:var(--muted);font-style:italic}
+.act-crow{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:9px}
+.act-crow .sp{margin-left:auto;display:flex;gap:6px}
+.act-tchip{font-size:12.5px;font-weight:600;padding:4px 12px;border-radius:999px;
+  border:1px solid var(--line);background:#fff;color:var(--slate);white-space:nowrap}
+.act-tchip:hover{border-color:var(--muted)}
+.act-tchip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.act-tchip.t-question.on{background:var(--rose);border-color:var(--rose)}
+.act-tchip.t-decision.on{background:var(--brass);border-color:var(--brass)}
+.act-assign{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;
+  color:var(--muted)}
+.act-assign .sel{font-size:12.5px;padding:4px 9px}
+.act-chint{font-size:12.5px;color:var(--muted);margin-top:8px}
+
+/* ================================================ P6 · approvals inbox === */
+.p6-sec{margin-top:22px}
+.p6-sech{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:9px}
+.p6-sech h2{font-size:14px;font-weight:600;color:var(--slate);display:flex;
+  align-items:center;gap:7px}
+.p6-sech .n{font-size:11.5px;font-weight:700;color:var(--slate);background:#EDF0EC;
+  border-radius:999px;padding:0 8px}
+.p6-sech .sub{font-size:12.5px;color:var(--muted);min-width:0;flex:1 1 320px}
+
+.p6-card{background:var(--card);border:1px solid var(--line);
+  border-left:3px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);
+  margin-bottom:10px}
+.p6-card.hot{border-left-color:var(--rose)}
+
+/* v1.2.3 (ToR realign pass) — D.needsYou legitimately returns two rows for
+   one project (a "Contract · Draft" row and its "Watching" row, say); once
+   every row shares the same columns they land at identical x/width and
+   read as a duplicated row rather than two facets of one project. Purely
+   visual, set by pages/p6.js when the row above shares the same project
+   id: close the gap and the shared edge between the pair so they read as
+   attached, with a thin rule standing in for the two cards' separate
+   shadows. The item set, order and count are untouched — see p6.js's
+   rowHtml for where this is decided. */
+.p6-card:not(.p6-compact):has(+.p6-paired){
+  margin-bottom:1px;border-bottom-left-radius:0;border-bottom-right-radius:0;
+  box-shadow:none}
+.p6-paired:not(.p6-compact){margin-top:0;border-top-left-radius:0;
+  border-top-right-radius:0;border-top:1px dashed var(--line2);box-shadow:none}
+.p6-card.p6-compact{display:grid;grid-template-columns:minmax(0,1fr) 118px auto;gap:var(--gap);
+  align-items:center;padding:14px var(--pad)}
+.p6-who{min-width:0}
+.p6-id{font-size:12.5px;font-weight:600;color:var(--brass);text-decoration:none;
+  font-variant-numeric:tabular-nums}
+.p6-id:hover{text-decoration:underline}
+.p6-who b{display:block;font-size:14px;font-weight:600;line-height:1.35}
+.p6-meta{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.p6-gates{display:flex;gap:6px 18px;flex-wrap:wrap;margin-top:6px}
+.p6-gp{font-size:11.5px;font-weight:600;border-radius:999px;padding:1px 9px;
+  border:1px solid var(--line);color:var(--slate);white-space:nowrap}
+.p6-gp.ok{color:var(--verd);border-color:#B9D2C9;background:var(--verd-bg)}
+.p6-gp.wait{color:var(--brass);border-color:#E2D3B4;background:var(--brass-bg)}
+.p6-gp.hot{color:var(--rose);border-color:#E5C6C4;background:var(--rose-bg)}
+.p6-gp.todo{color:var(--muted);border-style:dashed}
+.p6-age{text-align:right;min-width:0}
+.p6-age .v{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}
+.p6-age small{display:block;font-size:11.5px;color:var(--muted)}
+.p6-age.warm .v{color:var(--brass)}
+.p6-age.hot .v{color:var(--rose)}
+.p6-acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.p6-readonly{font-size:12.5px;color:var(--slate);background:var(--card);
+  border:1px solid var(--line);border-left:3px solid var(--brass);border-radius:var(--r);
+  box-shadow:var(--shadow);padding:11px 14px;margin-top:var(--gap)}
+
+/* ===================================================== responsive ======== */
+@media(max-width:1080px){
+  .p4-cols{grid-template-columns:minmax(0,1fr)}
+  .p4-aside{order:-1}            /* approval before the conversation when stacked */
+}
+@media(max-width:900px){
+  .p4-two{grid-template-columns:minmax(0,1fr)}
+  .p4-form{grid-template-columns:minmax(0,1fr)}
+  .p4-bl{grid-template-columns:minmax(0,1fr);gap:8px}
+  .p4-blr{text-align:left}
+}
+@media(max-width:760px){
+  .p6-card.p6-compact{grid-template-columns:minmax(0,1fr) auto}
+  .p6-card.p6-compact .p6-acts{grid-column:1/-1;justify-content:flex-start}
+  .act-stream{padding-left:14px;padding-right:14px}
+  .act-ftabs{padding:0 14px}
+  .act-composer{padding:12px 14px}
+}
+@media(max-width:520px){
+  .p4-head{gap:10px}
+  .p4-htitle h1{font-size:20px}
+  .p4-hmeta{gap:12px}
+  .p6-card.p6-compact{grid-template-columns:minmax(0,1fr);padding:13px 14px}
+  .p6-age{text-align:left}
+  .p4-pin{padding:12px 14px;flex-wrap:wrap}
+  .p4-pinact{margin-left:0}
+  /* v1.2.2 UX-01 — a three-action primact row (brass act + secondary act +
+     Open) now clears 390px by 5px with .btn.sm at 12.5px; one step down the
+     scale keeps every action on the row without wrapping */
+  .p6-primact .btn{font-size:11.5px}
+}
+
+/* ==================== v1.1.0 · P6 sync proposals + contracts owed (WP2) ====
+   Both new sections reuse the .p6-card grid, the .p6-gp chip and the .p4-input
+   field already defined above — only the inline control rows are new. */
+.p6-prop .p6-who{min-width:0}
+.p6-pwhy{font-size:12.5px;color:var(--slate);margin-top:6px}
+.p6-pnote{font-size:12.5px;color:var(--muted);margin-top:8px}
+.p6-pacts{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:9px}
+.p6-pinline{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;min-width:0}
+.p6-pinline .p4-input{width:190px;max-width:100%}
+.p6-pinline .p4-input[type=date]{width:150px}
+.p6-prop .p6-age .v{font-size:12.5px;font-weight:600;color:var(--muted)}
+@media (max-width:720px){
+  .p6-pinline{flex:1 1 100%}
+  .p6-pinline .p4-input{flex:1 1 auto;width:auto}
+}
+
+/* =========================== v1.1.0 · P4 gate tracker + activity kinds =====
+   The gate row is now U.gateStep (styles in app.css); what is left here is the
+   mode note beside the manual buttons and the two new activity kinds. */
+.p4-gwait{font-size:12.5px;color:var(--slate);background:var(--brass-bg);
+  border:1px solid #E2D3B4;border-radius:var(--r);padding:8px 10px;margin-top:8px}
+.p4-gwait a{color:var(--glass);font-weight:600}
+.p4-gmode{font-size:12.5px;color:var(--muted);margin-top:6px}
+.p4-warn.ok{color:var(--verd);background:var(--verd-bg);border-color:#B9D2C9}
+.act-entry.t-contract{border-left-color:#E2D3B4}
+.act-entry.t-sync{border-left-color:var(--line2)}
+.act-type.t-contract{color:var(--brass);border-color:#E2D3B4;background:var(--brass-bg)}
+.act-type.t-sync{color:var(--glass);border-color:#C8D5EA;background:#F2F5FA}
+.p6-gates .gs{margin-top:2px}
+.p6-gates .gs-hd b{font-size:12.5px}
+
+/* ============================== v1.2.0 · P6 "Needs you" — one list (T-09) ==
+   The section headings of v1.1.0 became chips; what is left to style is the
+   strip, the refusal line the inline composer has nowhere else to show, and
+   the small print the shared .p6-card row now carries inside it. */
+.p6-chips{display:flex;gap:7px;flex-wrap:wrap;margin:var(--gap) 0 12px}
+.p6-chips .chip{white-space:nowrap}
+.p6-chip0{color:var(--muted)}
+.p6-chip0 .n{color:var(--muted)}
+/* v1.2.5 S3 (F12) — the .p6-card content box, not the viewport, drives when
+   the row must stack. The sidebar collapses at 880 (app.css), so a card's own
+   box is NARROWEST just above that (≈602px at vw900, ≈583 at vw881, expanded
+   sidebar + narrow viewport) yet WIDE again at vw880 (≈806, sidebar gone) —
+   and it is narrower still in the role-home embeddings that render the same
+   U.needsRow row. The ≤1150 single-row layout needs ≈650px; below that the
+   .p6-sum's 220px name floor burst its track (hidden overflow: 37px at 881,
+   18px at 900, and a latent 60px+ at the 600–620 collapsed band). A viewport
+   media query cannot express "narrow BOX" across both regimes, so make the
+   list a size container and stack the card by its own width — the same
+   discipline the row-box rule asks for (measure the row's box, not the vw).
+   The @container rule itself lives at the END of the P6 responsive block so it
+   wins over the viewport tiers by source order (equal specificity). */
+.p6-list{margin-top:2px;container-type:inline-size;container-name:p6list}
+.p6-err{font-size:12.5px;color:var(--rose);background:var(--rose-bg);
+  border:1px solid #E5C6C4;border-left:3px solid var(--rose);border-radius:var(--r);
+  padding:9px 12px;margin-top:var(--gap)}
+.p6-card .sl-sub{margin-top:5px}
+.p6-card .chain{margin-top:6px}
+.p6-card .p6-inline{max-width:520px;flex:1 1 100%}
+@media(max-width:760px){
+  .p6-card .p6-inline{max-width:100%}
+}
+
+/* ---- P4 · the rung line in the record header (T-08) ---- */
+.p4-hstep{margin-top:10px}
+.p4-hstep .sl-sub{margin-top:7px}
+.p4-appr .sl-sub{margin:0 0 10px}
+.p4-cg{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;
+  color:var(--muted);margin-top:2px}
+.p4-cg b{font-size:12.5px;font-weight:600;color:var(--ink)}
+
+/* ---- P11 "My alerts" panel (T-12) — the two per-user mail preferences.
+   It reuses .p4-fields/.p4-field rather than growing a rail grammar of its own
+   in v101-msg.css, which this work package does not own. */
+.p6-alerts .p4-field{align-items:center}
+.p6-alerts .sel{font-size:12.5px;padding:4px 9px}
+.p6-alerts input[type=checkbox]{width:16px;height:16px;accent-color:var(--brass)}
+
+/* ---- WP8 (Fable probe) — room for the four-rung ladder inside the row:
+   the age column narrows, the bullet bar gets breathing space under the gate
+   line, and its ceiling tick label stops colliding with the text above. */
+.p6-card.p6-compact{grid-template-columns:minmax(0,1fr) 96px auto}
+.p6-card .p6-inline-step .stepline{margin-top:2px}
+.p6-card .cbar-row{margin-top:10px;max-width:520px}
+.p6-card .cbar-row .p2-bwrap{padding-top:22px}
+.p6-card .cbar-row .p2-ticklbl{font-size:11.5px}
+@media(max-width:1100px) and (min-width:761px){
+  .p6-card.p6-compact{grid-template-columns:minmax(0,1fr) auto}
+}
+/* v1.2.1 — below 760 the row is one column again (the v1.1.0 rule) and the
+   inline ladder tightens so four rungs fit two per line on a 390 phone */
+@media(max-width:760px){
+  .p6-card.p6-compact{grid-template-columns:minmax(0,1fr)}
+  .p6-card .p6-inline-step .sl{font-size:11.5px;padding:2px 6px}
+  .p6-card .p6-inline-step .conn{width:6px;min-width:6px}
+}
+
+/* ============================== v1.2.3 · P6 collapse/expand row (R7 redo) ==
+   ToR realign pass. The old row was a flat flex line: every child (kind
+   chip, id+name, sub0, chevron, flag, amount, actions) sized to its own
+   content, so none of them lined up two rows apart. Fixed, named grid
+   tracks fix that: every row gets an IDENTICAL set of column widths at a
+   given viewport, so whatever a cell holds, its left edge is the same as
+   every other row's.
+
+   Two nested grids: the OUTER grid (.p6-card) has four tracks — sum · flag
+   · amount · actions — and the INNER grid (.p6-sum, still a real <button>,
+   never display:contents: that would drop the click target and the
+   accessible name) subdivides the "sum" track into kind · id+name ·
+   meta(id+sub0) · chevron.
+
+   --- rework pass 2 (coordinator review of v123-approvals-daniel-1024) ---
+   Pass 1 protected the kind chip's 152px at the medium tier and let the
+   project name shrink to 2-3 characters, and let the meta line's day-count
+   ellipsis-cut its own unit ("197" without the "d"). Both were exactly
+   backwards. The row now sizes to an explicit priority order, most
+   protected first: name → attention flag → money → status line → primary
+   action → id → kind tag. Concretely:
+
+     1. The kind chip drops out of the collapsed top line entirely below
+        1150px — "Contract · Draft" is already implied by the primary
+        action's own label and by the row's left rule — and its 152px (+
+        gap) goes to the name. It returns as a small tag under the name
+        only once the card is fully stacked (≤560), where there is a row
+        of its own to spare (see that tier below).
+     2. The name keeps the 1fr and never goes under a 220px floor — pages/
+        p6.js's rowHtml raises the STACKING breakpoint instead of shaving
+        the name further (960px landed the floor at ~226px measured on the
+        narrower role-home embedding; measured, not assumed).
+     3. The id no longer sits in front of the name eating its column: pages/
+        p6.js (this pass's file) lifts the id span U.needsRow renders and
+        re-homes it on a meta line under the name, merged with the row's
+        own status text — "WE26BGD0002 · gate · CHaS waiting 197 d", a
+        12.5px line under the 16px name, the same shape Projects (P3) uses
+        for id+stage. ui.js is not this pass's file to edit; see p6.js's
+        relocateId() for the exact, minimal string-splice this took instead
+        (the same pattern as the proposal-detail splice already there).
+     4. Nothing that carries a unit may ellipsis-cut it: the meta line wraps
+        (never truncates) when it doesn't fit on one line, and every row
+        reserves TWO lines of meta height regardless — so a row that only
+        ever needs one line does not grow taller than its neighbour that
+        needs two, and the row stays the same height across the list
+        either way (measured, not assumed — see the min-height comment
+        below; heights were read with getBoundingClientRect, not assumed).
+
+   Track widths, sized to real content, not round numbers:
+     kind   152px (wide tier only) — "Contract · Signature", the longest
+                    NEEDS_KIND_LABEL value
+     flag   112px — fits "over by 999 d" / "999 d waiting" with room to
+                    spare over the current worst case ("over by 59 d");
+                    only a NUMBER may never be cut, and this column is wide
+                    enough that none is (v1.2.2 lost this exact fight twice
+                    already: the band count on --ccb and Budget's chevron.
+                    Not a third time.)
+     amount  92px — fits "$9,999,999" with the fixture's actual ceiling
+                    ($760,801) nowhere near it; right-aligned, tabular-nums
+     actions 224/110px — see the actions-column note below
+   Type scale stays the six v1.2.3 steps: 11.5 tag/chev, 12.5 id/sub0/meta,
+   14 amount, 16 title. */
+.p6-card:not(.p6-compact){display:grid;
+  grid-template-columns:minmax(0,1fr) 112px 92px 224px;
+  column-gap:14px;row-gap:8px;align-items:center;padding:12px var(--pad)}
+
+.p6-sum{display:grid;grid-template-columns:152px minmax(220px,1fr) 20px;
+  grid-template-rows:auto auto;column-gap:10px;row-gap:2px;align-items:start;
+  min-width:0;font:inherit;text-align:left;background:none;border:none;
+  padding:0;cursor:pointer;color:inherit}
+.p6-sum:disabled{cursor:default}
+.p6-sum:hover:not(:disabled) .p6-idname b{color:var(--brass)}
+/* extra content a page splices INSIDE the button (P6's proposal detail —
+   see pages/p6.js's WHO_END splice) always gets its own full-width row,
+   whatever tier's column count is in force. */
+.p6-sum>.p6-meta,.p6-sum>.p6-pwhy{grid-column:1/-1}
+
+.p6-kind{grid-column:1;grid-row:1;align-self:center;font-size:11.5px;
+  font-weight:600;color:var(--muted);background:#EDF0EC;border-radius:999px;
+  padding:1px 9px;white-space:nowrap;justify-self:start;min-width:0;
+  overflow:hidden;text-overflow:ellipsis}
+.p6-idname{grid-column:2;grid-row:1;align-self:center;display:inline-flex;
+  align-items:baseline;gap:7px;min-width:0;overflow:hidden}
+.p6-idname .ccflag{align-self:center;flex:none}
+.p6-idname b{flex:1 1 auto;font-size:16px;font-weight:600;color:var(--ink);min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* the meta line — pages/p6.js's relocateId() puts the id here, merged with
+   the row's own status text when it has one. Never nowrap/ellipsis (point
+   4 above): wrap at a word boundary instead of cutting a unit, and reserve
+   two lines' worth of height (12.5px/1.4 ≈ 17.5px each) UNCONDITIONALLY —
+   measured against the fixture's longest meta line at 220px (the name's
+   floor width), which already fits on one line with room to spare, so the
+   reserve is pure insurance, never exercised today, but it means a future
+   longer line wraps instead of growing that one row taller than its
+   neighbours. */
+.p6-sub0{grid-column:2;grid-row:2;min-width:0;font-size:12.5px;line-height:1.4;
+  color:var(--muted);white-space:normal;overflow-wrap:normal;word-break:normal;
+  min-height:35px}
+/* the relocated id keeps its own weight but drops the compact card's brass
+   link colour — inside the meta line it reads as one sentence, not a link.
+   Also cancels app.css's ≤768 touch-target padding (R4): that rule targets
+   .p6-id as a tap target for the OLD compact-card anchor; here it is plain
+   text inside a line that is not itself interactive, and the padding would
+   otherwise reflow the merged line as if the id were its own paragraph. */
+.p6-sub0 .p6-id{color:inherit;font-weight:600;display:inline;padding:0;min-height:0}
+.p6-chev{grid-column:3;grid-row:1;align-self:center;font-size:11.5px;
+  color:var(--muted);justify-self:end}
+
+.p6-flagwrap{min-width:0}
+.p6-amt{font-size:14px;font-weight:600;color:var(--ink);text-align:right}
+.p6-primact{min-width:0;display:flex;gap:6px;flex-wrap:wrap;align-items:center;
+  justify-content:flex-end}
+/* a button's own label may break onto a second line inside its fixed
+   column instead of overflowing it — .btn (app.css) is nowrap by default,
+   which is fine while the actions column is wide (desktop), but at the
+   medium tier's narrower column a single lone button ("Request submitted")
+   is wider than the column on its own, and flex-wrap cannot rescue that:
+   it only moves EXTRA items to a new line, it cannot shrink the one item
+   already alone on a line. Letting the label itself wrap keeps every
+   button inside its column at every tier. */
+.p6-primact .btn{white-space:normal;text-align:center;flex:0 1 auto;max-width:100%}
+/* U.needsRow always appends a plain "Open" link last, after the primary/
+   kept action buttons (ui.js is not this pass's file — see the p6.js note
+   above). It is the one element in this column that is genuinely optional:
+   the row expands and the name itself already lead to the same place
+   (coordinator's own framing). Hiding it when something else is already in
+   the column turns the common "primary + Open" row into a single button at
+   the medium tier — the far more frequent case that used to stack and rag
+   the row height — while a row with NO primary/kept action (:only-child)
+   keeps its one way to the project. */
+.p6-primact>a:last-child:not(:only-child){display:none}
+/* reserve the worst case (two stacked buttons — "Request approved" +
+   "Return to Review" is the fixture's actual longest pair) unconditionally,
+   so a row that only ever shows one action is not shorter than its
+   neighbour that legitimately carries two ("Return to Review" stays on the
+   collapsed line by CORE_API v1.2.2 §2's own contract, so this case is
+   real, not hypothetical). The number is measured per tier, not guessed —
+   a temporary Playwright probe read every row's actual two-button height
+   at all 5 widths before these were set (110px actions column: two single-
+   line 29.38px buttons stack at the wide tier's 224px column instead, same
+   total). Three values because the label wraps onto more lines as the
+   column narrows and app.css's own ≤768 touch floor (R4, 40px/button)
+   pushes it further: 65 (>1150, two 1-line buttons) → 104 (≤1150, two
+   2-line buttons in the 110px column) → 120 (≤768, the same wrap plus the
+   touch floor). ≤560 resets to 0 below: the stacked tier gives actions the
+   full row width, so two buttons sit side by side on one line instead. */
+.p6-primact{min-height:65px;align-content:flex-start}
+
+.p6-panel,.p6-card>.p6-inline{grid-column:1/-1}
+.p6-panel{border-top:1px solid var(--line2);margin-top:2px;padding-top:12px}
+.p6-panel[hidden],.p6-segbody[hidden]{display:none}
+.p6-panel .p6-acts{justify-content:flex-start}
+.p6-card .p6-meta,.p6-card .p6-pwhy{grid-column:1/-1}
+
+/* ---------------------------------------------- responsive tiers (measured)
+   Breakpoints come from the available card width at the five required test
+   widths, not a guess: the sidebar collapses to a top strip at 880
+   (app.css), so the card's own content width is ~1172px at 1440, ~1012 at
+   1280, but only ~756 at 1024 and ~736 at 768 (narrower viewport, yet a
+   WIDER card than a naive "narrower = less room" model predicts, because
+   the sidebar is already gone by then). Every number here was read with
+   getBoundingClientRect at the five required widths; re-measure rather
+   than trusting this comment.
+   Folding the kind chip out of the top line below 1150 hands the name
+   152px + the column-gap it no longer shares; the name's 220px floor holds
+   all the way to 768 on the standalone page, so the stacking breakpoint
+   only has to move for the role-home embedding, which is narrower still
+   (see the 960px note above the name's floor). */
+@media(max-width:1150px){
+  .p6-sum{grid-template-columns:minmax(220px,1fr) 20px}
+  .p6-kind{display:none}
+  .p6-idname{grid-column:1;grid-row:1}
+  .p6-sub0{grid-column:1;grid-row:2}
+  .p6-chev{grid-column:2;grid-row:1}
+  .p6-card:not(.p6-compact){grid-template-columns:minmax(0,1fr) 112px 92px 110px}
+  .p6-primact{min-height:104px}
+}
+@media(max-width:768px){
+  /* app.css's own R4 touch-target rule forces every .btn.sm to a 40px floor
+     here, which pushes a two-line-wrapped label taller still than the
+     104px above — measured, see the min-height comment on .p6-primact. */
+  .p6-primact{min-height:120px}
+}
+@media(max-width:560px){
+  /* full stacked card: every outer piece is its own row, in reading order
+     sum → flag → amount → actions, and .p6-sum itself stacks name+chevron
+     over kind over the meta line. Every tier still uses ONE layout for
+     every row — nothing here is conditional on a row's own content. The
+     kind chip reappears here (point 1 above): a fully stacked card has a
+     row to spare for it that the medium tier does not. */
+  .p6-card:not(.p6-compact){grid-template-columns:minmax(0,1fr);row-gap:6px;
+    padding:12px 14px}
+  .p6-sum{grid-template-columns:minmax(0,1fr) 20px;row-gap:4px}
+  .p6-idname{grid-column:1;grid-row:1}
+  .p6-chev{grid-column:2;grid-row:1}
+  .p6-kind{display:inline-block;grid-column:1;grid-row:2}
+  .p6-sub0{grid-column:1/-1;grid-row:3}
+  .p6-flagwrap{justify-self:start}
+  .p6-amt{text-align:left}
+  .p6-primact{justify-content:flex-start;min-height:0}
+}
+
+/* v1.2.5 S3 (F12) — box-driven stack (see the .p6-list note above). Placed
+   last so it wins over the viewport tiers by source order at equal specificity.
+   Stacks the card whenever its OWN box is under ~664px — the width below which
+   the single-row layout's 220px name floor no longer fits — regardless of
+   whether the narrow box came from an expanded sidebar (881–948) or a narrow
+   embedding. Mirrors the ≤560 stacked layout above. */
+@container p6list (max-width:664px){
+  .p6-card:not(.p6-compact){grid-template-columns:minmax(0,1fr);row-gap:6px;padding:12px 14px}
+  .p6-sum{grid-template-columns:minmax(0,1fr) 20px;row-gap:4px}
+  .p6-idname{grid-column:1;grid-row:1}
+  .p6-chev{grid-column:2;grid-row:1}
+  .p6-kind{display:inline-block;grid-column:1;grid-row:2}
+  .p6-sub0{grid-column:1/-1;grid-row:3}
+  .p6-flagwrap{justify-self:start}
+  .p6-amt{text-align:left}
+  .p6-primact{justify-content:flex-start;min-height:0}
+}
