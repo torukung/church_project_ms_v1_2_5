@@ -13,8 +13,8 @@
 .p5-key{width:14px;height:8px;border-radius:999px;flex:none;margin-left:6px;
   background:var(--gantt-fill);border:1px solid var(--gantt-edge)}
 .p5-key.v2{background:var(--gantt-fill2);border-color:var(--gantt-edge2);margin-left:3px}
-.p5-key.plan{background:#F5F6F4;border-style:dashed;border-color:var(--s4)}
-.p5-key.over{background:var(--rose-bg);border-color:#D8A9A6}
+.p5-key.plan{background:var(--raise);border-style:dashed;border-color:var(--s4)}
+.p5-key.over{background:var(--rose-bg);border-color:var(--rose)}
 .p5-key.mile{width:9px;height:9px;border-radius:2px;transform:rotate(45deg);
   background:var(--brass);border:none}
 .p5-key.today{width:2px;height:12px;border-radius:0;background:var(--rose);border:none}
@@ -50,9 +50,9 @@
 
 .p5-head,.p5-grp,.p5-row,.p5-sum{
   display:grid;grid-template-columns:var(--p5-lab) minmax(0,1fr) var(--p5-flag)}
-.p5-head{background:#FAFBFA;border-bottom:1px solid var(--line)}
-.p5-head .p5-lab{font-size:12.5px;font-weight:600;color:var(--muted);padding:7px 12px}
-.p5-head .p5-fcell{font-size:12.5px;font-weight:600;color:var(--muted)}
+.p5-head{background:var(--raise);border-bottom:1px solid var(--line)}
+.p5-head .p5-lab{font-size:12.5px;font-weight:600;color:var(--slate);padding:7px 12px}
+.p5-head .p5-fcell{font-size:12.5px;font-weight:600;color:var(--slate)}
 .p5-months{display:flex;min-width:0}
 /* v1.2.3 audit — was nowrap + ellipsis, which cut every month head below
    1280 ("Jul ’…", "M…" at 1024 and 768) and destroyed the year with it. A
@@ -83,7 +83,7 @@
 .p5-id{font-style:normal;font-weight:600;color:var(--brass);font-variant-numeric:tabular-nums}
 .p5-lab small.unowned .p5-id{color:var(--brass)}
 
-.p5-grp{background:#F6F8F5;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.p5-grp{background:var(--raise);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 .p5-grp:first-of-type{border-top:none}
 .p5-grp .p5-lab{padding:9px 12px;border-right:none}
 .p5-grp .p5-lab b{font-size:16px;font-weight:700}
@@ -94,14 +94,14 @@
 
 .p5-row{border-bottom:1px solid var(--line2);color:inherit}
 .p5-row:last-child{border-bottom:none}
-.p5-row:hover{background:#FBFCFA}
+.p5-row:hover{background:var(--raise)}
 /* v1.2.5 S3 (F10) — the selected-row marker class `sel` collides with the
    global select-input style `.sel` (app.css), which carries padding:7px 12px +
    a 1px border. On a .p5-row (a grid) that leaked a 13px left shift (12px pad +
    1px border) onto only the selected task row's label column, indenting it
    deeper than its siblings. Reset the leaked box model here; the row keeps only
    its own selected-state background. No markup/logic change. */
-.p5-row.sel{background:#FBFCFA;padding:0;border:0;border-radius:0}
+.p5-row.sel{background:var(--raise);padding:0;border:0;border-radius:0}
 
 /* ---------------------------------------- P5 · collapsed row (v1.2.2) ---- */
 /* One item = the always-present summary button, plus its panel only while
@@ -110,11 +110,11 @@
    even for an editor, so a click anywhere on the row does exactly one thing. */
 .p5-sum{width:100%;text-align:left;background:none;border:0;margin:0;padding:0;
   font:inherit;color:inherit;cursor:pointer;border-bottom:1px solid var(--line2)}
-.p5-sum:hover{background:#FBFCFA}
+.p5-sum:hover{background:var(--raise)}
 .p5-sum:focus-visible{outline:2px solid var(--glass);outline-offset:-2px}
-.p5-item[data-open="true"] .p5-sum{background:#FBFCFA;border-bottom:none}
+.p5-item[data-open="true"] .p5-sum{background:var(--raise);border-bottom:none}
 .p5-item:last-child .p5-sum{border-bottom:none}
-.p5-panel{border-bottom:1px solid var(--line2);background:#FBFCFA}
+.p5-panel{border-bottom:1px solid var(--line2);background:var(--raise)}
 .p5-panel .p5-row{border-bottom:none}
 .p5-item:last-child .p5-panel{border-bottom:none}
 
@@ -131,7 +131,7 @@
    or --ink, never --muted. */
 .p5-panel{
   background:linear-gradient(rgba(18,20,16,.09),rgba(18,20,16,.09)),
-             var(--ccb,#EDF0EC);
+             var(--ccb,var(--raise));
 }
 .p5-panel .p5-lab small,
 .p5-panel .p5-editnote,
@@ -146,7 +146,7 @@
    is 4.85 at worst. Only the tinted panel is re-coloured — on the white
    collapsed row the plain tokens already clear AA and stay. */
 .p5-panel .p5-note{color:var(--slate)}
-.p5-panel .p5-note.over{color:var(--rose-ink)}
+.p5-panel .p5-note.over{color:var(--sx)}
 
 /* the indent itself: a rule and a step of left padding on the LABEL column
    only reads the detail row as nested under the project above it — the
@@ -170,8 +170,8 @@
 .p5-cbar{position:absolute;top:50%;transform:translateY(-50%);height:26px;
   min-width:6px;box-sizing:border-box;border-radius:999px;overflow:hidden;
   background:var(--card);border:1px solid var(--gantt-edge);z-index:2}
-.p5-cbar.plan{background:#F5F6F4;border-style:dashed;border-color:var(--s4)}
-.p5-cbar.plan.over{background:var(--rose-bg);border-color:#D8A9A6}
+.p5-cbar.plan{background:var(--raise);border-style:dashed;border-color:var(--s4)}
+.p5-cbar.plan.over{background:var(--rose-bg);border-color:var(--rose)}
 .p5-cseg{position:absolute;top:0;bottom:0;background:var(--gantt-fill)}
 .p5-cseg.v2{background:var(--gantt-fill2)}
 /* the record link is the label column only, so the balloons in the track can be
@@ -194,9 +194,9 @@
 .p5-bar span{overflow:hidden;text-overflow:ellipsis}
 .p5-bar.v2{background:var(--gantt-fill2);border-color:var(--gantt-edge2)}
 .p5-bar.v2 i{background:var(--gantt-edge2)}
-.p5-bar.plan{background:#F5F6F4;border-style:dashed;border-color:var(--s4);color:var(--muted)}
+.p5-bar.plan{background:var(--raise);border-style:dashed;border-color:var(--s4);color:var(--muted)}
 .p5-bar.plan i{background:var(--s4)}
-.p5-bar.plan.over{background:var(--rose-bg);border-color:#D8A9A6;color:var(--rose);font-weight:600}
+.p5-bar.plan.over{background:var(--rose-bg);border-color:var(--rose);color:var(--rose);font-weight:600}
 .p5-bar.plan.over i{background:var(--rose)}
 
 /* --------------------------------- P5 · project bar vs. task bars (v1.2.3)
@@ -219,10 +219,10 @@
 .p5-track.detail .p5-pbar i{width:7px;height:7px;border-radius:50%;
   background:var(--gantt-edge);flex:none}
 .p5-track.detail .p5-pbar span{overflow:hidden;text-overflow:ellipsis}
-.p5-track.detail .p5-pbar.plan{background:#F5F6F4;border-style:dashed;
+.p5-track.detail .p5-pbar.plan{background:var(--raise);border-style:dashed;
   border-color:var(--s4);color:var(--slate);font-weight:400}
 .p5-track.detail .p5-pbar.plan i{background:var(--s4)}
-.p5-track.detail .p5-pbar.plan.over{background:var(--rose-bg);border-color:#D8A9A6;
+.p5-track.detail .p5-pbar.plan.over{background:var(--rose-bg);border-color:var(--rose);
   color:var(--rose);font-weight:600}
 .p5-track.detail .p5-pbar.plan.over i{background:var(--rose)}
 .p5-track.detail .p5-pbar.p5-live{cursor:grab;touch-action:none;
@@ -302,7 +302,7 @@
 
 /* the keyboard tray, hung under the row it belongs to */
 .p5-edit{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0;
-  padding:9px 14px 9px 12px;background:#FAFBFA;border-bottom:1px solid var(--line2);
+  padding:9px 14px 9px 12px;background:var(--raise);border-bottom:1px solid var(--line2);
   border-left:3px solid var(--brass)}
 .p5-editlab{font-size:12.5px;color:var(--slate);min-width:0}
 .p5-editlab b{font-weight:600;color:var(--ink)}
@@ -316,7 +316,7 @@
 
 /* the live date, following the pointer while a balloon is dragged */
 .p5-tip{position:fixed;z-index:90;display:none;transform:translate(-50%,-180%);
-  background:var(--ink);color:#fff;border-radius:var(--r);padding:4px 10px;
+  background:var(--ink);color:var(--paper);border-radius:var(--r);padding:4px 10px;
   font-family:var(--f);font-size:12.5px;font-weight:600;white-space:nowrap;
   pointer-events:none;font-variant-numeric:tabular-nums;
   box-shadow:0 6px 18px rgba(34,48,59,.28)}
@@ -350,9 +350,9 @@
 
 .p9-pill{display:inline-block;font-size:11.5px;font-weight:600;border-radius:999px;
   padding:1px 9px;border:1px solid var(--line);color:var(--slate);white-space:nowrap}
-.p9-pill.verd{color:var(--verd);border-color:#B9D2C9;background:var(--verd-bg)}
-.p9-pill.brass{color:var(--brass);border-color:#E2D3B4;background:var(--brass-bg)}
-.p9-pill.rose{color:var(--rose);border-color:#E5C6C4;background:var(--rose-bg)}
+.p9-pill.verd{color:var(--verd);border-color:var(--verd);background:var(--verd-bg)}
+.p9-pill.brass{color:var(--brass);border-color:var(--brass);background:var(--brass-bg)}
+.p9-pill.rose{color:var(--rose);border-color:var(--rose);background:var(--rose-bg)}
 
 .p9-rights{font-size:12.5px;color:var(--slate)}
 .p9-sub{display:block;font-size:12.5px;color:var(--muted)}

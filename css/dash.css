@@ -28,7 +28,7 @@ a.p2-manage:hover{color:var(--glass);text-decoration:underline}
 
 /* =========================================== C-20 · country scope pane === */
 .p2-scope-pane{position:absolute;right:0;top:calc(100% + 6px);z-index:40;width:250px;
-  background:#fff;border:1px solid var(--line);border-radius:8px;
+  background:var(--card);border:1px solid var(--line);border-radius:8px;
   box-shadow:0 10px 30px rgba(34,48,59,.14);padding:10px;display:none}
 .p2-scope-pane.open{display:block}
 .p2-scope-pane .hd{display:flex;justify-content:space-between;align-items:center;
@@ -36,13 +36,13 @@ a.p2-manage:hover{color:var(--glass);text-decoration:underline}
 .p2-scope-pane .hd button{color:var(--glass);font-weight:600;font-size:12.5px}
 .p2-scope-list label{display:flex;align-items:center;gap:10px;padding:7px 6px;
   border-radius:6px;font-size:12.5px;cursor:pointer}
-.p2-scope-list label:hover{background:#F5F7F4}
+.p2-scope-list label:hover{background:var(--hover)}
 .p2-scope-list input{width:15px;height:15px;accent-color:var(--brass);flex:none}
 .p2-scope-pane .ft{font-size:11.5px;color:var(--muted);padding:8px 6px 2px;
   border-top:1px solid var(--line2);margin-top:6px;line-height:1.45}
 
 .p2-hint{margin:0 0 var(--gap);padding:9px 13px;border:1px solid var(--line);
-  border-left:3px solid var(--brass);border-radius:var(--r);background:#fff;
+  border-left:3px solid var(--brass);border-radius:var(--r);background:var(--card);
   font-size:12.5px;color:var(--slate)}
 .p2-lead{font-size:14px;color:var(--muted);margin:0 0 var(--gap);max-width:82ch}
 
@@ -72,7 +72,7 @@ a.p2-manage:hover{color:var(--glass);text-decoration:underline}
 .p2-empty{font-size:14px;color:var(--muted);padding:10px 0 4px}
 .p2-note{font-size:12.5px;color:var(--muted);margin-top:12px;line-height:1.5}
 
-.p2-blank{border:1px dashed var(--line);border-radius:var(--r);background:#fff;
+.p2-blank{border:1px dashed var(--line);border-radius:var(--r);background:var(--card);
   padding:34px var(--pad);text-align:center;display:flex;flex-direction:column;
   align-items:center;gap:8px}
 .p2-blank b{font-size:14px;font-weight:700}
@@ -80,7 +80,7 @@ a.p2-manage:hover{color:var(--glass);text-decoration:underline}
 
 /* ============================== C-03 · budget bar vs ceiling ============= */
 .p2-bwrap{padding:26px 2px 2px}
-.p2-bar{position:relative;height:26px;border-radius:6px;background:#EFF1EE;min-width:0}
+.p2-bar{position:relative;height:26px;border-radius:6px;background:var(--raise);min-width:0}
 .p2-bar.sm{height:14px;border-radius:999px;flex:1}
 .p2-fill{position:absolute;inset:0;display:flex;border-radius:inherit;overflow:hidden}
 .p2-seg{height:100%;display:block;flex:none}
@@ -176,10 +176,10 @@ a.p2-manage:hover{color:var(--glass);text-decoration:underline}
 .p2-eb{font-size:12.5px;font-weight:600;color:var(--slate);padding:3px 9px;
   line-height:1.5;border-radius:0}
 .p2-ebg .p2-eb + .p2-eb{border-left:1px solid var(--line)}
-.p2-eb:hover:not(:disabled){color:var(--ink);background:#F5F7F4}
+.p2-eb:hover:not(:disabled){color:var(--ink);background:var(--hover)}
 .p2-eb:disabled{opacity:.35;cursor:default}
 .p2-span{font-variant-numeric:tabular-nums}
-.p2-span.on{color:var(--ink);background:#F1F3F0;box-shadow:inset 0 -2px 0 var(--brass)}
+.p2-span.on{color:var(--ink);background:var(--raise);box-shadow:inset 0 -2px 0 var(--brass)}
 .p2-ebpos{font-size:11.5px;color:var(--slate);flex:none}
 .dw-tools.edit .p2-x{margin-left:auto;border:1px solid var(--line);padding:1px 8px}
 
@@ -192,8 +192,8 @@ a.p2-manage:hover{color:var(--glass);text-decoration:underline}
 .p2-trayhd span{font-size:12.5px;color:var(--muted);min-width:0}
 .p2-pickgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .p2-pick{text-align:left;border:1px solid var(--line);border-radius:var(--r);
-  background:#fff;padding:12px 14px;min-width:0;display:block}
-.p2-pick:hover{border-color:var(--brass);background:#FCFBF7}
+  background:var(--card);padding:12px 14px;min-width:0;display:block}
+.p2-pick:hover{border-color:var(--brass);background:var(--hover)}
 .p2-pick b{display:block;font-size:14px;font-weight:600}
 .p2-pick span{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
 .p2-pick em{display:block;font-size:11.5px;font-style:normal;font-weight:600;
@@ -244,7 +244,7 @@ a.p2-manage:hover{color:var(--glass);text-decoration:underline}
 .at-lbl{font-size:12.5px;font-weight:600;color:var(--slate);min-width:0}
 .at-note{font-size:11.5px;color:var(--muted);min-width:0}
 .at-n{margin-left:auto;flex:none;font-size:12.5px;font-weight:600;color:var(--slate);
-  background:#F1F3F0;border-radius:999px;padding:0 8px;
+  background:var(--raise);border-radius:999px;padding:0 8px;
   font-variant-numeric:tabular-nums}
 .at-clear{font-size:12.5px;color:var(--muted);padding:11px 0 2px;line-height:1.5}
 
@@ -288,8 +288,8 @@ a.p2-manage:hover{color:var(--glass);text-decoration:underline}
 
 .bt-row{cursor:pointer}
 .bt-row > td{box-shadow:inset 0 -1px 0 var(--line2)}
-.bt-row:hover > td{background:#F5F7F4}
-.bt-row.on > td{background:#F5F7F4}
+.bt-row:hover > td{background:var(--hover)}
+.bt-row.on > td{background:var(--hover)}
 .bt-row > td:first-child{box-shadow:inset 3px 0 0 var(--ccx,var(--cc-x-line)),
   inset 0 -1px 0 var(--line2)}
 .bt-row:focus-visible{outline:2px solid var(--glass);outline-offset:-2px}
@@ -299,7 +299,7 @@ a.p2-manage:hover{color:var(--glass);text-decoration:underline}
 .bt-chev{flex:none;width:12px;font-size:12.5px;   /* v1.2.1 R11 */color:var(--muted);line-height:1}
 .bt-row.on .bt-chev{color:var(--slate)}
 .bt-n{flex:none;font-size:11.5px;color:var(--slate);font-variant-numeric:tabular-nums;
-  background:#F1F3F0;border-radius:999px;padding:0 7px}
+  background:var(--raise);border-radius:999px;padding:0 7px}
 .bt-bar .ubar-wrap{min-width:112px}
 
 /* the expanded queue: a K.band restates the country's own figures (v1.2.2 —
@@ -343,7 +343,7 @@ a.p2-manage:hover{color:var(--glass);text-decoration:underline}
   border-bottom:1px solid var(--line2);
   box-shadow:inset 3px 0 0 var(--ccx,var(--cc-x-line));cursor:pointer}
 .ma-row.static{cursor:default}
-.ma-row:hover:not(.static){background:#F5F7F4}
+.ma-row:hover:not(.static){background:var(--hover)}
 .ma-row.on{background:var(--ccl,var(--cc-x-light));border-bottom-color:transparent}
 .ma-row:focus-visible{outline:2px solid var(--glass);outline-offset:-2px}
 .ma-chev{flex:none;width:11px;font-size:11.5px;color:var(--slate);line-height:1}

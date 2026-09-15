@@ -45,7 +45,7 @@
    left = 12+12+1+16 = 41px, right = 12+1+40 = 53px. Match those insets here so
    the header's fixed grid tracks line up with the rows' at every width the
    header is shown (861px+; it is display:none below). */
-.preg .lhead{padding:9px 53px 9px 41px;font-size:11.5px;font-weight:600;color:var(--muted)}
+.preg .lhead{padding:9px 53px 9px 41px;font-size:11.5px;font-weight:600;color:var(--slate)}
 .preg .lhead .r{text-align:right}
 .l-name{grid-area:name}.l-stage{grid-area:stage}.l-flag{grid-area:flag}
 .l-budget{grid-area:budget}.l-cmt{grid-area:cmt}.l-chev{grid-area:chev}
@@ -73,8 +73,8 @@
 
 .xsum{width:100%;font:inherit;text-align:left;color:inherit;background:none;
   border:none;padding:11px 40px 11px 16px;position:relative;cursor:pointer}
-.xsum:hover{background:#FBFCFA}
-.xrow[data-open="true"] .xsum{background:#F8FAF8;border-bottom:1px solid var(--line2)}
+.xsum:hover{background:var(--hover)}
+.xrow[data-open="true"] .xsum{background:var(--raise);border-bottom:1px solid var(--line2)}
 
 .xc{min-width:0}
 .xc-name{grid-area:name;display:flex;align-items:baseline;gap:8px;min-width:0}
@@ -188,7 +188,7 @@
 .cm{display:flex;gap:11px;padding:13px 0;border-bottom:1px solid var(--line2)}
 .cm:last-child{border-bottom:none}
 .cm.unread{border-left:3px solid var(--rose);padding-left:11px;margin-left:-14px}
-.cm-av{flex:none;width:30px;height:30px;border-radius:50%;background:#EDF0EC;
+.cm-av{flex:none;width:30px;height:30px;border-radius:50%;background:var(--raise);
   color:var(--slate);font-size:11.5px;font-weight:700;display:flex;
   align-items:center;justify-content:center}
 .cm-av.note{background:var(--brass-bg);color:var(--brass)}
@@ -198,10 +198,10 @@
 .cm-meta b{font-size:12.5px;font-weight:600;color:var(--ink)}
 .cm-meta .num{font-variant-numeric:tabular-nums}
 .cm-kind{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;
-  color:var(--brass);background:var(--brass-bg);border:1px solid #E2D3B4;
+  color:var(--brass);background:var(--brass-bg);border:1px solid var(--brass);
   border-radius:999px;padding:1px 9px;white-space:nowrap}
 .cm-kind .ic{font-weight:700;line-height:1}
-.cm-flag{font-size:11.5px;font-weight:600;color:var(--rose);border:1px solid #E5C6C4;
+.cm-flag{font-size:11.5px;font-weight:600;color:var(--rose);border:1px solid var(--rose);
   border-radius:999px;padding:1px 9px;white-space:nowrap}
 .cm-edited{font-size:11.5px;color:var(--muted);font-style:italic}
 .cm-new{font-size:11.5px;font-weight:700;color:var(--rose)}
@@ -209,7 +209,7 @@
 .cm-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .cm-edit{margin-top:4px}
 
-.cm-composer{border-top:1px solid var(--line);background:#FAFBFA;
+.cm-composer{border-top:1px solid var(--line);background:var(--raise);
   padding:13px var(--pad)}
 .cm-composer.readonly{font-size:12.5px;color:var(--muted);font-style:italic;
   border-radius:0 0 var(--r) var(--r)}

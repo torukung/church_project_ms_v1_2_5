@@ -7,26 +7,30 @@
 
   CBP.state = null;
 
-  /* v1.2.5.1 — Tone (accent theme) allow-list. Each tone recolours only the
-     warm brand-accent family (--brass / --brass-tint / --brass-bg / --s3 /
-     --s3-ink) via a :root[data-tone=…] block in app.css; the light base and
-     every semantic colour (rose, verd, glass, country tints) stay fixed. One
-     source of truth so the store guard and the top-bar picker agree. */
+  /* v1.2.5.2 — Tone (full theme) allow-list. Each tone repaints the WHOLE
+     neutral + brand-accent surface via a :root[data-tone=…] block in app.css,
+     and carries a `ground` ('light' | 'dark') that selects the shared identity
+     set (country tints, status pastels, gantt fills, --glass) through a
+     :root[data-ground=…] block. One source of truth so the store guard, the
+     top-bar picker and the two root attributes agree. Order = picker order. */
   var TONE_LIST = [
-    { slug: 'espresso-mocha',  name: 'Espresso Mocha' },
-    { slug: 'champagne-gold',  name: 'Champagne Gold' },
-    { slug: 'terracotta-clay', name: 'Terracotta Clay' },
-    { slug: 'slate-blue',      name: 'Slate Blue' },
-    { slug: 'forest-green',    name: 'Forest Green' },
-    { slug: 'olive-sage',      name: 'Olive Sage' },
-    { slug: 'ink-indigo',      name: 'Ink Indigo' }
+    { slug: 'white-gold',        name: 'White Gold',        ground: 'light' },
+    { slug: 'dark-brass',        name: 'Dark Brass',        ground: 'dark'  },
+    { slug: 'terracotta-sand',   name: 'Terracotta Sand',   ground: 'light' },
+    { slug: 'slate-concrete',    name: 'Slate Concrete',    ground: 'dark'  },
+    { slug: 'chocolate-leather', name: 'Chocolate Leather', ground: 'dark'  },
+    { slug: 'espresso-mocha',    name: 'Espresso Mocha',    ground: 'light' },
+    { slug: 'olive-forest',      name: 'Olive Forest',      ground: 'light' }
   ];
   var TONES = {};
-  TONE_LIST.forEach(function (t) { TONES[t.slug] = t.name; });
+  var GROUNDS = {};
+  TONE_LIST.forEach(function (t) { TONES[t.slug] = t.name; GROUNDS[t.slug] = t.ground; });
   CBP.TONES = TONE_LIST;
-  CBP.DEFAULT_TONE = 'espresso-mocha';
+  CBP.DEFAULT_TONE = 'dark-brass';
   /* returns a known slug, falling back to the default for anything unknown */
   CBP.toneOrDefault = function (t) { return TONES[t] ? t : CBP.DEFAULT_TONE; };
+  /* the ground ('light' | 'dark') a tone renders on; unknown -> default's */
+  CBP.groundOf = function (t) { return GROUNDS[t] || GROUNDS[CBP.DEFAULT_TONE]; };
 
   /* v1.0.1 — seeded read marks: { commentId: { userId: true } }. Kept here and
      not in the fixture because "what have I read" is per-session view state,
@@ -230,7 +234,7 @@
         p3Search: '',
         openRows: { WE26BGD0002: true, WE25NPL0007: true },
         comfort: false,
-        tone: 'espresso-mocha',
+        tone: 'dark-brass',
         notice: null,
 
         /* P4 / P6 (Phase B) */

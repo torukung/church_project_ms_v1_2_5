@@ -248,6 +248,38 @@
     };
   };
 
+  /* v1.2.5.2 Phase 2 — the Cooperation Agreement line. Four nodes in the ToR
+     order, each done-state read from the contract record the gate already
+     trusts (D.contractGate → D.primaryContract):
+       · drafted  — a contract exists in Draft+ (contractGate has a lifecycle
+                    state, i.e. not 'na'/'todo'; 'todo' means one is still owed)
+       · OGC      — that division's review row is status 'approved' (complete)
+       · Finance  — same, read INDEPENDENTLY (the two are parallel in the model;
+                    only their DISPLAY is sequential, per the ToR)
+       · signed   — the agreement is executed (executed_at, or a status that
+                    only follows execution: executed / sent / active)
+     Returns null when no agreement is required, so the caller simply omits the
+     line. `met` and the gate LOGIC are untouched — this only reads state. */
+  D.agreementFlow = function (p) {
+    var cg = D.contractGate ? D.contractGate(p) : null;
+    if (!cg || cg.state === 'na') return null;
+    var c = cg.contract;
+    function reviewApproved(div) {
+      if (!c) return false;
+      var r = (c.reviews || []).filter(function (x) { return x.division === div; })[0];
+      return !!(r && r.status === 'approved');
+    }
+    var drafted = !!c && cg.state !== 'todo';
+    var signed  = !!(c && (c.executed_at ||
+                     ['executed', 'sent', 'active'].indexOf(c.status) > -1));
+    return D.flowStates([
+      { label: 'Agreement drafted', done: drafted },
+      { label: 'Reviewed by OGC',   done: reviewApproved('ogc') },
+      { label: 'Reviewed by Finance', done: reviewApproved('finance') },
+      { label: 'Agreement signed',  done: signed }
+    ]);
+  };
+
   D.reviewDue = function (c, division) {
     if (!c) return null;
     var r = (c.reviews || []).filter(function (x) { return x.division === division; })[0];

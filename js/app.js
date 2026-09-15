@@ -92,9 +92,10 @@
       '</aside>';
   }
 
-  /* v1.2.5.1 — the accent-tone picker: a small "Tone" label and one round
-     swatch per tone. Textless buttons (name carried by title/aria-label) so
-     they add no type size and never clip; the selected one gets a ring. */
+  /* v1.2.5.2 — the tone picker: a small "Tone" label and one round swatch per
+     tone. Each swatch previews its own palette (ground fill + accent ring, set
+     in CSS per slug). Textless buttons (name carried by title/aria-label) so
+     they add no type size and never clip; the selected one gets a double-ring. */
   function tonepicker(state) {
     var cur = CBP.toneOrDefault(state.ui.tone);
     var sw = CBP.TONES.map(function (tn) {
@@ -105,7 +106,7 @@
         ' title="' + e(tn.name) + '" aria-label="Tone: ' + e(tn.name) + '">' +
         '<span class="tone-dot"></span></button>';
     }).join('');
-    return '<div class="tonepick" role="group" aria-label="Accent tone">' +
+    return '<div class="tonepick" role="group" aria-label="Tone">' +
       '<span class="tonelabel">Tone</span>' + sw + '</div>';
   }
 
@@ -167,10 +168,13 @@
     if (location.hash !== hashBefore) guardRedirect = true;
 
     document.body.classList.toggle('comfort', !!state.ui.comfort);
-    /* v1.2.5.1 — accent tone lives on the ROOT <html> so the CSS can key off
-       :root[data-tone=…]; an unknown stored value falls back to the default. */
+    /* v1.2.5.2 — the tone lives on the ROOT <html> as TWO attributes: data-tone
+       (the full palette block) and data-ground (the light/dark identity set —
+       country tints, status pastels, gantt, --glass). An unknown stored value
+       falls back to the default tone (dark-brass), whose ground is dark. */
     state.ui.tone = CBP.toneOrDefault(state.ui.tone);
     document.documentElement.setAttribute('data-tone', state.ui.tone);
+    document.documentElement.setAttribute('data-ground', CBP.groundOf(state.ui.tone));
     document.body.classList.toggle('fullbleed', !!page.fullbleed);
 
     /* a front door (P1) renders on its own, with no sidebar and no top bar —

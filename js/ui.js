@@ -518,7 +518,44 @@
      parentage). It spans to the last column rather than matching just the
      one rung's width, so the frame has room for gate chips/dates instead of
      being squeezed to a quarter of the row. */
-  U.stepper = function (p) {
+  /* v1.2.5.2 Phase 2 — a stepped sub-line drawn in the SAME node grammar as the
+     ladder above it (a node dot, a connector, a label; done / current /
+     pending). It is not a standalone widget: U.stepper drops it into the .sl-sub
+     frame under the current rung, so it reads as the rung expanding to show its
+     own sub-steps. Done = --verd (the app's "done" green, filled dot + check),
+     current = --brass accent ring, pending = --muted/--line hollow; the
+     connector INTO a done-or-current node is --verd, otherwise --line. */
+  U.subflow = function (caption, nodes) {
+    if (!nodes || !nodes.length) return '';
+    var line = nodes.map(function (n) {
+      var word = n.state === 'done' ? 'done'
+               : (n.state === 'cur' ? 'in progress' : 'pending');
+      return '<span class="subflow-node is-' + n.state + '">' +
+        '<span class="sfn-dot" aria-hidden="true">' +
+          (n.state === 'done' ? '✓' : '') + '</span>' +
+        '<span class="sfn-lab">' + e(n.label) +
+          '<span class="vh"> — ' + word + '</span></span>' +
+        '</span>';
+    }).join('');
+    return '<div class="subflow">' +
+      '<div class="subflow-cap">' + e(caption) + '</div>' +
+      '<div class="subflow-line">' + line + '</div></div>';
+  };
+
+  /* both Phase-2 lines, in order: the external gate first (it is the 3 → 2
+     story), the Cooperation Agreement second (it lives inside status 2). The
+     agreement line is omitted when no agreement is required. */
+  U.stepFlows = function (p) {
+    var out = '';
+    var g = D.gateFlow ? D.gateFlow(p) : null;
+    if (g) out += U.subflow('Decision Point and CHaS', g);
+    var a = D.agreementFlow ? D.agreementFlow(p) : null;
+    if (a) out += U.subflow('Cooperation Agreement', a);
+    return out;
+  };
+
+  U.stepper = function (p, opts) {
+    opts = opts || {};
     var r = D.rungOf(p);
     var labels = CBP.CONFIG.RUNG_LABELS || {};
     var prev = null;
@@ -558,10 +595,12 @@
        two-track one ((n-1) mod 2 + 1); each media query reads the one it
        needs, so the frame's left edge is its own rung's left edge at every
        width, with no second code path. */
+    var flowHtml = opts.flow ? U.stepFlows(p) : '';
+
     return '<div class="stepline">' + cells +
       '<div class="sl-sub' + frameTone + '" style="--sl-c4:' + curCol +
         ';--sl-c2:' + (((curCol - 1) % 2) + 1) + '">' +
-        U.rungSubline(p) +
+        U.rungSubline(p) + flowHtml +
       '</div></div>';
   };
 

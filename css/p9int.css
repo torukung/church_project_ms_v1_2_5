@@ -23,8 +23,8 @@
   border-radius:var(--r);box-shadow:var(--shadow);padding:8px}
 .p9i-sys{display:block;width:100%;text-align:left;padding:9px 11px;border-radius:var(--r);
   border:1px solid transparent;min-width:0}
-.p9i-sys:hover{background:#F1F3F0}
-.p9i-sys.on{background:#EDF0EC;border-color:var(--line);box-shadow:inset 3px 0 0 var(--brass)}
+.p9i-sys:hover{background:var(--hover)}
+.p9i-sys.on{background:var(--raise);border-color:var(--line);box-shadow:inset 3px 0 0 var(--brass)}
 .p9i-syst{display:flex;align-items:center;gap:8px;min-width:0}
 .p9i-syst b{font-size:14px;font-weight:600;min-width:0;overflow-wrap:anywhere}
 .p9i-sys small{display:block;font-size:12.5px;color:var(--muted);margin-top:2px;padding-left:15px}
@@ -38,12 +38,12 @@
 
 /* ------------------------------------------------ mode segmented control -- */
 .p9i-seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;
-  background:#fff}
+  background:var(--card)}
 .p9i-segb{font-size:12.5px;font-weight:600;color:var(--muted);padding:4px 13px;
   border-right:1px solid var(--line2);white-space:nowrap}
 .p9i-segb:last-child{border-right:none}
-.p9i-segb:hover{color:var(--slate);background:#F5F7F4}
-.p9i-segb.on{color:#fff;background:var(--brass)}
+.p9i-segb:hover{color:var(--slate);background:var(--hover)}
+.p9i-segb.on{color:var(--card);background:var(--brass)}
 .p9i-mean{display:block;font-size:12.5px;color:var(--muted);margin-top:6px;font-weight:400}
 
 /* ------------------------------------------------------ inline field row -- */

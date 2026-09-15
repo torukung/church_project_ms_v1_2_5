@@ -61,7 +61,7 @@
    `.k-flab` rule below for why the filter strip shares it. */
 .k-bstatus,.k-bcountry,.k-bextra{display:grid;
   grid-template-columns:var(--k-labw) minmax(0,1fr);
-  column-gap:10px;row-gap:8px;align-items:start;background:#FBFCFA}
+  column-gap:10px;row-gap:8px;align-items:start;background:var(--card)}
 .k-bstatus>*,.k-bcountry>*,.k-bextra>*{min-width:0}
 /* v1.2.3 fix — every non-label child used to be its own grid item, so a page
    that passes loose chips (Projects does) got one full-width chip per line
@@ -78,7 +78,7 @@
 /* ================================================== 2 · filter + sort ===== */
 
 .k-flt{display:flex;align-items:center;gap:10px 16px;flex-wrap:wrap;
-  padding:12px var(--pad);background:#FBFCFA;border:1px solid var(--line);
+  padding:12px var(--pad);background:var(--card);border:1px solid var(--line);
   border-radius:var(--r);margin-bottom:10px;min-width:0}
 
 .k-fb{display:flex;align-items:center;gap:7px;min-width:0}
@@ -96,10 +96,10 @@
 .k-chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;
   border:1px solid var(--line);background:var(--card);color:var(--slate);
   border-radius:999px;padding:5px 11px;line-height:1.25;white-space:nowrap}
-.k-chip:hover{border-color:#CFD5CC;color:var(--ink)}
-.k-chip.on{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:600}
+.k-chip:hover{border-color:var(--muted);color:var(--ink)}
+.k-chip.on{background:var(--ink);border-color:var(--ink);color:var(--paper);font-weight:600}
 .k-chip .n{font-size:11.5px;color:var(--muted);font-weight:600}
-.k-chip.on .n{color:#D6DCE0}
+.k-chip.on .n{color:var(--paper)}
 .k-chip svg{width:14px;height:10px;flex:none;border-radius:1px}
 
 /* U.countryChips (ui.js) emits .cselect > .cchip and carries no look of its
@@ -114,10 +114,10 @@
 .k-bar .cchip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;
   border:1px solid var(--line);background:var(--card);color:var(--slate);
   border-radius:999px;padding:5px 11px;line-height:1.25;white-space:nowrap}
-.k-bar .cchip:hover{border-color:#CFD5CC;color:var(--ink)}
-.k-bar .cchip.on{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:600}
+.k-bar .cchip:hover{border-color:var(--muted);color:var(--ink)}
+.k-bar .cchip.on{background:var(--ink);border-color:var(--ink);color:var(--paper);font-weight:600}
 .k-bar .cchip .n{font-size:11.5px;color:var(--muted);font-weight:600}
-.k-bar .cchip.on .n{color:#D6DCE0}
+.k-bar .cchip.on .n{color:var(--paper)}
 .k-bar .cchip svg{width:14px;height:10px;flex:none;border-radius:1px}
 /* C-21 — a selected COUNTRY chip keeps that country's own flag-colour
    identity instead of the generic dark fill, the way v1.2.1 had it on every
@@ -135,25 +135,25 @@
 .k-fsel{font:inherit;font-size:12.5px;color:var(--ink);background:var(--card);
   border:1px solid var(--line);border-radius:var(--r);padding:5px 9px;
   max-width:190px;min-width:0}
-.k-fsel:hover{border-color:#CFD5CC}
+.k-fsel:hover{border-color:var(--muted)}
 
 .k-fdir{width:28px;height:28px;flex:none;border:1px solid var(--line);
   border-radius:var(--r);background:var(--card);color:var(--slate);font-size:12.5px;
   display:inline-flex;align-items:center;justify-content:center}
-.k-fdir:hover{border-color:#CFD5CC;color:var(--ink)}
+.k-fdir:hover{border-color:var(--muted);color:var(--ink)}
 
 .k-ftog{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;
   border:1px solid var(--line);background:var(--card);color:var(--slate);
   border-radius:999px;padding:5px 12px;white-space:nowrap}
 .k-ftog .k-fdot{width:7px;height:7px;border-radius:50%;background:var(--line);flex:none}
-.k-ftog:hover{border-color:#CFD5CC;color:var(--ink)}
+.k-ftog:hover{border-color:var(--muted);color:var(--ink)}
 .k-ftog.on{background:var(--rose-bg);border-color:var(--rose);color:var(--rose);font-weight:600}
 .k-ftog.on .k-fdot{background:var(--rose)}
 
 .k-fq{font:inherit;font-size:12.5px;color:var(--ink);background:var(--card);
   border:1px solid var(--line);border-radius:var(--r);padding:6px 11px;
   min-width:0;width:280px;max-width:100%}
-.k-fq:hover{border-color:#CFD5CC}
+.k-fq:hover{border-color:var(--muted)}
 .k-fb-q{flex:1 1 240px;min-width:0}
 .k-fright{margin-left:auto;display:flex;gap:8px;align-items:center;flex:none}
 
@@ -170,7 +170,7 @@
 .k-xall{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;
   color:var(--slate);border:1px solid var(--line);background:var(--card);
   border-radius:var(--r);padding:5px 11px;white-space:nowrap}
-.k-xall:hover{border-color:#CFD5CC;color:var(--ink)}
+.k-xall:hover{border-color:var(--muted);color:var(--ink)}
 .k-xall .n{font-size:11.5px;color:var(--muted);font-weight:600}
 .k-xchev{font-size:11.5px;line-height:1;color:var(--muted)}
 
@@ -225,7 +225,7 @@
 /* =================================================== 6 · country band ===== */
 
 .k-band{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
-  padding:11px 16px;background:var(--ccb,#F1F3F0);
+  padding:11px 16px;background:var(--ccb,var(--raise));
   border-bottom:1px solid var(--line2);min-width:0}
 .k-btitle{display:flex;align-items:center;gap:9px;min-width:0;flex:1 1 auto}
 .k-btitle b{font-size:16px;font-weight:700;letter-spacing:-.01em;min-width:0;
@@ -237,7 +237,7 @@
   margin-left:auto;font-size:12.5px;color:var(--slate);min-width:0}
 .k-bfig{white-space:nowrap}
 .k-bfig b{font-weight:600;color:var(--ink)}
-.k-bfig.neg,.k-bfig.neg b{color:var(--rose)}
+.k-bfig.neg,.k-bfig.neg b{color:var(--sx)}
 .k-bfig.good b{color:var(--verd)}
 
 /* ================================================== 7 · wide-table cue ==== */

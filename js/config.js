@@ -36,7 +36,7 @@ CBP.CONFIG = {
      APP_VERSION + schema_version + a hash of location.pathname namespace the
      IndexedDB database and record key, because every file:// folder shares one
      origin in Chromium (audit F7). STORAGE_KEY is filled by initConfig. */
-  APP_VERSION: '1.2.5.1',
+  APP_VERSION: '1.2.5.2',
   SCHEMA_VERSION: null,          /* filled from CBP_DATA.schema_version (3) */
   STORAGE_KEY: null,             /* 'cbp.<schema>.<app>.<hash(pathname)>' */
   DIGEST_HOUR: 7,                /* default per-user digest hour (Ask-gate §7.1) */

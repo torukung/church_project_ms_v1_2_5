@@ -207,6 +207,37 @@
     return D.gate(p).filter(function (g) { return g.open; });
   };
 
+  /* v1.2.5.2 Phase 2 — turn a list of {label, done} into a stepped node line:
+     every done node stays done, the EARLIEST not-done node becomes current, the
+     rest pending. One helper for both the gate line and the agreement line so
+     the two read as the same grammar. */
+  D.flowStates = function (nodes) {
+    var cur = -1;
+    nodes.forEach(function (n, i) { if (cur < 0 && !n.done) cur = i; });
+    return nodes.map(function (n, i) {
+      return { label: n.label, done: !!n.done,
+               state: n.done ? 'done' : (i === cur ? 'cur' : 'todo') };
+    });
+  };
+
+  /* the DP/CHaS submission line (Phase 2). Four nodes in the order the ToR
+     fixed — DP fully, then CHaS — each node's done-state read from the SAME
+     source of truth p4.js gateSystems() reads: D.gateSystem(p, key), which
+     reads p.gate (backfilled from fixtures/gate_events_seed.json). No second
+     source. A system is 'submitted' once its clock has left todo; 'approved'
+     once gateSystem reports state 'approved' (a real approved_at, or the
+     status-2/1 inferred clearance the gate tracker already trusts). */
+  D.gateFlow = function (p) {
+    var dp = D.gateSystem(p, 'decision_point');
+    var ch = D.gateSystem(p, 'chas');
+    return D.flowStates([
+      { label: 'Submitted to DP',    done: dp.state !== 'todo' },
+      { label: 'Approved in DP',     done: dp.state === 'approved' },
+      { label: 'Submitted to CHaS',  done: ch.state !== 'todo' },
+      { label: 'Approved in CHaS',   done: ch.state === 'approved' }
+    ]);
+  };
+
   /* the single worst open gate across a set — drives the P2 KPI and P3 sub-line */
   D.worstOpenGate = function (projects) {
     var worst = null;

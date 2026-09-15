@@ -183,7 +183,7 @@
          and P10 read. The record's own ladder used to be written out again in
          the approval panel; now the panel keeps only what is unique to it (the
          gate controls, the reference form and the action rows). */
-      '<div class="p4-hstep">' + U.stepper(p) + '</div>';
+      '<div class="p4-hstep">' + U.stepper(p, { flow: true }) + '</div>';
   }
 
   /* ------------------------------------- v1.0.1 · return + unread strips -- */

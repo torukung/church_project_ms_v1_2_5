@@ -21,7 +21,7 @@
 
 /* ------------------------------------------------- "N new since you arrived"
    The 3px-rule alert grammar: a rule and a red number, never a tinted panel. */
-.p11-new{margin:var(--gap) 0 0;padding:10px 14px;background:#fff;
+.p11-new{margin:var(--gap) 0 0;padding:10px 14px;background:var(--card);
   border:1px solid var(--line);border-left:3px solid var(--rose);
   border-radius:var(--r);font-size:12.5px;color:var(--slate)}
 .p11-new b{color:var(--rose);font-weight:700;font-variant-numeric:tabular-nums}
@@ -29,7 +29,7 @@
 /* the per-user "cleared" banner (item 5) — same 3px-rule grammar, brass
    because nothing was lost, only tidied; the Undo sits inline, not as a
    second control block, so "in the same breath" is true of the layout too */
-.p11-cleared{margin:var(--gap) 0 0;padding:10px 14px;background:#fff;
+.p11-cleared{margin:var(--gap) 0 0;padding:10px 14px;background:var(--card);
   border:1px solid var(--line);border-left:3px solid var(--brass);
   border-radius:var(--r);font-size:12.5px;color:var(--slate);
   display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
@@ -53,12 +53,12 @@
 .p11-pins{display:flex;flex-wrap:wrap;gap:var(--gap);min-width:0}
 .p11-pin{flex:1 1 268px;min-width:0;display:flex;flex-direction:column;
   border:1px solid var(--line);border-left:3px solid var(--ccx,var(--cc-x-line));
-  border-radius:var(--r);padding:13px 15px;background:#fff}
+  border-radius:var(--r);padding:13px 15px;background:var(--card)}
 .p11-pintop{display:flex;align-items:center;gap:8px;min-width:0}
 .p11-pinid{font-size:11.5px;font-weight:600;color:var(--brass);min-width:0;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .p11-x{margin-left:auto;flex:none;font-size:12.5px;line-height:1;color:var(--muted);
-  border:1px solid var(--line);border-radius:999px;padding:3px 7px;background:#fff}
+  border:1px solid var(--line);border-radius:999px;padding:3px 7px;background:var(--card)}
 .p11-x:hover{border-color:var(--rose);color:var(--rose)}
 .p11-pinname{display:block;font-size:14px;font-weight:600;line-height:1.35;margin-top:3px;
   min-width:0;overflow-wrap:break-word}
@@ -90,7 +90,7 @@
 .p11-empty b{display:block;font-size:14px;font-weight:600}
 .p11-empty span{display:block;font-size:12.5px;color:var(--muted);margin-top:4px;max-width:72ch}
 .p11-emptyacts{margin-top:12px}
-.p11-err{margin:10px 0 0;padding:8px 12px;background:#fff;border:1px solid var(--line);
+.p11-err{margin:10px 0 0;padding:8px 12px;background:var(--card);border:1px solid var(--line);
   border-left:3px solid var(--rose);border-radius:var(--r);font-size:12.5px;
   color:var(--rose);font-weight:600}
 
@@ -139,7 +139,7 @@
   border-bottom:1px solid var(--line2);
   box-shadow:inset 3px 0 0 var(--ccx,var(--cc-x-line))}
 .p11-row:last-child{border-bottom:none}
-.p11-row.open{background:#FCFDFC}
+.p11-row.open{background:var(--raise)}
 /* a flagged row stacks the brass priority rule INSIDE the country rule —
    both signals survive, neither becomes a tinted card */
 .p11-row.pri{box-shadow:inset 3px 0 0 var(--ccx,var(--cc-x-line)),
@@ -166,11 +166,11 @@
   width:112px;max-width:112px;height:20px;flex:none;
   font-size:11.5px;font-weight:700;letter-spacing:.01em;
   border-radius:999px;white-space:nowrap;overflow:hidden}
-.p11-t-comment{background:#EEF0EC;color:#3F4B54}
+.p11-t-comment{background:var(--raise);color:var(--slate)}
 .p11-t-approval{background:var(--brass-bg);color:var(--brass)}
-.p11-t-question{background:#EAF0FA;color:var(--glass)}
-.p11-t-decision{background:#EAF6F1;color:var(--verd)}
-.p11-t-note{background:#F5F0FA;color:#5B4A8A}
+.p11-t-question{background:var(--glass-bg);color:var(--glass)}   /* v1.2.5.2-uxA: was --raise, which collided with .p11-t-comment; own blue ground so all six tags differ */
+.p11-t-decision{background:var(--verd-bg);color:var(--verd)}
+.p11-t-note{background:var(--rose-bg);color:var(--rose)}
 /* v1.2.4 AUDIT D7 — this pair was #EEF1F2/#4B565E, which is ΔE2000 2.6 from
    Comment's #EEF0EC ground and 3.9 from its text: two of the six "a background
    colour each" tags were, measurably, the same chip. System is the machine
@@ -179,7 +179,7 @@
    Re-measured: ΔE2000 to the nearest other tag ground is now 6.4 (Question) and
    6.5 (Comment), to the nearest country band 7.2 (KHM), text 8.1:1 on its own
    ground. */
-.p11-t-system{background:#D2D8DB;color:#2E3A42}
+.p11-t-system{background:var(--line);color:var(--slate)}
 
 /* ----------------------------------------------------------- the frame ---- */
 
@@ -254,7 +254,7 @@
 
 .p11-panel{padding:14px 0 4px;border-top:1px solid var(--line2);margin-top:10px}
 .p11-pacts{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-.p11-pacts .btn.on{border-color:#E2D3B4;color:var(--brass);background:var(--brass-bg)}
+.p11-pacts .btn.on{border-color:var(--brass);color:var(--brass);background:var(--brass-bg)}
 .p11-ph{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
   font-size:12.5px;font-weight:600;color:var(--slate);margin:0 0 8px}
 .p11-ph .num{font-weight:400;color:var(--muted)}
@@ -282,7 +282,7 @@
 .p11-composer{margin-top:12px;border-top:1px solid var(--line2);padding-top:12px;
   min-width:0}
 .p11-input{font:inherit;font-size:12.5px;line-height:1.55;color:var(--ink);width:100%;
-  padding:8px 11px;border:1px solid var(--line);border-radius:var(--r);background:#fff;
+  padding:8px 11px;border:1px solid var(--line);border-radius:var(--r);background:var(--card);
   min-width:0;resize:vertical}
 .p11-input:focus{outline:none;border-color:var(--brass);
   box-shadow:0 0 0 3px rgba(154,120,51,.12)}

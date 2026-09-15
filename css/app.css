@@ -30,42 +30,134 @@
   --r:6px; --pad:20px; --gap:14px;
   --shadow:0 1px 2px rgba(34,48,59,.04), 0 4px 14px rgba(34,48,59,.04);
   --gantt-label:178px;
+
+  /* v1.2.5.2 — NEW full-palette tokens. The base :root keeps the legacy light
+     values above so nothing is ever undefined, and these five new slots take
+     the DEFAULT tone's (dark-brass) values as their fallback. Every real render
+     always carries data-tone on <html>, so a tone block below always wins; this
+     is purely the "no undefined var" floor. */
+  --raise:#221F1C; --hover:#2A2622; --faint:#5C5750;
+  --brass-glow:rgba(200,164,85,.08); --shadow-sm:0 1px 4px rgba(0,0,0,.3);
 }
 body.comfort{--f:var(--comfort)}
 
-/* -------------------------------------------------------- accent tones -- */
-/* v1.2.5.1 — the Tone picker (top bar) recolours ONLY the warm brand-accent
-   family, as one coherent hue: --brass and --s3-ink are the dark primary
-   (white text on a filled control AND text on --paper, both AA-verified),
-   --brass-tint / --s3 the lighter fill for bars & chips, --brass-bg a very
-   light tint for chip/phase backgrounds. Every other token — rose, verd,
-   glass, the country --cc-* tints and all neutrals — is left untouched, so
-   the app's semantics and clean light base never change with the tone.
-   Contrast (white-on-primary / primary-on-#F4F5F3):
-     espresso-mocha 5.29 / 4.84   champagne-gold 5.05 / 4.61
-     terracotta-clay 5.27 / 4.82  slate-blue 6.03 / 5.51
-     forest-green 5.89 / 5.38     olive-sage 5.83 / 5.33
-     ink-indigo 8.35 / 7.63       (all ≥ 4.5 AA). */
+/* ========================================================= v1.2.5.2 TONES ==
+   Full-palette tone system. Each :root[data-tone=…] block below repaints the
+   whole neutral + brand-accent surface (21 tokens): grounds, surfaces, ink
+   ramp, borders, the brass/rose/done accent families and the two shadows.
+   <html> always carries data-tone (default dark-brass) AND data-ground; the
+   ground drives a SECOND layer — the country tints, status pastels, gantt fills
+   and --glass — which is light- or dark-legible as one identity set, keyed off
+   data-ground rather than the individual tone (see the two [data-ground] blocks
+   below and the cc-* pair further down).
+
+   TOKEN MAP  app  ← artifact:
+     --paper←ground  --card←surface  --raise←surface-raise  --hover←surface-hover
+     --ink←text  --slate←text-mid  --muted←text-muted  --faint←text-faint
+     --line←border  --line2←border-light
+     --brass←brass  --brass-tint←brass-dim  --brass-bg←brass-surface  --brass-glow←brass-glow
+     --rose←rose  --rose-ink←rose-dim  --rose-bg←rose-surface
+     --verd←done  --verd-bg←done-surface  --shadow←shadow  --shadow-sm←shadow-sm       */
+
+:root[data-tone="white-gold"]{
+  --paper:#F5F2ED; --card:#FFFFFF; --raise:#FAF8F4; --hover:#F0EDE6;
+  --ink:#1A1816; --slate:#4A4540; --muted:#726E67; --faint:#A8A298;   /* v1.2.5.2-uxA: muted #7A756E→#726E67, ≥4.54 on paper/tints (was 4.09) */
+  --line:#E0DBD4; --line2:#EAE6E0;
+  --brass:#866A2A; --brass-tint:#7A6228; --brass-bg:#FAF6EE; --brass-glow:rgba(154,122,48,.06);   /* v1.2.5.2-uxA: brass #9A7A30→#866A2A, 4.58 on paper + 5.11 card-on-brass (were 3.62/4.04) */
+  --rose:#A06050; --rose-ink:#8A5545; --rose-bg:#FBF4F2;
+  --verd:#347C48; --verd-bg:#F0FAF2;   /* v1.2.5.2-uxA: verd #3A8A50→#347C48, 4.56 on paper + 5.09 card-on-verd (were 3.81/4.26) */
+  --shadow:0 2px 12px rgba(40,30,20,.08); --shadow-sm:0 1px 4px rgba(40,30,20,.06);
+}
+:root[data-tone="dark-brass"]{   /* DEFAULT */
+  --paper:#110F0E; --card:#1A1816; --raise:#221F1C; --hover:#2A2622;
+  --ink:#F0ECE6; --slate:#C8C2B8; --muted:#8A847A; --faint:#5C5750;
+  --line:#302B26; --line2:#262220;
+  --brass:#C8A455; --brass-tint:#A08438; --brass-bg:#1E1A12; --brass-glow:rgba(200,164,85,.08);
+  --rose:#C4897A; --rose-ink:#A06E60; --rose-bg:#1E1614;
+  --verd:#6AAA78; --verd-bg:#141E16;
+  --shadow:0 2px 12px rgba(0,0,0,.4); --shadow-sm:0 1px 4px rgba(0,0,0,.3);
+}
+:root[data-tone="terracotta-sand"]{
+  --paper:#F0E6D8; --card:#FAF5EC; --raise:#F5EDE0; --hover:#EBE0D0;
+  --ink:#2C2018; --slate:#5A4A3A; --muted:#736556; --faint:#B0A290;   /* v1.2.5.2-uxA: muted #8A7A68→#736556, 4.57 on paper (was 3.36) */
+  --line:#DDD0C0; --line2:#E8DDD0;
+  --brass:#9A5534; --brass-tint:#A05A38; --brass-bg:#F8EEE4; --brass-glow:rgba(194,113,74,.08);   /* v1.2.5.2-uxA: brass #C2714A→#9A5534, 4.57 on paper + 5.19 card-on-brass (were 2.96/3.36) */
+  --rose:#856039; --rose-ink:#7A5634; --rose-bg:#F8F0E4;   /* v1.2.5.2-uxA: rose #B88A5A→#856039 (was 2.49–2.83, far too light), rose-ink realigned darker */
+  --verd:#4A7142; --verd-bg:#EEF6EA;   /* v1.2.5.2-uxA: verd #5A8A50→#4A7142, 4.56 on paper + 5.18 card-on-verd (were 3.28/3.73) */
+  --shadow:0 2px 12px rgba(60,40,20,.1); --shadow-sm:0 1px 4px rgba(60,40,20,.08);
+}
+:root[data-tone="slate-concrete"]{
+  --paper:#14171E; --card:#1C2028; --raise:#242830; --hover:#2C3038;
+  --ink:#E4E8F0; --slate:#A0A8B8; --muted:#9098A8; --faint:#4A5468;   /* v1.2.5.2-uxA: muted #6A7488→#9098A8, 4.56 on hover / 5.63 on card (were 2.81/3.47) */
+  --line:#2A3040; --line2:#222838;
+  --brass:#7A9CC0; --brass-tint:#5A7A9A; --brass-bg:#181E28; --brass-glow:rgba(122,156,192,.08);
+  --rose:#B88090; --rose-ink:#986878; --rose-bg:#1E1820;
+  --verd:#5AAA80; --verd-bg:#141E1A;
+  --shadow:0 2px 12px rgba(0,0,0,.5); --shadow-sm:0 1px 4px rgba(0,0,0,.4);
+}
+:root[data-tone="chocolate-leather"]{
+  --paper:#140E08; --card:#1E1610; --raise:#28201A; --hover:#302820;
+  --ink:#F0E8DA; --slate:#C0B4A0; --muted:#9C8E7D; --faint:#5A5040;   /* v1.2.5.2-uxA: muted #887A68→#9C8E7D, 4.54 on hover / 5.59 on card (were 3.47/4.27) */
+  --line:#302818; --line2:#282010;
+  --brass:#D4A060; --brass-tint:#B08040; --brass-bg:#1E1810; --brass-glow:rgba(212,160,96,.08);
+  --rose:#B87060; --rose-ink:#985848; --rose-bg:#1E1410;
+  --verd:#6A9A5A; --verd-bg:#141E12;
+  --shadow:0 2px 12px rgba(0,0,0,.5); --shadow-sm:0 1px 4px rgba(0,0,0,.4);
+}
 :root[data-tone="espresso-mocha"]{
-  --brass:#85672A; --brass-tint:#9A7833; --brass-bg:#FBF8F1; --s3:#9A7833; --s3-ink:#85672A;
+  --paper:#F0EAE2; --card:#FAF6F0; --raise:#FFFFFF; --hover:#EDE6DC;
+  --ink:#2C2420; --slate:#5A504A; --muted:#6F665D; --faint:#C0B8AE;   /* v1.2.5.2-uxA: muted #8A7E74→#6F665D, 4.54 on hover-tint (was 3.19) */
+  --line:#D8CEC2; --line2:#E8E0D6;
+  --brass:#3E723C; --brass-tint:#3A7038; --brass-bg:#E8F0E6; --brass-glow:rgba(74,136,72,.1);   /* v1.2.5.2-uxA: brass(green) #4A8848→#3E723C, 4.71 on the sfn rose-bg panel + 5.30 card-on-brass (were 3.58/3.98) */
+  --rose:#896044; --rose-ink:#8A5E40; --rose-bg:#F0E8E0;   /* v1.2.5.2-uxA: rose #A07050→#896044, 4.53 on rose-bg + 5.11 card-on-rose (were 3.52/3.96) */
+  --verd:#32743D; --verd-bg:#E6F0E6;   /* v1.2.5.2-uxA: verd #3A8848→#32743D, 4.68 on the sfn rose-bg panel + 5.27 card-on-verd (were 3.66/4.07) */
+  --shadow:0 2px 12px rgba(44,36,32,.1); --shadow-sm:0 1px 4px rgba(44,36,32,.06);
 }
-:root[data-tone="champagne-gold"]{
-  --brass:#8A6A1F; --brass-tint:#B08A34; --brass-bg:#FBF6E8; --s3:#B08A34; --s3-ink:#8A6A1F;
+:root[data-tone="olive-forest"]{
+  --paper:#EAF0E8; --card:#F4FAF2; --raise:#FFFFFF; --hover:#E0EADE;
+  --ink:#1E2A1E; --slate:#4A5A48; --muted:#5E6B5E; --faint:#B0C0AE;   /* v1.2.5.2-uxA: muted #708070→#5E6B5E, 4.54 on hover-tint (was 3.39) */
+  --line:#C8D8C4; --line2:#D8E8D4;
+  --brass:#616C26; --brass-tint:#646E20; --brass-bg:#ECF0E0; --brass-glow:rgba(122,136,48,.1);   /* v1.2.5.2-uxA: brass(olive) #7A8830→#616C26, 4.71 on the sfn rose-bg panel + 5.38 card-on-brass (were 3.36/3.67) */
+  --rose:#8D5E43; --rose-ink:#906038; --rose-bg:#F0E8E0;   /* v1.2.5.2-uxA: rose #A87050→#8D5E43, 4.54 on rose-bg + 5.19 card-on-rose (were 3.40/3.88) */
+  --verd:#3E7235; --verd-bg:#E4F0E0;   /* v1.2.5.2-uxA: verd #4A8A40→#3E7235, 4.73 on the sfn rose-bg panel + 5.41 card-on-verd (were 3.57/3.96) */
+  --shadow:0 2px 12px rgba(30,42,30,.1); --shadow-sm:0 1px 4px rgba(30,42,30,.06);
 }
-:root[data-tone="terracotta-clay"]{
-  --brass:#A85436; --brass-tint:#C47A55; --brass-bg:#FBF2ED; --s3:#C47A55; --s3-ink:#A85436;
+
+/* ----------------------------------- v1.2.5.2 · identity set (by ground) --
+   Status pastels, gantt bar fills and --glass are NOT tone-scoped: they belong
+   to a light or dark GROUND. data-ground is "light" for white-gold / terracotta
+   / espresso / olive and "dark" for dark-brass / slate-concrete / chocolate.
+   The LIGHT block reproduces the legacy values verbatim; the DARK block is a
+   dark-ground redesign — every TEXT-bearing status colour (--s2, --s3-ink,
+   --s4-ink, --sx, --glass; --verd is tone-scoped) clears AA (≥4.5:1) on the
+   three dark cards, and the gantt/status FILLS read against the dark ground by
+   a bright edge + tinted body. Country tints (--cc-*) get the same treatment in
+   their own pair of blocks further down. */
+:root[data-ground="light"]{
+  --s1:#3F7E72; --s2:#3C63A0; --s3:#9A7833; --s4:#98A1A8; --sx:#A3423E;
+  --s3-ink:#806328; --s4-ink:#5F6A72;   /* v1.2.5.2-uxA: s3-ink #85672A→#806328, 4.56 on the darkest light paper (terracotta #F0E6D8), was 4.29 */
+  --gantt-fill:#E7F0F5; --gantt-edge:#7FA8C4; --gantt-fill2:#EFEAF6; --gantt-edge2:#9280BC;
+  --glass:#3C63A0;
+  /* v1.2.5.2-uxA: P11 question type-tag ground. A pale blue so all six type
+     tags carry a DISTINCT background (comment=--raise & question shared --raise
+     after Phase 1b); ground-scoped identity like the country tints. Carries
+     --glass text at 5.37:1 (AA); ΔE≥6.3 from every other tag ground on light. */
+  --glass-bg:#EEF2FA;
 }
-:root[data-tone="slate-blue"]{
-  --brass:#3C63A0; --brass-tint:#5D7FB5; --brass-bg:#EFF3FA; --s3:#5D7FB5; --s3-ink:#3C63A0;
-}
-:root[data-tone="forest-green"]{
-  --brass:#366E63; --brass-tint:#4C8A7C; --brass-bg:#F0F7F4; --s3:#4C8A7C; --s3-ink:#366E63;
-}
-:root[data-tone="olive-sage"]{
-  --brass:#5E6B24; --brass-tint:#7C8B3C; --brass-bg:#F5F7EA; --s3:#7C8B3C; --s3-ink:#5E6B24;
-}
-:root[data-tone="ink-indigo"]{
-  --brass:#46468C; --brass-tint:#6B6BB0; --brass-bg:#F1F1FA; --s3:#6B6BB0; --s3-ink:#46468C;
+:root[data-ground="dark"]{
+  /* fills (dots/bars/segments) stay hue-true and read on near-black; the text
+     variants (--s2, --sx, --s3-ink, --s4-ink) are the light-on-dark words.
+     Verified min ratio over the 3 dark cards: --s2 6.0, --sx 6.6, --s3-ink 8.6,
+     --s4-ink 8.0, --glass 7.3, --s1 6.6. */
+  --s1:#66B39C; --s2:#7AA0CE; --s3:#C6A24E; --s4:#8A94A0; --sx:#E09080;
+  --s3-ink:#D8B968; --s4-ink:#AEB6C0;
+  --gantt-fill:#24384A; --gantt-edge:#5F8DB0; --gantt-fill2:#322A4E; --gantt-edge2:#8A78BC;
+  --glass:#8FB0DC;
+  /* v1.2.5.2-uxA: P11 question type-tag ground on dark. A deep navy so all six
+     type tags differ; carries dark --glass (#8FB0DC) at 7.74:1 (AA), and is
+     ΔE≥12.1 from --raise/--line/--brass-bg/--verd-bg/--rose-bg on every dark
+     tone (dark-brass, slate-concrete — whose own brass-bg is blue — chocolate). */
+  --glass-bg:#0E1A34;
 }
 
 /* ------------------------------------------------------------------ base -- */
@@ -85,7 +177,7 @@ summary::marker{content:''}
 
 /* ============================================ C-01 · app shell + sidebar == */
 .shell{display:grid;grid-template-columns:212px minmax(0,1fr);min-height:100vh}
-.side{background:#FBFCFA;border-right:1px solid var(--line);padding:20px 0;
+.side{background:var(--card);border-right:1px solid var(--line);padding:20px 0;
   position:sticky;top:0;height:100vh;min-width:0;display:flex;flex-direction:column}
 .brand{font-size:16px;font-weight:700;padding:0 20px 16px;
   border-bottom:1px solid var(--line2);margin-bottom:12px;letter-spacing:-.01em}
@@ -93,10 +185,10 @@ summary::marker{content:''}
 .nav{min-width:0}
 .side a{display:flex;justify-content:space-between;align-items:center;gap:8px;
   padding:9px 20px;font-size:14px;color:var(--slate);text-decoration:none}
-.side a:hover{background:#F1F3F0}
-.side a.on{background:#EDF0EC;color:var(--ink);font-weight:600;box-shadow:inset 3px 0 0 var(--brass)}
+.side a:hover{background:var(--hover)}
+.side a.on{background:var(--raise);color:var(--ink);font-weight:600;box-shadow:inset 3px 0 0 var(--brass)}
 .side .grp{font-size:11.5px;font-weight:600;color:var(--muted);padding:18px 20px 6px}
-.badge{font-size:11.5px;font-weight:600;color:#fff;background:var(--rose);
+.badge{font-size:11.5px;font-weight:600;color:var(--card);background:var(--rose);
   border-radius:999px;padding:1px 8px;font-variant-numeric:tabular-nums;flex:none}
 .side .me{margin-top:auto;padding:14px 20px 0;border-top:1px solid var(--line2);
   font-size:12.5px;color:var(--muted);min-width:0}
@@ -104,15 +196,15 @@ summary::marker{content:''}
 
 /* topbar (persona switcher lives here, top right) */
 .topbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
-  padding:12px 28px;border-bottom:1px solid var(--line);background:#FBFCFA}
+  padding:12px 28px;border-bottom:1px solid var(--line);background:var(--card)}
 .topbar .where{font-size:12.5px;color:var(--muted);min-width:0}
 .topbar .rt{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .persona{display:flex;align-items:center;gap:8px}
 .persona label{font-size:12.5px;font-weight:600;color:var(--muted)}
 .sel{font-family:inherit;font-size:12.5px;font-weight:600;color:var(--ink);
   border:1px solid var(--line);
-  border-radius:var(--r);background:#fff;padding:7px 12px;white-space:nowrap;max-width:100%}
-.rolechip{font-size:11.5px;font-weight:600;color:var(--slate);background:#EDF0EC;
+  border-radius:var(--r);background:var(--card);padding:7px 12px;white-space:nowrap;max-width:100%}
+.rolechip{font-size:11.5px;font-weight:600;color:var(--slate);background:var(--raise);
   border-radius:999px;padding:2px 9px;white-space:nowrap}
 .rolechip.viewer{background:var(--rose-bg);color:var(--rose)}
 
@@ -127,18 +219,21 @@ summary::marker{content:''}
 
 /* ------------------------------------------------------- buttons / chips -- */
 .btn{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;
-  padding:7px 14px;border-radius:var(--r);border:1px solid var(--line);background:#fff;
+  padding:7px 14px;border-radius:var(--r);border:1px solid var(--line);background:var(--card);
   color:var(--slate);white-space:nowrap;text-decoration:none}
 .btn:hover{border-color:var(--muted)}
-.btn.brass{background:var(--brass);border-color:var(--brass);color:#fff}
+.btn.brass{background:var(--brass);border-color:var(--brass);color:var(--card)}
 .btn.brass:hover{border-color:var(--brass);filter:brightness(.95)}
 .btn.sm{font-size:12.5px;padding:4px 10px}
 .btn[disabled]{opacity:.45;pointer-events:none}
 
-/* v1.2.5.1 — accent-tone picker (top bar). A small label plus a row of round
-   swatches; each swatch always shows its OWN tone (static colours below), the
-   active one carries a ring. The row lives inside .rt, which already wraps, so
-   it never forces horizontal scroll down to 360px. */
+/* v1.2.5.2 — full-palette tone picker (top bar). A small label plus a row of
+   round swatches; each swatch PREVIEWS its own tone: the dot fill is that tone's
+   GROUND and a ring in that tone's ACCENT sits inside it, so both the base and
+   the brand read at a glance and — because the colours are hardcoded per slug
+   below, not inherited — every swatch looks the same in whatever tone is active.
+   The active swatch gains a double-ring. The row lives inside .rt, which already
+   wraps, so it never forces horizontal scroll down to 360px. */
 .tonepick{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .tonelabel{font-size:11.5px;font-weight:600;color:var(--muted)}
 /* the visible dot stays ~18px; the button itself is a 32px hit area (padding
@@ -146,37 +241,39 @@ summary::marker{content:''}
 .tone-sw{display:inline-flex;align-items:center;justify-content:center;
   min-width:32px;min-height:32px;padding:7px;border:none;background:none;
   border-radius:999px;line-height:0}
+/* fill = tone ground (--sw); ring = tone accent (--swr, a 3px inset band leaving
+   a ground-coloured centre); a 1px themed outline separates the dot from the
+   top bar in either ground */
 .tone-sw .tone-dot{display:block;width:18px;height:18px;border-radius:999px;
-  background:var(--sw);box-shadow:inset 0 0 0 1px rgba(34,48,59,.18)}
-.tone-sw:hover .tone-dot{box-shadow:inset 0 0 0 1px rgba(34,48,59,.35)}
-/* selected: a paper gap then a ring in the tone's own primary — visible on
-   light and dark swatches alike */
-.tone-sw.on .tone-dot{box-shadow:0 0 0 2px var(--card),0 0 0 3.5px var(--swr),inset 0 0 0 1px rgba(255,255,255,.35)}
+  background:var(--sw);box-shadow:inset 0 0 0 3px var(--swr),0 0 0 1px var(--line)}
+.tone-sw:hover .tone-dot{box-shadow:inset 0 0 0 3px var(--swr),0 0 0 1px var(--slate)}
+/* selected: the inset accent ring stays, plus a card gap then an outer accent
+   halo — the double-ring, visible on light and dark swatches alike */
+.tone-sw.on .tone-dot{box-shadow:inset 0 0 0 3px var(--swr),0 0 0 2px var(--card),0 0 0 4px var(--swr)}
 .tone-sw:focus-visible{outline:2px solid var(--glass);outline-offset:1px}
 .tone-sw:focus{outline:none}
-.tone-sw:focus-visible .tone-dot{box-shadow:inset 0 0 0 1px rgba(34,48,59,.35)}
 .tone-sw:active{transform:scale(.94)}
-/* static per-tone swatch colours (dot fill --sw / ring --swr) — independent of
-   the active tone so every swatch previews its own accent */
-.tone-sw[data-tone="espresso-mocha"]{--sw:#9A7833;--swr:#85672A}
-.tone-sw[data-tone="champagne-gold"]{--sw:#B08A34;--swr:#8A6A1F}
-.tone-sw[data-tone="terracotta-clay"]{--sw:#C47A55;--swr:#A85436}
-.tone-sw[data-tone="slate-blue"]{--sw:#5D7FB5;--swr:#3C63A0}
-.tone-sw[data-tone="forest-green"]{--sw:#4C8A7C;--swr:#366E63}
-.tone-sw[data-tone="olive-sage"]{--sw:#7C8B3C;--swr:#5E6B24}
-.tone-sw[data-tone="ink-indigo"]{--sw:#6B6BB0;--swr:#46468C}
+/* static per-tone swatch colours (dot fill --sw = ground / ring --swr = accent)
+   — independent of the active tone so every swatch previews its own palette */
+.tone-sw[data-tone="white-gold"]       {--sw:#F5F2ED;--swr:#9A7A30}
+.tone-sw[data-tone="dark-brass"]       {--sw:#110F0E;--swr:#C8A455}
+.tone-sw[data-tone="terracotta-sand"]  {--sw:#F0E6D8;--swr:#C2714A}
+.tone-sw[data-tone="slate-concrete"]   {--sw:#14171E;--swr:#7A9CC0}
+.tone-sw[data-tone="chocolate-leather"]{--sw:#140E08;--swr:#D4A060}
+.tone-sw[data-tone="espresso-mocha"]   {--sw:#F0EAE2;--swr:#4A8848}
+.tone-sw[data-tone="olive-forest"]     {--sw:#EAF0E8;--swr:#7A8830}
 
 .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:var(--gap) 0}
 .chip{font-size:12.5px;font-weight:600;padding:5px 12px;border-radius:999px;
-  border:1px solid var(--line);background:#fff;color:var(--slate);white-space:nowrap}
+  border:1px solid var(--line);background:var(--card);color:var(--slate);white-space:nowrap}
 .chip .n{font-size:11.5px;font-weight:600;color:var(--muted);margin-left:5px;
   font-variant-numeric:tabular-nums}
 .chip:hover{border-color:var(--muted)}
-.chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
-.chip.on .n{color:#C6CEC9}
+.chip.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.chip.on .n{color:var(--paper);opacity:.7}
 .filters .sep{width:1px;height:20px;background:var(--line);margin:0 3px}
 .search{font:inherit;font-size:12.5px;color:var(--ink);border:1px solid var(--line);
-  border-radius:999px;background:#fff;padding:5px 14px;min-width:262px;flex:0 1 300px}
+  border-radius:999px;background:var(--card);padding:5px 14px;min-width:262px;flex:0 1 300px}
 .search::placeholder{color:var(--muted)}
 .search:focus{outline:none;border-color:var(--brass);box-shadow:0 0 0 3px rgba(154,120,51,.12)}
 @media(max-width:520px){.search{min-width:0;flex:1 1 100%}}
@@ -191,7 +288,7 @@ summary::marker{content:''}
 .card p + p{margin-top:8px}
 
 .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--gap);margin-bottom:var(--gap)}
-.kpi{background:#fff;border:1px solid var(--line);border-left:3px solid var(--line);
+.kpi{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--line);
   border-radius:var(--r);box-shadow:var(--shadow);padding:16px 18px;min-width:0}
 .kpi.alert{border-left-color:var(--rose)}
 .kpi .k{font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:6px}
@@ -203,18 +300,18 @@ summary::marker{content:''}
 /* attention pill (shared micro-layout) */
 .tagpill{flex:none;min-width:60px;text-align:center;font-size:12.5px;font-weight:700;
   font-variant-numeric:tabular-nums;padding:3px 6px;border-radius:999px;
-  border:1.5px solid var(--line);color:var(--slate);background:#fff}
-.tagpill.rose{border-color:#E5C6C4;color:var(--rose);background:var(--rose-bg)}
-.tagpill.brass{border-color:#E2D3B4;color:var(--brass);background:var(--brass-bg)}
+  border:1.5px solid var(--line);color:var(--slate);background:var(--card)}
+.tagpill.rose{border-color:var(--rose);color:var(--rose);background:var(--rose-bg)}
+.tagpill.brass{border-color:var(--brass);color:var(--brass);background:var(--brass-bg)}
 
 /* coverage cell (bar ∣ right-aligned %) */
 .covcell{display:inline-grid;grid-template-columns:56px 48px;align-items:center;gap:8px}
-.covbar{width:56px;height:5px;border-radius:999px;background:#EFF1EE;overflow:hidden}
+.covbar{width:56px;height:5px;border-radius:999px;background:var(--raise);overflow:hidden}
 .covbar i{display:block;height:100%;background:var(--verd);border-radius:999px}
 .covbar.warn i{background:var(--brass)}
 .covbar.over i{background:var(--rose)}
 .covcell .cv{text-align:right;font-variant-numeric:tabular-nums;font-size:12.5px}
-.covcell .cv.neg{color:var(--rose);font-weight:700}
+.covcell .cv.neg{color:var(--sx);font-weight:700}
 
 /* ============================================== C-04 · data table ======== */
 .tblwrap{overflow-x:auto}
@@ -230,18 +327,18 @@ summary::marker{content:''}
 .tbl .dim{color:var(--muted)}
 
 /* ================================== C-04/C-05 · P3 register + rows ======= */
-.list{border:1px solid var(--line);border-radius:var(--r);background:#fff;
+.list{border:1px solid var(--line);border-radius:var(--r);background:var(--card);
   box-shadow:var(--shadow);overflow:hidden}
 .lhead,.prow{display:grid;
   grid-template-columns:minmax(0,1fr) 196px 116px 136px 30px;
   gap:12px;align-items:center;padding:11px 16px}
-.lhead{background:#FAFBFA;border-bottom:1px solid var(--line);
-  font-size:12.5px;font-weight:600;color:var(--muted)}
+.lhead{background:var(--raise);border-bottom:1px solid var(--line);
+  font-size:12.5px;font-weight:600;color:var(--slate)}
 .lhead .r{text-align:right}
 
 /* country group header — carries the derived committed total */
 .ghd{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
-  padding:10px 16px;background:#F6F8F5;border-bottom:1px solid var(--line);
+  padding:10px 16px;background:var(--raise);border-bottom:1px solid var(--line);
   border-top:1px solid var(--line)}
 .list .ghd:first-of-type{border-top:none}
 .ghd b{font-size:14px;font-weight:700}
@@ -253,8 +350,8 @@ summary::marker{content:''}
 
 details.prj{border-bottom:1px solid var(--line2)}
 details.prj:last-of-type{border-bottom:none}
-summary.prow:hover{background:#FBFCFA}
-details.prj[open] summary.prow{background:#F8FAF8}
+summary.prow:hover{background:var(--hover)}
+details.prj[open] summary.prow{background:var(--raise)}
 .pname{min-width:0}
 .pname .id{font-size:12.5px;font-weight:600;color:var(--brass);
   font-variant-numeric:tabular-nums}
@@ -289,7 +386,7 @@ details.prj[open] .chev{transform:rotate(180deg)}
 
 /* ============================================= C-17 · progress bar ======= */
 .prog{display:flex;align-items:center;gap:8px;min-width:0}
-.pb{flex:1;max-width:76px;height:6px;border-radius:999px;background:#EAEDEA;overflow:hidden;flex-shrink:0}
+.pb{flex:1;max-width:76px;height:6px;border-radius:999px;background:var(--raise);overflow:hidden;flex-shrink:0}
 .pb i{display:block;height:100%;background:var(--verd);border-radius:999px}
 .pb.mid i{background:var(--brass)}
 .prog .pc{font-size:12.5px;color:var(--slate);white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -297,7 +394,7 @@ details.prj[open] .chev{transform:rotate(180deg)}
   overflow:hidden;text-overflow:ellipsis}
 
 /* ============================================= expanded panel ============ */
-.panel{padding:6px 16px 20px;background:#FCFDFC;border-top:1px solid var(--line2)}
+.panel{padding:6px 16px 20px;background:var(--raise);border-top:1px solid var(--line2)}
 .ph{font-size:12.5px;font-weight:600;color:var(--slate);margin:16px 0 9px;
   display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .ph .r{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
@@ -317,16 +414,16 @@ details.prj[open] .chev{transform:rotate(180deg)}
   gap:8px var(--sl-gap,18px)}
 .sl{position:relative;display:flex;flex-direction:column;gap:3px;min-width:0;
   font-size:12.5px;padding:7px 11px;border:1px solid var(--line);border-radius:var(--r);
-  background:#fff;color:var(--slate)}
+  background:var(--card);color:var(--slate)}
 .sl-row{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;min-width:0}
 .sl b{font-weight:600;min-width:0;overflow-wrap:break-word;hyphens:auto;-webkit-hyphens:auto}
 .sl small{display:block;color:var(--muted);font-size:12.5px;font-variant-numeric:tabular-nums;
   white-space:normal;overflow-wrap:break-word}
 .sl .mk{font-weight:700;flex:none}
-.sl.ok{border-color:#B9D2C9;color:var(--verd);background:var(--verd-bg)}
-.sl.ok small{color:#4F6E66}   /* v1.2.1 R1 */
-.sl.wait{border-color:#E3C2BF;color:var(--rose);background:#FCF6F5}
-.sl.wait small{color:#8E5C59}
+.sl.ok{border-color:var(--verd);color:var(--verd);background:var(--verd-bg)}
+.sl.ok small{color:var(--verd)}   /* v1.2.1 R1 */
+.sl.wait{border-color:var(--rose);color:var(--rose);background:var(--rose-bg)}
+.sl.wait small{color:var(--sx)}
 .sl.todo{border-style:dashed;color:var(--muted)}
 /* the connector between rungs: a line in the column gap, not a grid cell of
    its own — repeat(4,…) would no longer be four EQUAL tracks if a fifth,
@@ -334,20 +431,20 @@ details.prj[open] .chev{transform:rotate(180deg)}
    U.stepline (the generic pill-row helper) still emits them for anything
    else that wants a plain connected row. */
 .conn{width:16px;height:1.5px;background:var(--line);flex:none}
-.conn.ok{background:#B9D2C9}
+.conn.ok{background:var(--verd)}
 .sl:not(:first-child)::before{content:'';position:absolute;top:17px;
   left:calc(var(--sl-gap,18px) * -1);width:var(--sl-gap,18px);height:1.5px;background:var(--line)}
-.sl.sl-prevok::before{background:#B9D2C9}
+.sl.sl-prevok::before{background:var(--verd)}
 
 /* ================================================= C-06 · gantt ========== */
-.gantt{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:#fff}
+.gantt{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--card)}
 .gantt-scroll{overflow-x:auto}
 /* v1.0.4 — the today pill is absolutely positioned at the very top of the
    inner block and would otherwise print over a month-group heading; the pad gives
    it a lane of its own above the month row */
 .gantt-inner{min-width:640px;position:relative;padding-top:var(--k-tmlane)}
 .gm,.grow2{display:grid;grid-template-columns:var(--gantt-label) minmax(0,1fr)}
-.gm{border-bottom:1px solid var(--line);background:#FAFBFA}
+.gm{border-bottom:1px solid var(--line);background:var(--raise)}
 .gm .gl{border-right:1px solid var(--line);padding:7px 12px;font-size:12.5px;
   font-weight:600;color:var(--muted)}
 .mrow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
@@ -373,7 +470,7 @@ details.prj[open] .chev{transform:rotate(180deg)}
 .bar .fill.full{border-radius:999px}
 .bar span{position:relative;z-index:1;overflow:hidden;text-overflow:ellipsis}
 .bar.v2{background:var(--gantt-fill2);border-color:var(--gantt-edge2)}
-.bar.plan{background:#F5F6F4;border-style:dashed;color:var(--muted)}
+.bar.plan{background:var(--raise);border-style:dashed;color:var(--muted)}
 .bar i{width:7px;height:7px;border-radius:50%;background:var(--gantt-edge);flex:none;
   position:relative;z-index:1}
 .bar.v2 i{background:var(--gantt-edge2)}
@@ -396,10 +493,10 @@ details.prj[open] .chev{transform:rotate(180deg)}
 /* ------------------------------------------------------------- notices -- */
 .pagenote{font-size:12.5px;color:var(--muted);margin-top:16px;max-width:78ch}
 .hintbar{margin:var(--gap) 0 0;padding:10px 14px;border:1px solid var(--line);
-  border-left:3px solid var(--brass);border-radius:var(--r);background:#fff;
+  border-left:3px solid var(--brass);border-radius:var(--r);background:var(--card);
   font-size:12.5px;color:var(--slate)}
 .phasetag{display:inline-block;font-size:11.5px;font-weight:600;color:var(--brass);
-  background:var(--brass-bg);border:1px solid #E2D3B4;border-radius:999px;padding:1px 9px}
+  background:var(--brass-bg);border:1px solid var(--brass);border-radius:999px;padding:1px 9px}
 .stubgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap);margin-top:var(--gap)}
 .stublist{list-style:none;font-size:14px;color:var(--slate)}
 .stublist li{padding:7px 0;border-bottom:1px solid var(--line2);display:flex;gap:10px}
@@ -411,10 +508,10 @@ details.prj[open] .chev{transform:rotate(180deg)}
    down the whole column and reads as one continuous 100% line. Anything past
    it is the same 135° rose hatch the dashboard already uses for an over-run. */
 .ubar-wrap{display:flex;align-items:center;gap:10px;min-width:0}
-/* #EFF1EE is the same empty-track neutral the C-03 dashboard bar already uses,
+/* var(--raise) is the same empty-track neutral the C-03 dashboard bar already uses,
    so a bar reads identically wherever it appears */
 .ubar{position:relative;flex:1 1 auto;min-width:0;height:16px;border-radius:999px;
-  background:#EFF1EE}
+  background:var(--raise)}
 .ubar-wrap.sm .ubar{height:10px}
 .ubar-fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px 0 0 999px;
   background:var(--verd)}
@@ -442,7 +539,7 @@ details.prj[open] .chev{transform:rotate(180deg)}
 /* ============================================== C-12 · modal (base) ====== */
 .modal-wrap{position:fixed;inset:0;background:rgba(34,48,59,.32);z-index:80;
   display:flex;align-items:center;justify-content:center;padding:20px}
-.modal{background:#fff;border-radius:8px;box-shadow:0 20px 50px rgba(34,48,59,.24);
+.modal{background:var(--card);border-radius:8px;box-shadow:var(--shadow);
   padding:var(--pad);max-width:460px;width:100%}
 .modal h3{font-size:16px;font-weight:700;margin-bottom:8px}
 .modal p{font-size:14px;color:var(--slate)}
@@ -451,9 +548,9 @@ details.prj[open] .chev{transform:rotate(180deg)}
 /* ============================================ C-20 · scope selector ====== */
 .scope{position:relative}
 .scope-btn{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;
-  color:var(--ink);border:1px solid var(--line);border-radius:var(--r);background:#fff;
+  color:var(--ink);border:1px solid var(--line);border-radius:var(--r);background:var(--card);
   padding:7px 12px;white-space:nowrap}
-.scope-btn .chip{font-size:11.5px;font-weight:700;background:#EDF0EC;border-radius:999px;
+.scope-btn .chip{font-size:11.5px;font-weight:700;background:var(--raise);border-radius:999px;
   padding:1px 8px;color:var(--slate);border:none}
 
 /* ========================================================= responsive ==== */
@@ -538,11 +635,11 @@ details.prj[open] .chev{transform:rotate(180deg)}
    allowed to shrink and the chip to wrap under it at narrow sidebar widths. */
 .side a > span{min-width:0;overflow-wrap:break-word}
 .side a .addon{display:inline-block;font-size:11.5px;font-weight:600;color:var(--brass);
-  border:1px solid #E2D3B4;border-radius:999px;padding:0 6px;margin-left:7px;
-  vertical-align:1px;background:#FDFBF6;letter-spacing:0;white-space:nowrap}
+  border:1px solid var(--brass);border-radius:999px;padding:0 6px;margin-left:7px;
+  vertical-align:1px;background:var(--brass-bg);letter-spacing:0;white-space:nowrap}
 .p5-addon{font-size:11.5px;font-weight:600;color:var(--brass);
-  border:1px solid #E2D3B4;border-radius:999px;padding:1px 8px;margin-left:8px;
-  vertical-align:3px;background:#FDFBF6}
+  border:1px solid var(--brass);border-radius:999px;padding:1px 8px;margin-left:8px;
+  vertical-align:3px;background:var(--brass-bg)}
 
 /* ============================================================================
    v1.0.3 · C-21 country identity palette
@@ -567,7 +664,8 @@ details.prj[open] .chev{transform:rotate(180deg)}
    Nothing else in the app may inherit these: the ONLY consumers are the .cc-*
    utility classes below, and the only elements that carry a .cc-* class are the
    P3 country band / body / chip and the P11 country header / row / pin. */
-:root{
+/* v1.2.5.2 — LIGHT ground: the legacy pastel tints, verbatim (was :root). */
+:root, :root[data-ground="light"]{
   --cc-bgd-bold:#D2E7DE; --cc-bgd-light:#F1F8F4; --cc-bgd-line:#2E6B54;
   --cc-npl-bold:#F4D8DE; --cc-npl-light:#FBF2F4; --cc-npl-line:#A63446;
   --cc-khm-bold:#D6E0F3; --cc-khm-light:#F1F4FA; --cc-khm-line:#33518F;
@@ -580,6 +678,24 @@ details.prj[open] .chev{transform:rotate(180deg)}
   --cc-hkg-bold:#E3DCF0; --cc-hkg-light:#F5F2FA; --cc-hkg-line:#5B4A8A;
   /* neutral fallback for any country the palette does not know */
   --cc-x-bold:#E4E7E3;   --cc-x-light:#F7F8F6;   --cc-x-line:#69747E;
+}
+/* v1.2.5.2 — DARK ground: each country keeps its HUE identity as a deep chip.
+   -bold is the chip fill (carries --ink and --slate text, never --muted, as on
+   light): ink ≥10:1, slate 5.2–6.2:1 over the three dark tones — AA/AAA. -light
+   is a near-ground hue wash for expanded panels, kept dark enough that body text
+   holds its base-palette contrast (on the audited default, dark-brass, --muted
+   is 4.5–4.9:1 on every wash; slate ≥7:1). -line is a bright rule, ≥4.8:1 on the
+   ground and ≥3:1 on its own chip. Yellows (IND/MMR) are darkened chips so the
+   bright -line still reads. */
+:root[data-ground="dark"]{
+  --cc-bgd-bold:#1D3A2C; --cc-bgd-light:#13201A; --cc-bgd-line:#4FA07E;
+  --cc-npl-bold:#4A2028; --cc-npl-light:#201216; --cc-npl-line:#D3707E;
+  --cc-khm-bold:#1E2E4A; --cc-khm-light:#131A26; --cc-khm-line:#6E90CC;
+  --cc-ind-bold:#3C2A12; --cc-ind-light:#20180C; --cc-ind-line:#C8933A;
+  --cc-mmr-bold:#34300F; --cc-mmr-light:#1C1A0B; --cc-mmr-line:#BCA83C;
+  --cc-lao-bold:#16283F; --cc-lao-light:#101825; --cc-lao-line:#5C86C4;
+  --cc-hkg-bold:#2E2648; --cc-hkg-light:#1A1626; --cc-hkg-line:#9280C4;
+  --cc-x-bold:#2A2F36;   --cc-x-light:#191C20;   --cc-x-line:#8A94A0;
 }
 
 /* The utility classes expose the trio under three generic names, so every page
@@ -613,15 +729,15 @@ details.prj[open] .chev{transform:rotate(180deg)}
 .gs-line{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:5px}
 .gs-sub{font-size:12.5px;color:var(--muted);margin-top:4px}
 .gs-sub b{color:var(--slate);font-weight:600}
-.gs-src{font-size:11.5px;font-weight:600;color:var(--slate);background:#EFF1EE;
+.gs-src{font-size:11.5px;font-weight:600;color:var(--slate);background:var(--raise);
   border:1px solid var(--line);border-radius:999px;padding:1px 9px;white-space:nowrap}
-.gs-src.adv{color:var(--brass);border-color:#E2D3B4;background:var(--brass-bg)}
+.gs-src.adv{color:var(--brass);border-color:var(--brass);background:var(--brass-bg)}
 .gs-ref{font-size:12.5px;color:var(--muted)}
 .gs-sync{font-size:11.5px;font-weight:600;border:1px solid var(--line);border-radius:999px;
   padding:1px 9px;color:var(--muted);white-space:nowrap}
-.gs-sync.ok{color:var(--verd);border-color:#B9D2C9;background:var(--verd-bg)}
-.gs-sync.queued{color:var(--brass);border-color:#E2D3B4;background:var(--brass-bg)}
-.gs-sync.failed{color:var(--rose);border-color:#E5C6C4;background:var(--rose-bg)}
+.gs-sync.ok{color:var(--verd);border-color:var(--verd);background:var(--verd-bg)}
+.gs-sync.queued{color:var(--brass);border-color:var(--brass);background:var(--brass-bg)}
+.gs-sync.failed{color:var(--rose);border-color:var(--rose);background:var(--rose-bg)}
 .gs-link{font-size:12.5px;font-weight:600;color:var(--glass);text-decoration:none;white-space:nowrap}
 .gs-link:hover{text-decoration:underline}
 
@@ -637,10 +753,10 @@ details.prj[open] .chev{transform:rotate(180deg)}
    needs-you row, the worker task list, the chain line and the portfolio bar
    row are drawn with. Nothing above this fence is touched. */
 .sl.sl-cur{box-shadow:0 0 0 2px rgba(0,0,0,.045)}
-.sl.sl-dead{border-color:#E3C2BF;color:var(--rose);background:#FCF6F5}
+.sl.sl-dead{border-color:var(--rose);color:var(--rose);background:var(--rose-bg)}
 .sl.sl-dead s{text-decoration:line-through;opacity:.75}
 .sl-tag{font-size:11.5px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;
-  color:#fff;background:var(--rose);border-radius:999px;padding:1px 7px;margin-left:2px}
+  color:var(--card);background:var(--rose);border-radius:999px;padding:1px 7px;margin-left:2px}
 /* v1.2.3 (ToR 12 Sep, item 2/3) — the frame under the current rung. A plain
    border by default; the left accent and tint pick up the worst tone among
    the lines it holds (hot/warm), so a waiting gate still reads as the time
@@ -648,7 +764,7 @@ details.prj[open] .chev{transform:rotate(180deg)}
    as its own rose sentence above it. Grid-column start comes from ui.js. */
 .sl-sub{display:block;grid-column:var(--sl-c4,1)/-1;
   margin-top:8px;padding:9px 13px;font-size:12.5px;color:var(--muted);
-  background:#fff;border:1px solid var(--line);border-left:3px solid var(--line);
+  background:var(--card);border:1px solid var(--line);border-left:3px solid var(--line);
   border-radius:var(--r);min-width:0}
 .sl-sub.warm{border-left-color:var(--brass);background:var(--brass-bg)}
 .sl-sub.hot{border-left-color:var(--rose);background:var(--rose-bg)}
@@ -671,7 +787,7 @@ details.prj[open] .chev{transform:rotate(180deg)}
 .p6-inline-step.compact .sl-sub{display:none}
 .p6-inline-step.compact .sl{padding:1px 6px;font-size:11.5px}
 .sl-line{display:block;font-variant-numeric:tabular-nums}
-.sl-line.warm{color:#8E5C59}
+.sl-line.warm{color:var(--sx)}
 .sl-line.hot{color:var(--rose);font-weight:600}
 /* ------------------------------------------ stepper · narrow tier (v1.2.3
    audit ruling on the open item "at 390px the rung labels wrap mid-word").
@@ -707,16 +823,50 @@ details.prj[open] .chev{transform:rotate(180deg)}
    not repeated per chip; reuses the .gnote grammar already in this file */
 .gs-note{flex:0 0 100%;font-size:12.5px;color:var(--muted);margin-top:2px}
 
+/* ---- v1.2.5.2 Phase 2 · stepped sub-lines inside the .sl-sub frame -------
+   The DP/CHaS submission line and the Cooperation Agreement line. Same node
+   grammar as the ladder above: a dot, a connector, a label, in three states.
+   done = --verd (filled dot + check), current = --brass ring, pending =
+   --line/--muted; the connector INTO a done-or-current node is --verd. All
+   tone-tokened, so it repaints with the seven tones. Wide: a horizontal
+   4-node line, dot over label. Narrow (≤560px): stacks to a vertical timeline
+   so it never overflows the card. */
+.subflow{margin-top:11px}
+.subflow-cap{font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;   /* v1.2.5.2-uxA: 11px→11.5px, the documented type-scale floor (was a 7th distinct size) */
+  color:var(--muted);margin-bottom:6px}
+.subflow-line{display:flex;align-items:flex-start;min-width:0}
+.subflow-node{position:relative;flex:1 1 0;min-width:0;display:flex;flex-direction:column;
+  align-items:center;text-align:center;padding:0 2px}
+.subflow-node::before{content:'';position:absolute;top:9px;right:50%;left:-50%;height:2px;
+  background:var(--line);z-index:0}
+.subflow-node:first-child::before{display:none}
+.subflow-node.is-done::before,.subflow-node.is-cur::before{background:var(--verd)}
+.sfn-dot{position:relative;z-index:1;flex:none;width:20px;height:20px;border-radius:999px;
+  border:2px solid var(--line);background:var(--card);color:var(--muted);
+  display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;line-height:1}   /* v1.2.5.2-uxA: 11px→11.5px type-scale floor */
+.is-done .sfn-dot{border-color:var(--verd);background:var(--verd);color:var(--card)}
+.is-cur .sfn-dot{border-color:var(--brass);box-shadow:0 0 0 3px var(--brass-glow)}
+.sfn-lab{margin-top:5px;width:100%;font-size:11.5px;line-height:1.25;color:var(--muted);
+  overflow-wrap:break-word;hyphens:auto;-webkit-hyphens:auto}
+.is-done .sfn-lab{color:var(--verd)}
+.is-cur .sfn-lab{color:var(--brass);font-weight:600}
+@media (max-width:560px){
+  .subflow-line{flex-direction:column;align-items:stretch}
+  .subflow-node{flex-direction:row;align-items:center;gap:9px;text-align:left;padding:3px 0}
+  .subflow-node::before{top:-50%;bottom:50%;left:9px;right:auto;width:2px;height:auto}
+  .sfn-lab{margin-top:0;width:auto;flex:1 1 auto;min-width:0}
+}
+
 /* ---- worker task list (GOV.UK grammar: whole row, sentence-case tag) ---- */
 .tasklist{list-style:none;margin:8px 0 0;padding:0;border-top:1px solid var(--line)}
 .tasklist li{border-bottom:1px solid var(--line)}
 .tasklist a{display:flex;align-items:center;justify-content:space-between;gap:12px;
   padding:9px 4px;text-decoration:none;color:var(--ink);font-size:14px}
-.tasklist a:hover{background:rgba(0,0,0,.02)}
+.tasklist a:hover{background:var(--hover)}
 .tasklist .tl-lab{font-weight:600}
 .tasklist .tl-tag{font-size:11.5px;font-weight:600;border-radius:999px;padding:2px 9px;
-  border:1px solid var(--line);color:var(--slate);background:#fff;white-space:nowrap}
-.tasklist .tl-tag.tl-done{border-color:#B9D2C9;color:var(--verd);background:var(--verd-bg)}
+  border:1px solid var(--line);color:var(--slate);background:var(--card);white-space:nowrap}
+.tasklist .tl-tag.tl-done{border-color:var(--verd);color:var(--verd);background:var(--verd-bg)}
 .tasklist .tl-tag.tl-blocked{border-style:dashed;color:var(--muted)}
 .tasklist .tl-tag.tl-na{border-style:dashed;color:var(--muted)}
 .tasklist li.tl-done .tl-lab{color:var(--muted);font-weight:500}
@@ -731,7 +881,7 @@ details.prj[open] .chev{transform:rotate(180deg)}
 /* ---- bullet bar row (needs-you row + portfolio ordered list) ---- */
 .cbar-row{display:flex;align-items:center;gap:14px;padding:9px 4px;text-decoration:none;
   color:var(--ink);border-bottom:1px solid var(--line)}
-.cbar-row:hover{background:rgba(0,0,0,.02)}
+.cbar-row:hover{background:var(--hover)}
 .cbar-name{flex:0 0 200px;display:flex;flex-direction:column;font-size:14px}
 .cbar-name small{color:var(--muted);font-size:11.5px}
 .cbar-bar{flex:1 1 auto;min-width:120px}
@@ -743,7 +893,7 @@ details.prj[open] .chev{transform:rotate(180deg)}
 
 /* ---- the inline reason composer (T-10 · p6r-*) ---- */
 .p6-inline{margin-top:8px;padding:8px;border:1px solid var(--line);border-radius:var(--r);
-  background:#fff}
+  background:var(--card)}
 .p6-inline textarea{width:100%;min-height:44px;font:inherit;font-size:12.5px}
 .p6-iacts{display:flex;gap:8px;margin-top:6px}
 .p6-inline-step{margin-top:4px}
@@ -754,10 +904,10 @@ details.prj[open] .chev{transform:rotate(180deg)}
    console apart from a persona home (T-11), and the pre-render placeholder
    app.js paints while persistence restores (T-01). Nothing above this fence
    is touched. */
-.shell-admin .topbar{background:linear-gradient(180deg,#FBF8F1 0%,#F7F3E9 100%);
-  border-bottom-color:#E4D9BE}
-.shell-admin .side{background:#FAF8F2;border-right-color:#E7DFCB}
-.shell-admin .side a.on{box-shadow:inset 3px 0 0 var(--brass);background:#F2EDDF}
+.shell-admin .topbar{background:var(--brass-bg);
+  border-bottom-color:var(--brass)}
+.shell-admin .side{background:var(--brass-bg);border-right-color:var(--brass)}
+.shell-admin .side a.on{box-shadow:inset 3px 0 0 var(--brass);background:var(--hover)}
 .shell-admin .main{box-shadow:inset 0 3px 0 -1px rgba(154,120,51,.28)}
 
 .restoring{display:flex;align-items:center;justify-content:center;min-height:100vh;

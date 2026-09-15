@@ -11,7 +11,7 @@
 .p7-year{font-size:12.5px;font-weight:600;color:var(--muted)}
 .p7-yearnote{font-size:12.5px;color:var(--muted)}
 .p7-hint{margin:0 0 var(--gap);padding:9px 13px;border:1px solid var(--line);
-  border-left:3px solid var(--brass);border-radius:var(--r);background:#fff;
+  border-left:3px solid var(--brass);border-radius:var(--r);background:var(--card);
   font-size:12.5px;color:var(--slate)}
 .p7-kpis{margin-top:var(--gap)}
 .p7-card + .p7-card,.p7-kpis + .p7-card{margin-top:var(--gap)}
@@ -28,7 +28,7 @@
 .p7-cur{font-size:12.5px;color:var(--muted)}
 .p7-ceil{font:inherit;font-size:14px;font-weight:600;color:var(--ink);
   text-align:right;width:118px;padding:4px 8px;border:1px solid var(--line);
-  border-radius:var(--r);background:#fff;font-variant-numeric:tabular-nums}
+  border-radius:var(--r);background:var(--card);font-variant-numeric:tabular-nums}
 .p7-ceil:hover{border-color:var(--muted)}
 .p7-ceil:focus{outline:none;border-color:var(--brass);
   box-shadow:0 0 0 3px rgba(154,120,51,.12)}
@@ -98,7 +98,7 @@
 .p7-crow:first-child{margin-top:0}
 .p7-urow{display:grid;gap:var(--p7-ug);align-items:center;padding:11px 12px;min-width:0;
   width:100%;grid-template-columns:var(--p7-ul) minmax(0,1fr) var(--p7-uv);
-  background:var(--ccb,#F1F3F0);border:none;font:inherit;color:inherit;
+  background:var(--ccb,var(--raise));border:none;font:inherit;color:inherit;
   text-align:left;cursor:pointer;border-radius:var(--r)}
 /* the tint IS the identity, so hover cannot replace it - it deepens the edge */
 .p7-urow:hover{box-shadow:inset 0 0 0 1px var(--ccx,var(--line))}
@@ -114,7 +114,7 @@
 .p7-uval{text-align:right;font-size:14px;font-weight:600;color:var(--slate);
   font-variant-numeric:tabular-nums;display:inline-flex;align-items:center;gap:6px;
   justify-content:flex-end}
-.p7-uval.neg{color:var(--rose)}
+.p7-uval.neg{color:var(--sx)}
 /* --slate, not --muted: the row now carries the band's --ccb tint behind it,
    and --muted measures 4.47:1 on --ccb — the same near-miss uikit.css already
    documents on .k-btitle .cnt, and the same token resolves it. */
@@ -168,7 +168,7 @@
 /* ------------------------------------------------- P7 · forecasting ------ */
 .p7-plan{font:inherit;font-size:14px;font-weight:600;color:var(--ink);
   text-align:right;width:118px;padding:4px 8px;border:1px solid var(--line);
-  border-radius:var(--r);background:#fff;font-variant-numeric:tabular-nums}
+  border-radius:var(--r);background:var(--card);font-variant-numeric:tabular-nums}
 .p7-plan:hover{border-color:var(--muted)}
 .p7-plan:focus{outline:none;border-color:var(--brass);
   box-shadow:0 0 0 3px rgba(154,120,51,.12)}
@@ -184,7 +184,7 @@
    the × that takes the column away again. */
 .p7-yacts{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:11px;
   min-width:0}
-.p7-yadd{font-size:12.5px;font-weight:600;color:var(--slate);background:#fff;
+.p7-yadd{font-size:12.5px;font-weight:600;color:var(--slate);background:var(--card);
   border:1px solid var(--line);border-radius:999px;padding:3px 11px;white-space:nowrap}
 .p7-yadd:hover{border-color:var(--brass);color:var(--brass)}
 .p7-yadd:focus-visible{outline:2px solid var(--glass);outline-offset:2px}
@@ -196,8 +196,8 @@
   color:var(--muted);margin-top:2px;white-space:nowrap}
 .p7-ydel{font-size:12.5px;line-height:1;font-weight:700;color:var(--muted);
   border:1px solid var(--line);border-radius:50%;width:17px;height:17px;
-  padding:0;background:#fff;flex:none}
-.p7-ydel:hover{color:var(--rose);border-color:#E5C6C4;background:var(--rose-bg)}
+  padding:0;background:var(--card);flex:none}
+.p7-ydel:hover{color:var(--rose);border-color:var(--rose);background:var(--rose-bg)}
 .p7-ydel:focus-visible{outline:2px solid var(--glass);outline-offset:2px}
 /* every money column is the same width, so the inputs form one column edge */
 .p7-page .tbl.p7-ftbl td.r{white-space:nowrap}
@@ -308,13 +308,13 @@
 .p8-list{border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
 .p8-row{border-bottom:1px solid var(--line2)}
 .p8-row:last-child{border-bottom:none}
-.p8-row.open{background:#FCFDFC}
+.p8-row.open{background:var(--raise)}
 .p8-mailhd{display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;
   padding:11px 14px;min-width:0}
-.p8-mailhd:hover{background:#FBFCFA}
+.p8-mailhd:hover{background:var(--raise)}
 .p8-rule{flex:none;width:62px;text-align:center;font-size:12.5px;font-weight:700;
   font-variant-numeric:tabular-nums;padding:3px 6px;border-radius:999px;
-  border:1.5px solid var(--line);color:var(--slate);background:#fff;margin-top:1px}
+  border:1.5px solid var(--line);color:var(--slate);background:var(--card);margin-top:1px}
 .p8-mailtx{min-width:0;flex:1}
 .p8-mailtx b{display:block;font-size:14px;font-weight:600;line-height:1.35}
 .p8-mailtx span{display:block;font-size:12.5px;color:var(--muted);margin-top:1px}
@@ -331,7 +331,7 @@
 .p8-body{font-family:inherit;font-size:14px;line-height:1.55;color:var(--slate);
   white-space:pre-wrap;overflow-wrap:break-word;margin-top:9px;padding:12px 14px;
   border:1px solid var(--line2);border-left:3px solid var(--line);border-radius:var(--r);
-  background:#FBFCFA}
+  background:var(--raise)}
 
 @media(max-width:640px){.p8-mail{padding-left:14px}}
 
@@ -353,12 +353,12 @@
 .p8-page .tbl th.p8-kind,.p8-page .tbl td.p8-kind{white-space:normal;width:118px}
 .p8-page .tbl th.p8-stat,.p8-page .tbl td.p8-stat{white-space:nowrap;width:96px}
 .p8-tag{display:inline-block;font-size:11.5px;font-weight:600;color:var(--brass);
-  background:var(--brass-bg);border:1px solid #E2D3B4;border-radius:999px;
+  background:var(--brass-bg);border:1px solid var(--brass);border-radius:999px;
   padding:0 8px;white-space:nowrap}
 .p8-toggle{display:inline-flex;align-items:center;gap:8px;padding:3px 10px 3px 4px;
-  border:1px solid var(--line);border-radius:999px;background:#fff;white-space:nowrap}
+  border:1px solid var(--line);border-radius:999px;background:var(--card);white-space:nowrap}
 .p8-toggle:hover{border-color:var(--muted)}
-.p8-knob{width:26px;height:15px;border-radius:999px;background:#DFE3DE;position:relative;
+.p8-knob{width:26px;height:15px;border-radius:999px;background:var(--line);position:relative;
   flex:none;transition:background .15s}
 .p8-knob::after{content:'';position:absolute;top:2px;left:2px;width:11px;height:11px;
   border-radius:50%;background:#fff;transition:transform .15s}
@@ -378,15 +378,15 @@
 
 .p8-flabel{font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:7px}
 .p8-tokens{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:var(--gap)}
-.p8-token{font-size:12.5px;font-weight:600;color:var(--glass);background:#F3F6FA;
-  border:1px solid #D3DEEC;border-radius:var(--r);padding:3px 9px;white-space:nowrap}
-.p8-token:hover{background:#E9F0F8;border-color:var(--glass)}
+.p8-token{font-size:12.5px;font-weight:600;color:var(--glass);background:var(--raise);
+  border:1px solid var(--glass);border-radius:var(--r);padding:3px 9px;white-space:nowrap}
+.p8-token:hover{background:var(--hover);border-color:var(--glass)}
 
 .p8-field{margin-bottom:12px;min-width:0}
 .p8-field label{display:block;font-size:12.5px;font-weight:600;color:var(--muted);
   margin-bottom:5px}
 .p8-input{font:inherit;font-size:12.5px;color:var(--ink);width:100%;padding:8px 11px;
-  border:1px solid var(--line);border-radius:var(--r);background:#fff;min-width:0}
+  border:1px solid var(--line);border-radius:var(--r);background:var(--card);min-width:0}
 .p8-input:focus{outline:none;border-color:var(--brass);
   box-shadow:0 0 0 3px rgba(154,120,51,.12)}
 .p8-area{line-height:1.55;resize:vertical;min-height:150px}
@@ -394,12 +394,12 @@
 .p8-saved{font-size:12.5px;font-weight:600;color:var(--verd)}
 
 .p8-prev{border:1px solid var(--line);border-radius:var(--r);padding:14px;
-  background:#FBFCFA;min-width:0}
+  background:var(--raise);min-width:0}
 .p8-prevhd{display:flex;gap:10px;align-items:baseline;font-size:12.5px;padding:2px 0;
   min-width:0}
 .p8-prevhd span{flex:none;width:62px;color:var(--muted);font-weight:600}
 .p8-prevhd b{font-weight:600;color:var(--ink);min-width:0;overflow-wrap:break-word}
-.p8-prev .p8-body{background:#fff}
+.p8-prev .p8-body{background:var(--card)}
 .p8-vals{margin-top:var(--gap);border-top:1px solid var(--line2);padding-top:10px}
 .p8-vals .p8-meta span{width:132px;font-variant-numeric:tabular-nums}
 
@@ -413,7 +413,7 @@
 .p8-others em{flex:none;font-style:normal;font-size:12.5px;color:var(--muted)}
 
 /* ------------------------------------------- RD-2 · director digest ----- */
-.p8-digest{border:1px solid var(--line);border-radius:var(--r);background:#FBFCFA;
+.p8-digest{border:1px solid var(--line);border-radius:var(--r);background:var(--raise);
   padding:16px;min-width:0}
 .p8-digestbody{margin-top:12px;border-top:1px solid var(--line2);padding-top:12px}
 .p8-sec + .p8-sec{margin-top:16px;border-top:1px solid var(--line2);padding-top:14px}
@@ -528,9 +528,9 @@
    catalogue and a chip on every sent row; the sent log groups by it. */
 .p8-bchip{font-size:11.5px;font-weight:600;border-radius:999px;padding:1px 9px;
   border:1px solid var(--line);color:var(--slate);white-space:nowrap;flex:none}
-.p8-bchip.b-immediate{color:var(--verd);border-color:#B9D2C9;background:var(--verd-bg)}
-.p8-bchip.b-digest{color:var(--glass);border-color:#C8D5EA;background:#F2F5FA}
-.p8-bchip.queued{color:var(--brass);border-color:#E2D3B4;background:var(--brass-bg)}
+.p8-bchip.b-immediate{color:var(--verd);border-color:var(--verd);background:var(--verd-bg)}
+.p8-bchip.b-digest{color:var(--glass);border-color:var(--glass);background:var(--raise)}
+.p8-bchip.queued{color:var(--brass);border-color:var(--brass);background:var(--brass-bg)}
 .p8-buck{width:104px}
 .p8-cat td{color:var(--muted)}
 .p8-only{border-style:dashed;color:var(--muted)}
@@ -539,7 +539,7 @@
 .p8-bgroup{margin-bottom:var(--gap)}
 .p8-bgroup h4{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font-size:12.5px;
   font-weight:600;color:var(--slate);margin:0 0 7px}
-.p8-bgroup h4 .n{font-size:11.5px;font-weight:700;color:var(--slate);background:#EDF0EC;
+.p8-bgroup h4 .n{font-size:11.5px;font-weight:700;color:var(--slate);background:var(--raise);
   border-radius:999px;padding:0 8px}
 .p8-bgroup h4 small{font-size:12.5px;font-weight:400;color:var(--muted);flex:1 1 240px;
   min-width:0}
