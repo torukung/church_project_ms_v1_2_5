@@ -224,7 +224,23 @@
     return { level: 'quiet', days: 0, text: '', full: 'Nothing outstanding' };
   };
 
-  K.flagCell = function (a) {
+  /* v1.2.6 R-B — opts.labelled (P3 register only): the same flag as two
+     labelled lines, "Attention · <dot+text>" then the plain-language reason
+     (a.full, the string already in title). Without opts the markup below is
+     byte-identical to v1.2.5.2, so P5/P6/P7/P12/home read exactly as before. */
+  K.flagCell = function (a, opts) {
+    if (opts && opts.labelled) {
+      var quiet = !a || a.level === 'quiet';
+      var full = quiet ? 'Nothing outstanding' : (a.full || a.text);
+      return '<span class="k-flag k-flab ' + (quiet ? 'quiet' : e(a.level)) + '" title="' + e(full) + '">' +
+        '<span class="l3-line"><span class="l3-k">Attention</span>' +
+        (quiet
+          ? '<span class="k-ftxt">Nothing outstanding</span></span>'
+          : '<span class="k-fdot" aria-hidden="true"></span>' +
+            '<span class="k-ftxt">' + e(a.text) + '</span></span>' +
+            '<span class="l3-why">' + e(full) + '</span>') +
+        '</span>';
+    }
     if (!a || a.level === 'quiet') {
       return '<span class="k-flag quiet" title="Nothing outstanding">' +
              '<span class="k-fmark" aria-hidden="true"></span>' +

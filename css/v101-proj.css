@@ -103,6 +103,37 @@
 
 .xc-flag{grid-area:flag;min-width:0}
 
+/* ---- v1.2.6 R-B · labelled lines in-cell ("Stage · …", "Gate · …",
+   "Attention · …" + reason). Each cell is one flex column centred as a block
+   in the row (the grid already centres the cell; the column centres its
+   lines). The key is a fixed 58px so every value starts at the same x down
+   the register (58px was the brief's floor; "Attention" at 11px/600/.02em
+   measures ~62px, so the key is 66px). A value that cannot sit beside its key (a 160px pill in a
+   narrow tier) wraps under it rather than bursting the track. */
+.l3-cell{display:flex;flex-direction:column;justify-content:center;gap:3px;min-width:0}
+.l3-line{display:flex;flex-wrap:wrap;align-items:center;column-gap:6px;row-gap:2px;min-width:0}
+.l3-k{flex:0 0 66px;min-width:66px;font-size:11.5px;   /* v1.2.6 audit: 11px was a 7th size (gate is 6) */
+  font-weight:600;line-height:1.4;
+  letter-spacing:.02em;color:var(--slate);white-space:nowrap}
+.xstg.l3-cell{min-height:56px}
+.xstg .l3-line > .pill{flex:0 1 auto;max-width:100%}
+.l3-gate{flex-wrap:nowrap;align-items:baseline}
+/* the gate sub-line keeps its tone rules above; inside a labelled line it
+   takes the space beside the key and wraps there, never across a column */
+.xstg .l3-gate small{flex:1 1 0;min-width:0;margin-top:0;min-height:0;
+  overflow-wrap:break-word;text-wrap:pretty}
+
+/* Attention (K.flagCell labelled). .k-flag is inline-flex/nowrap/ellipsis in
+   uikit.css (loaded after this file) — two classes out-rank it. */
+.k-flag.k-flab{display:flex;flex-direction:column;align-items:stretch;
+  justify-content:center;gap:3px;white-space:normal;overflow:visible;width:100%}
+.k-flag.k-flab .l3-line{flex-wrap:nowrap}
+.k-flag.k-flab .k-ftxt{flex:0 1 auto;white-space:nowrap}
+.k-flag.k-flab .l3-why{font-size:12.5px;font-weight:400;line-height:1.35;
+  color:var(--slate);overflow-wrap:break-word;text-wrap:pretty;padding-left:72px}
+.k-flag.k-flab.quiet{justify-content:center}
+.k-flag.k-flab.quiet .k-ftxt{color:var(--slate);font-weight:400}
+
 .xc-budget{grid-area:budget;text-align:right;min-width:0}
 .xc-budget b{font-size:14px;font-weight:600;color:var(--ink)}
 .xc-budget small{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
@@ -226,6 +257,26 @@
 /* ========================================================= responsive ==== */
 
 /* ---- P3 — CORE_API §7: bound at 1100 / 860 / 560, later queries win ----- */
+/* v1.2.6 R-B — the labelled cells need room for "Stage" + the widest pill
+   (66 + 6 + 160 = 232) and "Attention" + dot + "over by 59 d". Only the wide
+   tier (≥1281, where the name track keeps ≥ 280px) takes the wider tracks;
+   budget gives 16px back. Header and rows share this rule, so they stay
+   aligned. */
+@media(min-width:1281px){
+  .preg .lhead,.xsum{grid-template-columns:minmax(0,1fr) 232px 212px 112px 96px 22px}
+}
+/* Every narrower tier keeps its v1.2.5.2 tracks; there the key sits on its
+   own line above the value (an eyebrow) instead of beside it, so no value is
+   squeezed or cut. ≤560 is one full-width column again, so keys go back
+   inline (rule further down). */
+@media(max-width:1280px){
+  .l3-line,.l3-gate,.k-flag.k-flab .l3-line{flex-wrap:wrap;row-gap:0}
+  .l3-k{flex-basis:100%;line-height:1.3}
+  .xstg .l3-gate small{flex-basis:100%}
+  .l3-cell,.k-flag.k-flab{gap:4px}
+  .k-flag.k-flab .k-ftxt{white-space:normal;overflow-wrap:break-word}
+  .k-flag.k-flab .l3-why{padding-left:0}
+}
 @media(max-width:1100px){
   .preg .lhead,.xsum{grid-template-columns:minmax(0,1fr) 176px 132px 104px 40px 22px}
   .xc-budget small{display:none}
@@ -267,6 +318,14 @@
   .xc-cmt{justify-content:flex-start}
 }
 @media(max-width:560px){
+  .l3-line,.k-flag.k-flab .l3-line{flex-wrap:nowrap}
+  .l3-line:first-child{flex-wrap:wrap}
+  .l3-k{flex-basis:66px}
+  .xstg .l3-gate small{flex-basis:0}
+  .l3-cell,.k-flag.k-flab{gap:3px}
+  .k-flag.k-flab .k-ftxt{white-space:nowrap}
+  .k-flag.k-flab .l3-why{padding-left:72px}
+  .xstg.l3-cell{min-height:0}
   .xsum{grid-template-columns:minmax(0,1fr);
     grid-template-areas:"name" "stage" "flag" "budget" "cmt";
     row-gap:6px;padding:11px 34px 11px 12px}

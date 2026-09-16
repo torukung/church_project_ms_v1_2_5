@@ -60,7 +60,10 @@
       var addon = n.addon
         ? '<span class="addon" title="Licensed add-on module — required licenses apply">' +
           'Required Licenses</span>' : '';
-      return '<a href="#/' + e(n.route) + '"' + (on ? ' class="on"' : '') + '>' +
+      /* v1.2.6 R-A — `head` rows are the Projects group header (still a link),
+         `child` rows sit indented under a header. */
+      var cls = (n.head ? ' navhead' : '') + (n.child ? ' sub' : '') + (on ? ' on' : '');
+      return '<a href="#/' + e(n.route) + '"' + (cls ? ' class="' + cls.slice(1) + '"' : '') + '>' +
              '<span>' + e(n.label) + addon + '</span>' + badge + '</a>';
     }).join('');
 
@@ -87,6 +90,9 @@
         '<span class="btxt"><span class="bname">Church Budget&amp;Project MS</span>' +
         '<small>Asia Area</small></span></div>' +
       '<nav class="nav">' + nav + '</nav>' +
+      /* v1.2.6 — a small version remark sits above the persona footer's rule,
+         read from CONFIG so it can never drift from the storage key. */
+      '<div class="ver">Demo v' + e(CBP.CONFIG.APP_VERSION) + '</div>' +
       '<div class="me"><b>' + e(state.user.name) + '</b>' +
       e(state.user.title || CBP.CONFIG.ROLE_LABEL[state.user.role]) + '</div>' +
       '</aside>';

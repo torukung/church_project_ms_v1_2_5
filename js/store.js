@@ -239,6 +239,7 @@
 
         /* P4 / P6 (Phase B) */
         p4Tab: 'overview',      /* overview ∣ budget ∣ timeline ∣ activity ∣ files */
+        p4AlertsOpen: false,    /* v1.2.6 — P4 alert tray expanded (session only, not persisted) */
         actFilter: 'all',       /* C-09 filter tabs */
         draft: null,            /* C-11 composer { type, body, assigned_to } */
         replyTo: null,          /* entry id the inline reply composer hangs under */

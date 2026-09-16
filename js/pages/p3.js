@@ -288,15 +288,30 @@
     var open = K.isOpen('p3', p.id);
     var sub = D.stageSubLine(p);
     var attn = K.attention(p, user);
+    /* v1.2.6 — only a "gate · …" sub-line is a gate; the rest are timing lines */
+    var isGate = sub && sub.text ? /^gate · /i.exec(sub.text) : null;
     var budgetSub = { 4: 'draft', 3: 'requested', 2: 'approved', 1: 'approved',
                        declined: 'requested' }[p.status];
 
     var cols =
       '<span class="xc xc-name"><span class="id num">' + e(p.id) + '</span>' +
         '<b>' + e(p.name) + '</b></span>' +
-      '<span class="xc xc-stage"><span class="xstg">' + U.statusPill(p.status) +
-        '<small class="' + e(sub.tone) + '">' + e(sub.text) + '</small></span></span>' +
-      '<span class="xc xc-flag">' + K.flagCell(attn) + '</span>' +
+      /* v1.2.6 R-B — labelled lines in-cell; the pill and the sub-line markup
+         inside them are unchanged. The Gate line is dropped when empty. */
+      '<span class="xc xc-stage"><span class="xstg l3-cell">' +
+        '<span class="l3-line"><span class="l3-k">Stage</span>' + U.statusPill(p.status) + '</span>' +
+        (sub && sub.text
+          ? '<span class="l3-line l3-gate"><span class="l3-k">' + (isGate ? 'Gate' : 'Timing') + '</span>' +
+            '<small class="' + e(sub.tone) + '">' +
+            (isGate
+              /* the leading "gate · " stays in textContent (tests read it)
+                 but is visually hidden — the key already says "Gate" */
+              ? '<span class="vh">' + e(isGate[0]) + '</span>' + e(sub.text.slice(isGate[0].length))
+              : e(sub.text)) +
+            '</small></span>'
+          : '') +
+        '</span></span>' +
+      '<span class="xc xc-flag">' + K.flagCell(attn, { labelled: true }) + '</span>' +
       '<span class="xc xc-budget num"><b>' + D.money(p.amount) + '</b>' +
         '<small>' + e(budgetSub) + '</small></span>' +
       commentCell(p, state);

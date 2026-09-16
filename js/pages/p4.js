@@ -106,10 +106,14 @@
        from any other tab brings the tab pointer with it */
     if (state.ui.p4Edit) state.ui.p4Tab = 'overview';
 
-    var html = drillCrumb(state) + header(p, state) + returnBar(p, state) + unreadStrip(p, state) +
+    /* v1.2.6 (R-C) — the unread strip is now one item of the alert tray */
+    var html = drillCrumb(state) + header(p, state) + returnBar(p, state) + alertTray(p, state) +
       banner(p, state) +
       '<div class="p4-cols">' +
-        '<div class="p4-main">' + tabs(state) + tabBody(p, state) + '</div>' +
+        '<div class="p4-main bk">' + tabs(state) +
+          '<div class="bk-panel" role="tabpanel" id="p4-panel" aria-labelledby="p4-tab-' +
+            e(state.ui.p4Tab || 'overview') + '">' + tabBody(p, state) + '</div>' +
+        '</div>' +
         '<div class="p4-aside">' + approvalPanel(p, state) + peopleCard(p, state) + '</div>' +
       '</div>' + CBP.p4.modal(state);
 
@@ -216,20 +220,152 @@
       '</span></div>';
   }
 
-  /* The unread alert: 3px left rule and a red value, no tinted card (rule 4).
-     The count is D.unreadFor — the same function behind the sidebar balloon. */
-  function unreadStrip(p, state) {
-    var n = D.unreadFor(state.user, p.id);
-    if (!n) return '';
-    return '<div class="p4-unread">' +
-      '<b class="num">' + n + '</b>' +
-      '<span>new message' + (n === 1 ? '' : 's') + ' · ' +
-        '<button class="p4-inlink" data-act="p4c-gotocomments" data-id="' + e(p.id) +
-        '">view comments</button></span>' +
-      (D.can(state.user, 'comment')
-        ? '<span class="sp">' + btn('Mark all read', 'comment-readall', p.id) + '</span>' : '') +
-      '</div>';
+  /* v1.2.6 — unreadStrip() retired: its count, "view comments" and "Mark all
+     read" controls (same acts) are the first item of alertTray() below. */
+
+  /* ------------------------------------------ v1.2.6 · alert tray (R-C) -- */
+
+  /* Inline SVG glyphs (currentColor), one per alert kind so severity and kind
+     never ride on colour alone (WCAG 1.4.1). */
+  var GLYPH = {
+    warn: '<path d="M8 1.8 15 14.2H1z" fill="none" stroke="currentColor" stroke-width="1.5" ' +
+          'stroke-linejoin="round"/><path d="M8 6.2v3.6M8 11.7v.2" stroke="currentColor" ' +
+          'stroke-width="1.6" stroke-linecap="round"/>',
+    msg:  '<rect x="1.8" y="3.5" width="12.4" height="9" rx="1.5" fill="none" stroke="currentColor" ' +
+          'stroke-width="1.4"/><path d="m2.4 4.3 5.6 4.4 5.6-4.4" fill="none" stroke="currentColor" ' +
+          'stroke-width="1.4" stroke-linejoin="round"/>',
+    gate: '<path d="M4 1.8h8M4 14.2h8M4.8 1.8c0 3.4 6.4 3.4 6.4 6.2S4.8 10.8 4.8 14.2M11.2 1.8c0 ' +
+          '3.4-6.4 3.4-6.4 6.2s6.4 2.8 6.4 6.2" fill="none" stroke="currentColor" stroke-width="1.4" ' +
+          'stroke-linecap="round"/>',
+    clock: '<circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.4"/>' +
+           '<path d="M8 4.6V8l2.4 1.6" fill="none" stroke="currentColor" stroke-width="1.5" ' +
+           'stroke-linecap="round" stroke-linejoin="round"/>',
+    person: '<circle cx="8" cy="5.3" r="2.8" fill="none" stroke="currentColor" stroke-width="1.4"/>' +
+            '<path d="M2.6 14.2c.6-2.9 2.8-4.4 5.4-4.4s4.8 1.5 5.4 4.4" fill="none" ' +
+            'stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>',
+    doc:  '<path d="M3.6 1.8h5.8l3 3v9.4H3.6z" fill="none" stroke="currentColor" stroke-width="1.4" ' +
+          'stroke-linejoin="round"/><path d="M9.2 1.8v3.2h3.2M5.8 8.4h4.4M5.8 11h4.4" fill="none" ' +
+          'stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>'
+  };
+
+  function glyph(k, cls) {
+    return '<svg class="' + (cls || 'atr-ico') + '" viewBox="0 0 16 16" aria-hidden="true" ' +
+      'focusable="false">' + GLYPH[k] + '</svg>';
   }
+
+  var DIV_LABEL = { ogc: 'OGC', finance: 'Finance' };
+
+  /* The items, in the order R-C fixes, each only when present. */
+  function alertItems(p, state) {
+    var user = state.user, items = [];
+    var declined = p.status === 'declined';
+
+    var n = D.unreadFor(user, p.id);
+    if (n) {
+      items.push({
+        kind: 'msg', sev: 'warn',
+        title: n + ' new message' + (n === 1 ? '' : 's'),
+        detail: 'on this record’s Comments tab',
+        acts: btn('view comments', 'p4c-gotocomments', p.id) +
+          (D.can(user, 'comment') ? btn('Mark all read', 'comment-readall', p.id) : '')
+      });
+    }
+
+    D.openGates(p).forEach(function (g) {
+      var url = D.deepLink ? D.deepLink(p, g.key) : null;
+      items.push({
+        kind: 'gate', sev: g.overdue ? 'danger' : 'warn',
+        title: g.label + ' gate · waiting ' + D.days(g.days),
+        detail: 'with ' + g.label + ' since ' + D.fmtDateY(g.submitted_at) +
+          (g.overdue ? ' · past the ' + CBP.CONFIG.GATE_THRESHOLD_DAYS + '-day threshold' : ''),
+        acts: url ? '<a class="btn sm atr-link" href="' + e(url) + '" target="_blank" ' +
+          'rel="noopener">Open in ' + e(g.label) + ' ↗</a>' : ''
+      });
+    });
+
+    var a = CBP.K && CBP.K.attention ? CBP.K.attention(p, user) : { level: 'quiet' };
+    if (a.level === 'over') {
+      items.push({ kind: 'clock', sev: 'danger', title: 'Over by ' + D.days(a.days),
+                   detail: a.full, acts: '' });
+    } else if (a.level === 'needs') {
+      items.push({ kind: 'person', sev: 'warn', title: 'Waiting on you',
+                   detail: a.full, acts: '' });
+    }
+
+    var cg = (D.contractGate && !declined) ? D.contractGate(p) : null;
+    if (cg && cg.state !== 'na' && !cg.met) {
+      var cc = cg.contract;
+      var thr = CBP.CONFIG.REVIEW_THRESHOLD_DAYS || 14;
+      var open = D.can(user, 'contract_view')
+        ? btn(cc ? 'Open agreement' : 'Open Contracts', 'p6x-open-contract', cc ? cc.id : '') : '';
+      if (cg.days !== null && cg.days !== undefined && cg.days >= thr) {
+        items.push({
+          kind: 'doc', sev: 'warn',
+          title: 'Corporate Agreement' + (cc ? ' ' + cc.id : '') + ' · ' +
+            D.days(cg.days) + ' since it last moved',
+          detail: 'State: ' + (CONTRACT_CHIP[cg.state] || cg.state) + ' · must be sent out ' +
+            'before implementation can start',
+          acts: open
+        });
+      }
+      if (cc && D.reviewDue) {
+        ['ogc', 'finance'].forEach(function (div) {
+          var rd = D.reviewDue(cc, div);
+          if (!rd || !rd.overdue) return;
+          items.push({
+            kind: 'doc', sev: 'danger',
+            title: DIV_LABEL[div] + ' review overdue ' + D.days(-rd.days),
+            detail: 'Corporate Agreement ' + cc.id + ' · due ' + D.fmtDateY(rd.due_at) +
+              (rd.review.assignee ? ' · with ' + CBP.userName(rd.review.assignee) : ''),
+            acts: open
+          });
+        });
+      }
+    }
+    return items;
+  }
+
+  function alertTray(p, state) {
+    var items = alertItems(p, state);
+    if (!items.length) return '';
+    var isOpen = !!state.ui.p4AlertsOpen;
+    var sevWord = { danger: 'Urgent', warn: 'Attention' };
+
+    var chips = items.map(function (it, i) {
+      return '<li><span class="atr-chip is-' + it.sev + '" tabindex="0" role="img" ' +
+        'aria-label="' + e(sevWord[it.sev] + ': ' + it.title) + '" aria-describedby="p4-atr-tip-' + i + '">' +
+        glyph(it.kind, 'atr-cico') +
+        '<span class="atr-tip" role="tooltip" id="p4-atr-tip-' + i + '">' +
+          '<b>' + e(it.title) + '</b>' + e(it.detail) + '</span>' +
+        '</span></li>';
+    }).join('');
+
+    var cards = items.map(function (it) {
+      return '<article class="atr-card is-' + it.sev + '">' + glyph(it.kind) +
+        '<div class="atr-cbody">' +
+          '<h2 class="atr-title"><span class="atr-sev">' + sevWord[it.sev] + '</span>' +
+            e(it.title) + '</h2>' +
+          '<p class="atr-detail">' + e(it.detail) + '</p>' +
+          (it.acts ? '<div class="atr-acts">' + it.acts + '</div>' : '') +
+        '</div></article>';
+    }).join('');
+
+    var hot = items.some(function (it) { return it.sev === 'danger'; });
+    return '<section class="atr' + (isOpen ? ' open' : '') + (hot ? ' hot' : '') +
+      '" aria-label="Alerts on this record">' +
+      '<div class="atr-row">' +
+        '<button type="button" class="atr-toggle" id="p4-atr-toggle" data-act="p4alerts" ' +
+          'aria-expanded="' + (isOpen ? 'true' : 'false') + '" aria-controls="p4-atr-body">' +
+          glyph('warn') +
+          '<span><b class="num">' + items.length + '</b> alert' + (items.length === 1 ? '' : 's') +
+          '</span></button>' +
+        '<ul class="atr-chips">' + chips + '</ul>' +
+        '<span class="atr-chev" aria-hidden="true"></span>' +
+      '</div>' +
+      '<div class="atr-body" id="p4-atr-body"' + (isOpen ? '' : ' hidden') + '>' + cards + '</div>' +
+      '</section>';
+  }
+  CBP.p4.alertItems = alertItems;
 
   /* ------------------------------------------------- C-10 pinned banner -- */
 
@@ -263,12 +399,18 @@
       }).length;
       unread = D.unreadFor(state.user, state.ui.param);
     }
-    return '<div class="p4-tabs">' + TABS.map(function (t) {
-      var n = (t.k === 'activity') ? openQ : (t.k === 'comments' ? unread : 0);
-      var badge = n ? ' <span class="p4-tbadge num">' + n + '</span>' : '';
-      return '<button class="p4-tab' + (state.ui.p4Tab === t.k ? ' on' : '') +
-             '" data-act="p4tab" data-tab="' + t.k + '">' + e(t.label) + badge + '</button>';
-    }).join('') + '</div>';
+    /* v1.2.6 — book tabs (.bk-): same keys, labels, badges and acts; the
+       .p4-tabs / .p4-tab classes stay for the walks that select on them. */
+    return '<div class="p4-tabs bk-strip" role="tablist" aria-label="Project record">' +
+      TABS.map(function (t) {
+        var n = (t.k === 'activity') ? openQ : (t.k === 'comments' ? unread : 0);
+        var badge = n ? ' <span class="p4-tbadge num">' + n + '</span>' : '';
+        var on = state.ui.p4Tab === t.k;
+        return '<button class="p4-tab bk-tab' + (on ? ' on' : '') +
+               '" data-act="p4tab" data-tab="' + t.k + '" role="tab" id="p4-tab-' + t.k +
+               '" aria-selected="' + (on ? 'true' : 'false') + '"' +
+               (on ? ' aria-controls="p4-panel"' : '') + '>' + e(t.label) + badge + '</button>';
+      }).join('') + '</div>';
   }
 
   function tabBody(p, state) {
@@ -795,7 +937,7 @@
   function gateSystems(p, state, inModal) {
     var canGate = A.can(state.user, 'gate', p);
 
-    return D.gate(p).map(function (g) {
+    var cards = D.gate(p).map(function (g) {
       var mode = D.syncMode ? D.syncMode(g.key) : 'manual';
       var props = (D.proposalsFor ? D.proposalsFor(p) : []).filter(function (r) {
         return r.system === g.key;
@@ -821,15 +963,20 @@
           '</div>' +
           (g.state === 'approved' ? '' :
             '<input class="p4-input sm" type="text" data-remark-for="' + e(g.key) + '" ' +
-            'placeholder="Optional remark for the next click">') +
+            'placeholder="Optional remark">') +
           (mode === 'manual' ? '' :
             '<div class="p4-gmode">' + e(g.label) + ' is in ' + e(mode) + ' mode — the portal ' +
             'lodges and listens, and a click here still records the step by hand.</div>');
       }
 
-      return '<div class="p4-gsys' + (g.overdue ? ' hot' : '') + '">' +
-        U.gateStep(p, g.key) + controls + '</div>';
-    }).join('') + (canGate ? '' :
+      /* v1.2.6 (R-D) — each system is its own equal card; the U.gateStep
+         fragment (name, state pill, mode, source/ref/sync/link, dates and
+         remark) is reused whole, the controls sit in the card foot. */
+      return '<article class="sc-card' + (g.overdue ? ' is-alert' : '') + '">' +
+        U.gateStep(p, g.key) +
+        (controls ? '<div class="sc-foot">' + controls + '</div>' : '') + '</article>';
+    }).join('');
+    return '<div class="sc-grid">' + cards + '</div>' + (canGate ? '' :
       '<p class="p4-note">Gate clicks are recorded by the Regional Manager only (R-2). ' +
       'Everyone else sees the same counters, read-only.</p>');
   }
@@ -853,6 +1000,40 @@
     return '<p class="p4-note">Pre-filled from what ' +
       e(got.map(function (s) { return s.label; }).join(' and ')) +
       ' reported — check it against the system of record before marking approved.</p>';
+  }
+
+  /* v1.2.6 (R-D) — one review division of a Corporate Agreement */
+  function reviewCard(cc, div) {
+    var rd = D.reviewDue ? D.reviewDue(cc, div) : null;
+    var r = rd ? rd.review : null;
+    var chip, cls, alert = false;
+    if (!r) {
+      chip = 'not started'; cls = 'is-none';
+    } else if (r.status === 'approved') {
+      chip = 'approved \u2713'; cls = 'is-done';
+    } else if (rd.overdue) {
+      chip = 'overdue ' + D.days(-rd.days); cls = 'is-stop'; alert = true;
+    } else if (r.status === 'pending') {
+      chip = rd.days === null ? 'pending'
+        : (rd.days === 0 ? 'pending \u00b7 due today' : 'pending \u00b7 due in ' + D.days(rd.days));
+      cls = 'is-wait';
+    } else {
+      chip = String(r.status || 'pending').replace(/_/g, ' '); cls = 'is-wait';
+    }
+    var meta = '';
+    if (r) {
+      meta = '<dl class="sc-meta">' +
+        (r.assignee ? '<dt>Reviewer</dt><dd>' + e(CBP.userName(r.assignee)) + '</dd>' : '') +
+        (r.due_at ? '<dt>Due</dt><dd class="num">' + e(D.fmtDateY(r.due_at)) + '</dd>' : '') +
+        (r.decided_at ? '<dt>Decided</dt><dd class="num">' + e(D.fmtDateY(r.decided_at)) + '</dd>' : '') +
+        '</dl>';
+    } else {
+      meta = '<p class="sc-empty">No review requested yet.</p>';
+    }
+    return '<article class="sc-card' + (alert ? ' is-alert' : '') + '">' +
+      '<div class="sc-top"><h4>' + e(DIV_LABEL[div]) + '</h4>' +
+        '<span class="sc-chip ' + cls + '">' + e(chip) + '</span></div>' +
+      meta + '</article>';
   }
 
   function approvalPanel(p, state) {
@@ -881,19 +1062,22 @@
     var cg = D.contractGate ? D.contractGate(p) : null;
     if (cg && cg.state !== 'na' && !declined) {
       var cc = cg.contract;
-      html += '<div class="p4-gate">' +
+      /* v1.2.6 (R-D) — header row (chip · id · age · Open agreement), then the
+         two review divisions as equal cards read from cc.reviews. */
+      html += '<div class="p4-gate p4-cgate">' +
         '<div class="p4-glab">Corporate Agreement: the gate inside status 2</div>' +
-        '<div class="p4-cg' + (cg.met ? ' ok' : '') + '">' +
+        '<div class="p4-cg sc-head' + (cg.met ? ' ok' : '') + '">' +
           '<span class="p6-gp' + (cg.met ? ' ok' : ' wait') + '">' +
             e(CONTRACT_CHIP[cg.state] || cg.state) + '</span>' +
-          (cc ? '<b class="num">' + e(cc.id) + '</b>' : '') +
+          (cc ? '<b class="num sc-id">' + e(cc.id) + '</b>' : '') +
           (cg.days !== null && cg.days !== undefined
-            ? '<span class="num">' + D.days(cg.days) + ' since it last moved</span>' : '') +
+            ? '<span class="num sc-days">' + D.days(cg.days) + ' since it last moved</span>' : '') +
           (D.can(user, 'contract_view')
-            ? btn(cc ? 'Open agreement' : 'Open Contracts', 'p6x-open-contract',
-                  cc ? cc.id : '')
+            ? '<span class="sc-headbtn">' + btn(cc ? 'Open agreement' : 'Open Contracts',
+                'p6x-open-contract', cc ? cc.id : '') + '</span>'
             : '') +
         '</div>' +
+        (cc ? '<div class="sc-grid">' + reviewCard(cc, 'ogc') + reviewCard(cc, 'finance') + '</div>' : '') +
         '<p class="p4-note">' + (cg.met
           ? 'The agreement has been sent out — implementation may start.'
           : 'Must be complete and sent out before implementation can start (' +

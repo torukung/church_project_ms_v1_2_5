@@ -36,7 +36,7 @@ CBP.CONFIG = {
      APP_VERSION + schema_version + a hash of location.pathname namespace the
      IndexedDB database and record key, because every file:// folder shares one
      origin in Chromium (audit F7). STORAGE_KEY is filled by initConfig. */
-  APP_VERSION: '1.2.5.2',
+  APP_VERSION: '1.2.6',
   SCHEMA_VERSION: null,          /* filled from CBP_DATA.schema_version (3) */
   STORAGE_KEY: null,             /* 'cbp.<schema>.<app>.<hash(pathname)>' */
   DIGEST_HOUR: 7,                /* default per-user digest hour (Ask-gate §7.1) */
@@ -122,15 +122,18 @@ CBP.CONFIG = {
        filters the row in app.js sidebar(); absent = every role. */
     { route: 'home',      label: 'Home' },
     { route: 'dashboard', label: 'Dashboard', roles: ['admin', 'm2', 'viewer'] },
-    { route: 'projects',  label: 'Projects' },
-    { route: 'approvals', label: 'Needs you', badge: 'approvals' },
-    { route: 'timeline',  label: 'TimeBlock', addon: true },
-    { route: 'budget',    label: 'Budget' },
-    { route: 'messages',  label: 'Messages & Alerts', badge: 'messages' },
-    { route: 'contracts', label: 'Contracts', badge: 'contracts' },
+    /* v1.2.6 R-A — Projects is a group header AND a link (`head`); the rows
+       under it and under Admin carry `child` and render indented. Order,
+       routes, labels, badges, addon and roles are unchanged. */
+    { route: 'projects',  label: 'Projects', head: true },
+    { route: 'approvals', label: 'Needs you', badge: 'approvals', child: true },
+    { route: 'timeline',  label: 'TimeBlock', addon: true, child: true },
+    { route: 'budget',    label: 'Budget', child: true },
+    { route: 'messages',  label: 'Messages & Alerts', badge: 'messages', child: true },
+    { route: 'contracts', label: 'Contracts', badge: 'contracts', child: true },
     { group: 'Admin' },
-    { route: 'alerts',    label: 'Alerts' },
-    { route: 'admin',     label: 'Administration' }
+    { route: 'alerts',    label: 'Alerts', child: true },
+    { route: 'admin',     label: 'Administration', child: true }
   ],
 
   /* which phase of the build plan delivers each stubbed route */

@@ -1,4 +1,4 @@
-# Church Project-Budget Management Platform - Demo v1.2.4
+# Church Project-Budget Management Platform - Demo v1.2.6
 
 A fully client-side demo of a budget approval and visibility platform for a church humanitarian
 area office running **22 countries × $1,000,000/year** (7 countries seeded). Built from
@@ -17,7 +17,87 @@ v1.2.4 is a Messages & Alerts pass, **with an Ask-gate this time** — Messages 
 (P11) rebuilt to six type tags, a column-one identity stack and a per-user "clear from
 my hub," Admin › Alerts (P8) gaining `My alerts` open to every persona, and a mid-build
 fix to the today marker's halo — plus thirteen more defects an independent audit found
-in a build where, again, every automated gate was already green.
+in a build where, again, every automated gate was already green; v1.2.5 is a no-new-scope
+demo-safety patch; v1.2.5.1 adds a top-bar Tone picker; v1.2.5.2 replaces it with a full
+seven-tone, dark-capable theming system and adds the Decision Point/CHaS and Cooperation
+Agreement step-lines to the stepper; **v1.2.6 is a minor presentational pass** — sidebar
+group headers, labelled register cells, and on the project record a book-style tab bar, a
+collapsible alert tray and side-by-side approval cards.
+
+## What is new in v1.2.6
+
+A minor presentational pass (16 Sep 2026), driven by an Ask-gate with ToR (rulings
+R-A…R-E in `docs/BUILD_BRIEF_v1.2.6.md` §1). New folder from the shipped v1.2.5.2, no
+act renamed, no route or fixture touched, no new persisted key. Full detail, the gate
+board and the lessons: `docs/CHANGES_v1.2.6.md`; the independent audit (verdict
+SHIP-WITH-NOTES): `docs/AUDIT_v1.2.6.md`; reading order: `docs/HANDOVER_INDEX_v1.2.6.md`.
+
+- **Sidebar (R-A).** "Projects" is a bold group header on a light brass band that is
+  *still the link* to `#/projects`; Needs you · TimeBlock · Budget · Messages & Alerts ·
+  Contracts indent under it past a 1px guide, and the Admin children (Alerts ·
+  Administration) indent the same way. `CONFIG.NAV` rows gained `head`/`child` flags;
+  `sidebar()` emits `navhead` / `sub` classes; routes, labels, badges and role filtering
+  are byte-identical. The column stays 212px — 224px was tried and made a Gantt nudge
+  click in `flow_timeline` land behind a `.p5-div` divider.
+- **Projects register (R-B).** The "Phase / approval stage" cell reads two labelled lines,
+  **Stage ·** (the status pill) and **Gate ·** or **Timing ·** (the existing sub-line — "Gate"
+  only when the text starts with "gate ·", whose leading words are visually hidden rather
+  than removed, so `textContent` is unchanged for the tests); the "Attention" cell reads
+  **Attention ·** plus the plain-language reason that used to live only in `title`. Both
+  cells centre vertically as a block. `K.flagCell` gained an additive `opts.labelled`; every
+  other caller renders exactly as before.
+- **Project record — book tabs.** The tab strip is drawn as folder tabs: the open tab joins
+  the panel, the others sit recessed, hover lifts the tab and shows an underline, the whole
+  row fits the main column at 1440 and scrolls with edge fades below that. Keys, labels,
+  badges and `data-act="p4tab"` unchanged.
+- **Project record — alert tray (R-C, R-E).** The unread strip is replaced by a collapsible
+  tray, collapsed by default: a warning glyph, "N alerts", one icon chip per alert with a
+  CSS-only hover/focus popover, and a chevron. Clicking it (the release's one new act,
+  `p4alerts`, toggling the non-persisted `ui.p4AlertsOpen`) opens a two-column grid (one
+  column ≤768px) of attention-tinted cards — unread messages (same `view comments` /
+  `Mark all read` controls and acts), open Decision Point/CHaS gates with their overdue
+  reading, past target date, waiting-on-you, and a stale agreement or overdue OGC/Finance
+  review. The Pinned decision band and the Changes-saved bar are untouched. Tinted alert
+  cards are a ruled exception to the design system's "left rule, no tint" alert rule, for
+  this tray only; text uses `--rose`/`--brass`, never `--rose-ink` on `--rose-bg` (fails AA
+  on four tones).
+- **Project record — Approval status (R-D).** Decision Point and CHaS are two equal cards
+  side by side (CHaS un-nested from under DP), each with its state chip, sync mode, dates,
+  remark, deep link and — for the Regional Manager — the same gate buttons and remark
+  input. Corporate Agreement is a header row (state chip · id · days since it moved · Open
+  agreement) over two cards, **OGC | Finance**, reading `cc.reviews` and `D.reviewDue`
+  (approved ✓ / pending · due in N d / overdue N d / not started). The aside widens to 470px
+  at ≥1280px so the pairs fit; everything stacks ≤768px. The remark placeholder is now
+  "Optional remark".
+- **Gates.** All green and at their v1.2.5.2 counts: smoke 153/0 · ux_probe 0 · contrast
+  0 on all seven tones / 6 font sizes / 0 heading jumps · flow_projects 163 · flow_timeline
+  121 · flow_budget 154 · flow_approval 120 · flow_messages 178 · flow_persist 45 · walks
+  30/46/30/98 · align_probe 2604/0. `tools/flow_perm.js` was **re-baselined** (candidate
+  v1.2.6, baseline v1.2.5.2 — it had not been re-baselined since v1.2.5): 221/1, the one
+  red being the standing F7 santoso-clear ruling item; declared deltas are the `p4alerts`
+  toggle and the R-B row-label change only.
+- **Deferred to v1.3** (`docs/CONTINUE_v1.3.md` §8): Esc should close a chip popover,
+  arrow-key movement across the tabs, a stronger header band on the dark tones, the
+  "approved" chip wrapping under "Decision Point" at 1440.
+- **Version.** `APP_VERSION` is `'1.2.6'`, so the browser's storage key changes again: a
+  v1.2.5.2 record is not read here and this build starts from fixtures. The schema is
+  still 3, so **Restore from a v1.2.5.x backup file works.** No fixture or schema change.
+
+## What is new in v1.2.5 · v1.2.5.1 · v1.2.5.2
+
+- **v1.2.5 (13 Sep)** — a no-new-scope demo-safety patch clearing the demo-visible defects
+  the 12 Sep flow re-check surfaced (register band tracking the filter, post-drag click no
+  longer swallowed, declined projects showing no live agreement chip, budget 100% rule on
+  the tick, short attention labels, zero-count chips hidden, F9–F17 alignment). Verified by
+  an independent audit against v1.2.4 (verdict SHIP). `docs/CHANGES_v1.2.5.md`.
+- **v1.2.5.1 (14 Sep)** — a top-bar **Tone** picker: seven accent swatches recolouring only
+  the warm brand family on the fixed light base; choice persists. `docs/CHANGES_v1.2.5.1.md`.
+- **v1.2.5.2 (15 Sep)** — that picker replaced by a **full seven-tone, dark-capable theming
+  system** (`:root[data-tone]` palettes, light/dark identity sets keyed by ground, default
+  **Dark Brass**; ~276 hardcoded colours retired to tokens, all seven tones AA), plus two
+  **data-driven stepped approval lines** — Decision Point/CHaS and Cooperation Agreement —
+  inside the stepper's gate-detail frame. `docs/CHANGES_v1.2.5.2.md`,
+  `docs/CORE_API_v1.2.5.2.md`.
 
 ## What is new in v1.2.4
 
@@ -254,6 +334,14 @@ shows before you open a row. v1.2.3 realigned those collapsed rows' own columns
 action or route either. v1.2.4 rebuilt Messages & Alerts (P11) and moved `My alerts`
 onto Admin › Alerts (P8) — neither page sits on the walk below, so it is unchanged
 again; open Messages & Alerts or Admin › Alerts directly from the sidebar to see them.
+Since v1.2.5.2 the app opens in the **Dark Brass** tone — pick a light tone from the
+top-bar swatches if the room calls for it (the choice persists). v1.2.6 changed how
+things are grouped and labelled, not what they do: the sidebar's Projects header is
+still the Projects link; on a record, the alerts sit collapsed in one row above the
+Pinned decision — click "N alerts" to open the cards — and the Approval status card
+shows Decision Point beside CHaS and OGC beside Finance. Step 4 below is the best place
+to see it: WE26BGD0002's tray carries the CHaS gate, the past target date and its unread
+message together.
 
 1. **Anik (M3, Bangladesh)** — create and edit a status-4 project; progress reads *"not submitted"*, never 0%.
 2. **Daniel (M2)** — open WE26BGD0005, **Request submitted** → status 3; stage clock restarts; the Needs-you queue gains an item.
@@ -366,16 +454,32 @@ node tools/ux_probe.js          # clipping, overlaps, tab wraps, hscroll, fonts,
                                  # (see docs/AUDIT_v1.2.4.md)
 node tools/audit_identity.js    # RD-2 digest + P2 text vs the v1.1.0 baseline, every intentional
                                  # change resolved to a named ruling (18 ruled deltas, unchanged
-                                 # since v1.2.2 — nothing in v1.2.3 or v1.2.4 reaches this text)
+                                 # since v1.2.2 — nothing since reaches this text)
+node tools/flow_projects.js     # v1.2.4+ flow suites, one per page family: projects, timeline,
+node tools/flow_timeline.js     # budget, approval, messages, persist — real Chromium, screenshots
+node tools/flow_budget.js       # to tools/shots_flow_*/ (delete before packing)
+node tools/flow_approval.js
+node tools/flow_messages.js
+node tools/flow_persist.js
+node tools/flow_perm.js         # F-6 permission truth table, DIFFERENTIAL: needs the baseline
+                                 # tree beside this one (../CBP_v1.2.5.2/ for v1.2.6); expected
+                                 # 221/1 — the 1 is the F7 santoso-clear ruling item, red on purpose
+node tools/align_probe.js       # column/label alignment across the register and Needs-you rows
 ```
+
+The differential gates (`flow_perm.js`, `test_flow.js`'s sub-line diff, `audit_identity.js`)
+expect the earlier release folders to sit beside this one under `50 - Build/` exactly as the
+vault keeps them; run from a lone copy they report a missing tree, not a regression.
 
 `gen-data.js` is the only thing allowed to write `js/data.js` - never
 hand-edit it; edit the matching file under `fixtures/` and regenerate.
 The walk scripts drive real Chromium against `app/index.html` over
 file://, fail on any console error, and drop screenshots into
-`tools/shots_wp2/`, `tools/shots_wp3/` and `tools/shots_wp4/` - delete
-these before packing a release; `tools/evidence/` is the only screenshot
-directory that ships.
+`tools/shots_wp2/`, `tools/shots_wp3/`, `tools/shots_wp4/` and
+`tools/shots_flow_*/` - delete these before packing a release;
+`tools/evidence/` is the only screenshot directory that ships (v1.2.6's
+own shots are the `v126-*.png` files there, plus the audit set under
+`tools/evidence/audit126/`).
 
 ## Apply on a fresh clone
 
@@ -383,8 +487,9 @@ This folder (`app/`, alongside `fixtures/`, `tools/` and `docs/` at the
 repo root) is the **complete, self-contained application** - not a patch
 or a change-pack layered onto some other checkout. There is no "base" to
 apply this on top of and no pack stacking: clone the repo, open
-`app/index.html`, and every v1.0 through v1.1.0 change is already there,
-generated from the fixtures already in `fixtures/`.
+`app/index.html`, and every change from v1.0 through v1.2.6 is already there,
+generated from the fixtures already in `fixtures/`. Earlier releases live in their
+own sibling folders (`CBP_v1.2.5.2/`, `CBP_v1.2.5.1/`, …) and are never edited.
 
 ## Structure
 
@@ -399,8 +504,14 @@ css/                app.css (tokens + shared components; v1.2.3: stepper grid,
                     v101-msg.css (P11, rebuilt v1.2.4: the fixed row grid, the
                     six type-tag colours, the clamp/atomic-figure fix) ·
                     p7p8.css (P8; v1.2.4: the My alerts font fix, the tab
-                    strip's segment stacking tier)
-js/config.js        TODAY constant + thresholds - the demo ages from here
+                    strip's segment stacking tier) · v1.2.5.2: app.css carries the
+                    seven :root[data-tone] palettes + the two data-ground identity
+                    sets · v1.2.6: app.css .side a.navhead/.sub (sidebar header band
+                    + child indent), v101-proj.css .l3-* (labelled register cells),
+                    p4v126.css NEW (book tabs .bk-*, alert tray .atr-*, split status
+                    cards .sc-*, the ≥1280 aside width) — loaded last, after uikit.css
+js/config.js        TODAY constant + thresholds - the demo ages from here; v1.2.6: NAV
+                    rows carry head/child flags (Projects header, indented children)
 js/data.js          GENERATED from ../fixtures/*.json - the only place numbers live
 js/uikit.js         v1.2.2 - the shared view kit (CBP.uikit / CBP.K): state bags
                     (flt/col/seg), collapse, the attention flag, filter+sort, the
@@ -412,13 +523,14 @@ js/derive.js        pure derivations (coverage, clocks, league table, permission
                     v1.2.0: D.needsYou, D.rungOf, D.portfolio, D.countryHome, …;
                     v1.2.3: ganttModel.todayLabel is the date alone, no prefix);
                     byte-identical in v1.2.4
-js/store.js         state + dashboard seed (5 boards per blueprint RM-4); byte-
-                    identical in v1.2.4 - P11's new per-user bags are created
-                    directly by p11.js, not seeded here (docs/CORE_API_v1.2.4.md §3)
+js/store.js         state + dashboard seed (5 boards per blueprint RM-4); v1.2.5.x:
+                    CBP.TONES / DEFAULT_TONE / setTone + ui.tone; v1.2.6: ui.p4AlertsOpen
+                    default (false, not persisted)
 js/actions.js       every mutation: submit / return / reject / gate / mark approved / activity /
                     advanceDay / runDigest / setAlertPref (v1.2.0); v1.2.4: the
                     dead msggroup handler made string-safe against ui.msgGroup's
-                    boolean-to-string change
+                    boolean-to-string change; v1.2.6: the one new act, 'p4alerts'
+                    (alert-tray toggle), beside 'p4tab'
 js/persist.js       v1.2.0 - the whole persistence engine: boot/save/restore/reset, backups,
                     CSV export, IndexedDB → localStorage → memory fallback ladder;
                     byte-identical in v1.2.4 - P11's msgSel/msgCleared/msgUndo are
@@ -431,7 +543,10 @@ js/ui.js, widgets.js  shared components + 13-widget dashboard library +
                     identical in v1.2.4
 js/egc.js           v1.1.0 - External Gate Connector: sync modes, proposals, outbound queue
 js/contracts.js     v1.1.0 - Corporate Agreement lifecycle: reviews, signing, amendments
-js/pages/           p1 sign-in · p2 dashboard · p3 register (v1.2.2 reframe) · p4 detail ·
+js/pages/           p1 sign-in · p2 dashboard · p3 register (v1.2.2 reframe; v1.2.6:
+                    labelled Stage/Gate|Timing/Attention cells) · p4 detail (v1.2.6:
+                    book tabs, alertTray() replacing unreadStrip(), DP|CHaS and
+                    OGC|Finance cards; v1.2.5.2: the two step-lines via U.stepper) ·
                     p5 timeline (v1.2.2 reframe; v1.2.3: project/task bar tiers,
                     the indent tint) · p6 needs you (v1.2.2 reframe; v1.2.3: the
                     fixed-track collapsed row, relocateId deleted) ·

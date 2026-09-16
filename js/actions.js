@@ -1441,6 +1441,20 @@
       S().ui.err = null;
       return true;
     },
+    /* v1.2.6 — the P4 alert tray: collapsed row ∣ card grid. Session-only
+       (not a UI_KEYS entry). Focus is handed back to the toggle after the
+       re-render so a keyboard user keeps their place. */
+    'p4alerts': function (t) {
+      var hadFocus = document.activeElement === t;
+      S().ui.p4AlertsOpen = !S().ui.p4AlertsOpen;
+      if (hadFocus) {
+        setTimeout(function () {
+          var b = document.getElementById('p4-atr-toggle');
+          if (b) { try { b.focus(); } catch (err) {} }
+        }, 0);
+      }
+      return true;
+    },
     'actfilter': function (t) {
       keepDraft();
       S().ui.actFilter = t.getAttribute('data-f');

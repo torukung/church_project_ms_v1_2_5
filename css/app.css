@@ -188,9 +188,29 @@ summary::marker{content:''}
 .side a:hover{background:var(--hover)}
 .side a.on{background:var(--raise);color:var(--ink);font-weight:600;box-shadow:inset 3px 0 0 var(--brass)}
 .side .grp{font-size:11.5px;font-weight:600;color:var(--muted);padding:18px 20px 6px}
+/* v1.2.6 R-A — "Projects" is a group header that is still a link: bold ink on a
+   light brass band. The band is --brass-glow layered over --brass-bg so it
+   stays visible on dark grounds, where --brass-bg alone is ~1.0:1 on --card
+   (band vs card 1.10-1.21; ink on band >= 11.7:1 on all 7 tones). The rows
+   under it (and under Admin) indent past a 1px guide at 18px. .on keeps the
+   3px brass rule (>= 4.4:1 on the band) so the current page still reads. */
+.side a.navhead{margin-top:8px;font-weight:700;color:var(--ink);
+  background:linear-gradient(var(--brass-glow),var(--brass-glow)),var(--brass-bg);
+  box-shadow:inset 0 1px 0 var(--line2),inset 0 -1px 0 var(--line2)}
+.side a.navhead:hover{background:linear-gradient(var(--brass-glow),var(--brass-glow)),
+  linear-gradient(var(--brass-glow),var(--brass-glow)),var(--brass-bg)}
+.side a.navhead.on{font-weight:700;
+  box-shadow:inset 3px 0 0 var(--brass),inset 0 1px 0 var(--line2),inset 0 -1px 0 var(--line2)}
+/* v1.2.6 audit — 12px right padding on child rows so a two-digit badge
+   ("Messages & Alerts 17") does not wrap the label at 212px */
+.side a.sub{position:relative;padding-left:28px;padding-right:12px}
+.side a.sub::before{content:"";position:absolute;left:18px;top:0;bottom:0;width:1px;
+  background:var(--line)}
 .badge{font-size:11.5px;font-weight:600;color:var(--card);background:var(--rose);
   border-radius:999px;padding:1px 8px;font-variant-numeric:tabular-nums;flex:none}
-.side .me{margin-top:auto;padding:14px 20px 0;border-top:1px solid var(--line2);
+.side .ver{margin-top:auto;padding:0 20px 8px;font-size:11px;letter-spacing:.02em;
+  color:var(--muted);font-variant-numeric:tabular-nums}   /* v1.2.6 — version remark above the rule */
+.side .me{padding:14px 20px 0;border-top:1px solid var(--line2);
   font-size:12.5px;color:var(--muted);min-width:0}
 .side .me b{display:block;color:var(--slate);font-size:12.5px}
 
@@ -567,6 +587,14 @@ details.prj[open] .chev{transform:rotate(180deg)}
   .side .grp{display:none}
   .side a{padding:7px 12px;border-radius:var(--r);white-space:nowrap;font-size:12.5px}
   .side a.on{box-shadow:inset 0 -3px 0 var(--brass)}
+  /* v1.2.6 — in the horizontal strip the header keeps its band + bold (it
+     leads the chips that belong to it); the guide line and deep indent only
+     make sense in the vertical list, so children fall back to chip padding. */
+  .side a.navhead{margin-top:0;box-shadow:inset 0 0 0 1px var(--line2)}
+  .side a.navhead.on{box-shadow:inset 0 -3px 0 var(--brass),inset 0 0 0 1px var(--line2)}
+  .side a.sub{padding-left:12px;padding-right:12px}
+  .side a.sub::before{display:none}
+  .side .ver{display:none}   /* v1.2.6 — no room in the horizontal strip */
   .side .me{margin:0;padding:10px 16px;border-top:1px solid var(--line2)}
   .side .me b{display:inline;margin-right:6px}
   .topbar{padding:10px 16px}
@@ -624,6 +652,7 @@ details.prj[open] .chev{transform:rotate(180deg)}
   .p6-id,.gs-link,.p6-card a:not(.btn){display:inline-block;padding:8px 0;min-height:32px}
   .cchip .x,.p2-scx,.p2-sc-x,[data-p2="scope-remove"]{min-width:28px;min-height:28px}
   .topbar .btn.sm{min-height:36px}
+  .side a{min-height:40px}   /* v1.2.6 — nav strip rows (header + children) are touch targets too */
 }
 @media (prefers-reduced-motion:reduce){
   .bico g,.bico .glint{animation:none}

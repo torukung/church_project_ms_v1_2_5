@@ -1,0 +1,210 @@
+/* ============================================================================
+   v1.2.6 · P4 record page (Lane C) — three presentational patterns
+     .bk-   book tab bar joined to its panel
+     .atr-  collapsible alert tray (R-C, tinted cards per R-E)
+     .sc-   split status cards: Decision Point | CHaS, OGC | Finance (R-D)
+   Tokens only. Warn/danger always carry a glyph AND a word (brass is green or
+   blue on some tones). Muted text only on --card/--paper.
+   Linked last in index.html so it wins over p4p6.css by source order.
+   ========================================================================= */
+
+/* ================================================ 1 · book tab bar ======= */
+.bk{min-width:0}
+.p4-tabs.bk-strip{display:flex;align-items:flex-end;gap:4px;flex-wrap:nowrap;
+  overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;-ms-overflow-style:none;
+  margin:0;padding:6px 2px 0;border-bottom:0;
+  box-shadow:inset 0 -1px 0 var(--line)}           /* baseline inside the scroller */
+.bk-strip::-webkit-scrollbar{display:none}
+.bk-strip .p4-tbadge{padding:0 5px;line-height:1.5}
+
+/* edge fades, only while the strip really scrolls: a scroll-driven animation
+   has no effect when the strip does not overflow, so the mask stays opaque.
+   The gradient is alpha-only (any token colour works). */
+@property --bk-fl{syntax:'<length>';inherits:false;initial-value:0px}
+@property --bk-fr{syntax:'<length>';inherits:false;initial-value:0px}
+@keyframes bk-fade{
+  0%{--bk-fl:0px;--bk-fr:32px}
+  6%{--bk-fl:32px}
+  94%{--bk-fr:32px}
+  100%{--bk-fl:32px;--bk-fr:0px}
+}
+@supports (animation-timeline: scroll()){
+  .p4-tabs.bk-strip{
+    -webkit-mask-image:linear-gradient(to right,transparent 0,var(--ink) var(--bk-fl),
+      var(--ink) calc(100% - var(--bk-fr)),transparent 100%);
+    mask-image:linear-gradient(to right,transparent 0,var(--ink) var(--bk-fl),
+      var(--ink) calc(100% - var(--bk-fr)),transparent 100%);
+    animation:bk-fade linear both;animation-timeline:scroll(self inline)}
+}
+
+/* every tab is the same box (one row, one top edge); recessed = ground colour */
+.p4-tab.bk-tab{position:relative;flex:none;white-space:nowrap;display:inline-flex;
+  align-items:center;gap:5px;height:36px;margin:0;padding:0 11px;
+  font-size:12.5px;font-weight:600;color:var(--slate);   /* v1.2.6 audit: 13px was an 8th size; 12.5 is the scale step */
+  background:var(--paper);border:1px solid var(--line2);border-bottom-color:var(--line);
+  border-radius:var(--r) var(--r) 0 0;cursor:pointer;
+  transition:transform .12s ease,background-color .12s ease,color .12s ease,border-color .12s ease}
+.bk-tab::after{content:"";position:absolute;left:14px;right:14px;bottom:6px;height:2px;
+  border-radius:2px;background:var(--brass);opacity:.75;
+  transform:scaleX(0);transition:transform .15s ease}
+.p4-tab.bk-tab:hover{transform:translateY(-2px);background:var(--hover);color:var(--ink);
+  border-color:var(--line)}
+.bk-tab:hover::after{transform:scaleX(.55)}
+.bk-tab:focus-visible{outline:2px solid var(--glass);outline-offset:-3px;z-index:2}
+
+/* the open tab: card-coloured, joined to the panel, brass top rule */
+.p4-tab.bk-tab.on{z-index:1;transform:none;cursor:pointer;color:var(--ink);font-weight:700;
+  background:var(--card);border-color:var(--line);border-bottom-color:var(--card);
+  box-shadow:inset 0 2px 0 var(--brass)}
+.p4-tab.bk-tab.on:hover{background:var(--card)}
+.bk-tab.on::after{display:none}
+
+.bk-panel{background:var(--card);border:1px solid var(--line);border-top:0;
+  border-radius:0 0 var(--r) var(--r);padding:var(--gap);min-width:0}
+.bk-panel > .card,.bk-panel > .p4-two > .card{box-shadow:none}
+
+/* ================================================ 2 · alert tray ========= */
+.atr{margin-top:var(--gap);background:var(--card);border:1px solid var(--line);
+  border-left:3px solid var(--brass);border-radius:var(--r);box-shadow:var(--shadow)}
+.atr.hot{border-left-color:var(--rose)}
+.atr-row{position:relative;display:flex;align-items:center;gap:12px;min-height:48px;
+  padding:6px 14px 6px 12px;cursor:pointer;border-radius:var(--r)}
+.atr-row:hover{background:var(--hover)}
+.atr-toggle{display:inline-flex;align-items:center;gap:8px;flex:none;min-height:36px;
+  font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap}
+.atr-toggle b{font-weight:700}
+.atr-toggle::after{content:"";position:absolute;top:0;right:0;bottom:0;left:0;
+  border-radius:var(--r)}                         /* the whole row is the toggle */
+.atr-toggle:focus-visible{outline:none}
+.atr-toggle:focus-visible::after{outline:2px solid var(--glass);outline-offset:-2px}
+.atr-row:hover .atr-toggle span{text-decoration:underline;text-underline-offset:3px}
+.atr-toggle .atr-ico{color:var(--brass)}
+.atr.hot .atr-toggle .atr-ico{color:var(--rose)}
+.atr-ico{width:16px;height:16px;flex:none}
+
+/* chips sit above the toggle overlay (flex items honour z-index unpositioned,
+   so the tooltip still anchors to the row and stays on screen at 390) */
+.atr-chips{display:flex;flex-wrap:wrap;align-items:center;gap:6px;list-style:none;
+  min-width:0;flex:1 1 auto;z-index:5}
+.atr-chips li{display:flex;z-index:0}
+.atr-chip{--sev:var(--brass);display:inline-grid;place-items:center;width:28px;height:28px;
+  border-radius:999px;border:1.5px solid currentColor;color:var(--sev);cursor:help}
+.atr-chip.is-warn{--sev:var(--brass);background:var(--brass-bg)}
+.atr-chip.is-danger{--sev:var(--rose);background:var(--rose-bg)}
+.atr-chip:hover,.atr-chip:focus{box-shadow:0 0 0 3px var(--hover)}
+.atr-chip:focus-visible{outline:2px solid var(--glass);outline-offset:2px}
+.atr-cico{width:14px;height:14px}
+.atr-tip{position:absolute;left:8px;right:8px;top:calc(100% + 2px);z-index:30;max-width:380px;
+  padding:9px 12px;text-align:left;font-size:12.5px;font-weight:400;line-height:1.45;
+  white-space:normal;overflow-wrap:anywhere;
+  color:var(--slate);background:var(--raise);border:1px solid var(--line);
+  border-left:3px solid var(--sev);border-radius:var(--r);box-shadow:var(--shadow);
+  display:none}                                   /* not measured while closed */
+.atr-tip b{display:block;color:var(--ink);font-weight:600;margin-bottom:1px}
+.atr-tip::before{content:"";position:absolute;left:0;right:0;bottom:100%;height:8px}
+.atr-chip:hover .atr-tip,.atr-chip:focus .atr-tip{display:block}
+
+.atr-chev{flex:none;margin-left:auto;width:8px;height:8px;margin-right:4px;
+  transform:translateY(-2px) rotate(45deg);pointer-events:none;
+  border-right:2px solid var(--slate);border-bottom:2px solid var(--slate);
+  transition:transform .15s ease}
+.atr.open .atr-chev{transform:translateY(2px) rotate(-135deg)}
+
+.atr-body{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;
+  padding:12px;border-top:1px solid var(--line2)}
+.atr-body[hidden]{display:none}
+/* R-E — tinted attention cards, 3px left rule, text --ink / --slate / --sev */
+.atr-card{--sev:var(--brass);display:grid;grid-template-columns:16px minmax(0,1fr);gap:10px;
+  min-width:0;padding:11px 14px;border-radius:var(--r);border:1px solid var(--line);
+  border-left:3px solid var(--sev);background:var(--brass-bg)}
+.atr-card.is-danger{--sev:var(--rose);background:var(--rose-bg)}
+.atr-card .atr-ico{color:var(--sev);margin-top:3px}
+.atr-cbody{min-width:0}
+.atr-title{margin:0;font-size:14px;font-weight:600;line-height:1.4;color:var(--ink);overflow-wrap:anywhere}
+.atr-sev{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.02em;
+  color:var(--sev);margin-right:6px;white-space:nowrap}
+.atr-detail{font-size:12.5px;line-height:1.45;color:var(--slate);margin-top:2px;overflow-wrap:anywhere}
+.atr-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.atr-acts .btn{background:var(--card)}
+.atr-acts .btn.brass{background:var(--brass)}
+.atr-link{text-decoration:none}
+
+/* ================================================ 3 · split status ======= */
+/* the aside is 336px wide above 1080 and full width below it, so the pair
+   answers to its own container, not the viewport */
+.p4-gate{container-type:inline-size;container-name:p4gate}
+.sc-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:stretch}
+.sc-card{display:flex;flex-direction:column;min-width:0;padding:11px 12px;
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r)}
+.sc-card.is-alert{box-shadow:inset 3px 0 0 var(--rose);padding-left:14px}
+.sc-card .gs-hd{justify-content:space-between;align-items:center;gap:6px 8px}
+.sc-card .gs-hd b{margin-right:auto}
+.sc-card .gs-mode{flex:0 0 100%;order:3;color:var(--muted)}
+.sc-card .gs-mode::before{content:"Sync mode: "}
+.sc-card .gs-line{margin-top:7px}
+.sc-card .gs-sub{margin-top:7px;overflow-wrap:anywhere}
+.sc-foot{margin-top:auto;padding-top:10px}
+.sc-foot > :first-child{margin-top:0}
+.sc-card .p4-gbtns{margin-top:0}
+.sc-card .p4-input.sm{margin-top:8px}
+.sc-card .p4-gwait,.sc-card .p4-gmode{font-size:12.5px;color:var(--slate);margin-top:8px}
+
+.p4-cg.sc-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;
+  margin:0 0 10px;min-width:0}
+.sc-head .sc-id{font-size:14px;font-weight:700;color:var(--ink);overflow-wrap:anywhere}
+.sc-head .sc-days{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.sc-headbtn{margin-left:auto;display:inline-flex}
+
+.sc-top{display:flex;align-items:center;justify-content:space-between;gap:6px 8px;flex-wrap:wrap}
+.sc-top h4{font-size:14px;font-weight:600;color:var(--ink)}
+.sc-chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;
+  padding:1px 9px;border-radius:999px;border:1px solid currentColor;white-space:nowrap;
+  font-variant-numeric:tabular-nums}
+.sc-chip.is-done{color:var(--verd);background:var(--verd-bg)}
+.sc-chip.is-wait{color:var(--brass);background:var(--brass-bg)}
+.sc-chip.is-stop{color:var(--rose);background:var(--rose-bg)}
+.sc-chip.is-none{color:var(--muted);background:var(--card);border-style:dashed}
+.sc-meta{display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 12px;margin-top:9px;
+  font-size:12.5px}
+.sc-meta dt{color:var(--muted)}
+.sc-meta dd{color:var(--ink);overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.sc-card .sc-empty{font-size:12.5px;color:var(--muted);margin-top:9px}
+
+/* inside a card the gate buttons stack and the remark input spans the card */
+.sc-card .p4-gbtns{flex-direction:column;align-items:stretch}
+.sc-card .p4-gbtns .btn{justify-content:center;white-space:normal;text-align:center}
+.sc-card .p4-input.sm{width:100%}
+
+/* R-D (orchestrator correction) — the aside widens to 470px at >=1280 so the
+   pairs sit side by side there. The base rule is .p4-cols in p4p6.css:38;
+   overridden here by source order. 1081-1279 keeps the 336px stacked aside. */
+@media (min-width:1280px){
+  .p4-cols{grid-template-columns:minmax(0,1fr) 470px}
+}
+/* the main column answers to its own width: Record | Stage dates only pair
+   when there is room for two readable cards */
+.p4-main{container-type:inline-size;container-name:p4main}
+@container p4main (max-width: 639px){
+  .p4-two{grid-template-columns:minmax(0,1fr)}
+}
+
+@container p4gate (max-width: 379px){
+  .sc-grid{grid-template-columns:minmax(0,1fr)}
+}
+
+/* ================================================ responsive ============= */
+@media (max-width:768px){
+  .bk-strip{scroll-snap-type:x proximity}
+  .p4-tab.bk-tab{height:42px;padding:0 12px;scroll-snap-align:start}
+  .bk-panel{padding:10px}
+  .atr-body{grid-template-columns:minmax(0,1fr)}
+  .atr-chip{width:32px;height:32px}
+  .atr-toggle{min-height:40px}
+  .sc-grid{grid-template-columns:minmax(0,1fr)}
+  .sc-headbtn{margin-left:0}
+}
+@media (prefers-reduced-motion:reduce){
+  .bk-tab,.bk-tab::after,.atr-chev{transition:none}
+  .p4-tab.bk-tab:hover{transform:none}
+}
