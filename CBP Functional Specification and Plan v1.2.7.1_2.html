@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Church Budget Platform | Functional Specification and Implementation Plan</title>
+<style>
+:root{
+  --paper:#F7F5F0; --card:#FFFFFF; --raise:#FBF9F5; --ink:#1C1A17; --slate:#4A4540; --muted:#6E6A63;
+  --line:#E4DFD7; --line2:#EEEAE3; --gold:#866A2A; --gold-soft:#B89B55; --gold-bg:#FAF6EC; --gold-line:#E6D9B8;
+  --verd:#347C48; --verd-bg:#F0F8F2; --rose:#A0503E; --rose-bg:#FBF3F1;
+  --r:12px; --shadow:0 1px 3px rgba(60,45,20,.05),0 8px 24px rgba(60,45,20,.04);
+  --f:"Avenir Next","Segoe UI Variable Text","Segoe UI","Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f);font-size:15.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-wrap:break-word}
+a{color:var(--gold);text-decoration:none} a:hover{text-decoration:underline}
+h1,h2,h3,h4{margin:0;line-height:1.2;font-weight:600;letter-spacing:-.01em;text-wrap:balance}
+p{margin:0 0 12px;text-wrap:pretty} p:last-child{margin-bottom:0}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+
+/* nav */
+.nav{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;gap:20px;height:56px}
+.brand{font-weight:600;font-size:14px;white-space:nowrap;display:flex;align-items:center;gap:10px}
+.brand i{width:10px;height:10px;border-radius:50%;background:var(--gold);display:inline-block}
+.nav nav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;margin-left:auto}
+.nav nav::-webkit-scrollbar{display:none}
+.nav nav a{color:var(--slate);font-size:13.5px;padding:6px 10px;border-radius:8px;white-space:nowrap}
+.nav nav a:hover{background:var(--gold-bg);color:var(--gold);text-decoration:none}
+
+/* hero */
+.hero{background:var(--card);border-bottom:1px solid var(--line)}
+.hero .wrap{padding-top:64px;padding-bottom:56px}
+.eyebrow{font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:16px}
+.hero h1{font-size:clamp(30px,4.6vw,46px);max-width:17em}
+.hero .lede{font-size:clamp(16px,1.6vw,18.5px);color:var(--slate);max-width:44em;margin-top:18px}
+.meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;margin-top:36px;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--raise)}
+.meta div{padding:14px 18px;border-right:1px solid var(--line)}
+.meta div:last-child{border-right:0}
+.meta dt{font-size:12px;color:var(--muted);margin-bottom:2px}
+.meta dd{margin:0;font-weight:600;font-size:14.5px}
+
+/* sections */
+section{padding:64px 0 8px}
+.sec-h{max-width:46em;margin-bottom:28px}
+.sec-h h2{font-size:clamp(23px,2.8vw,30px)}
+.sec-h h2::before{content:"";display:block;width:36px;height:3px;border-radius:2px;background:var(--gold-soft);margin-bottom:16px}
+.sec-h p{color:var(--slate);margin-top:10px}
+.level{display:inline-block;font-size:12px;font-weight:600;color:var(--gold);background:var(--gold-bg);border:1px solid var(--gold-line);border-radius:999px;padding:2px 10px;margin-bottom:12px}
+h3.sub{font-size:18px;margin:36px 0 14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.pad{padding:22px 24px}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.small{font-size:13.5px;color:var(--muted)}
+
+/* outcomes */
+.out{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--line);border-radius:var(--r);background:var(--card);overflow:hidden;box-shadow:var(--shadow)}
+.out div{padding:22px 24px;border-right:1px solid var(--line2);border-bottom:1px solid var(--line2)}
+.out h4{font-size:15.5px;margin-bottom:6px}
+.out p{font-size:14px;color:var(--slate)}
+.out b.n{display:block;color:var(--gold);font-size:13px;font-weight:600;margin-bottom:8px}
+
+/* module map */
+.mod{padding:20px 22px;display:flex;flex-direction:column;gap:8px}
+.mod .k{width:30px;height:30px;border-radius:8px;background:var(--gold-bg);border:1px solid var(--gold-line);color:var(--gold);font-weight:700;font-size:13.5px;display:grid;place-items:center}
+.mod h4{font-size:15.5px}
+.mod p{font-size:13.8px;color:var(--slate);margin:0}
+.mod ul{margin:4px 0 0;padding-left:18px;font-size:13.5px;color:var(--slate)}
+.mod li{margin:2px 0}
+
+/* tables */
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--card);box-shadow:var(--shadow)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;vertical-align:top;padding:12px 16px;border-bottom:1px solid var(--line2)}
+tr:last-child td{border-bottom:0}
+th{font-size:12.5px;font-weight:600;color:var(--muted);background:var(--raise);border-bottom:1px solid var(--line);white-space:nowrap}
+td.id{font-weight:600;color:var(--gold);white-space:nowrap;font-variant-numeric:tabular-nums}
+td.fn{font-weight:600;min-width:150px}
+.cmp{min-width:760px}
+.cmp td:nth-child(1){font-weight:600;width:19%}
+.cmp td:nth-child(2){color:var(--slate);width:32%}
+.cmp td:nth-child(3){width:34%}
+.cmp td:nth-child(4){width:15%;color:var(--verd);font-weight:600;font-size:13.2px}
+.cmp th:nth-child(3){color:var(--gold)}
+.tag{display:inline-block;font-size:11.5px;font-weight:600;border-radius:999px;padding:1px 9px;white-space:nowrap}
+.tag.d{background:var(--verd-bg);color:var(--verd)}
+.tag.p{background:var(--gold-bg);color:var(--gold)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted);margin:0 0 16px}
+
+/* accordion */
+details{background:var(--card);border:1px solid var(--line);border-radius:var(--r);margin-bottom:12px;box-shadow:var(--shadow);overflow:hidden}
+summary{list-style:none;cursor:pointer;padding:16px 22px;display:flex;align-items:center;gap:14px}
+summary::-webkit-details-marker{display:none}
+summary .k{flex:none;width:30px;height:30px;border-radius:8px;background:var(--gold-bg);border:1px solid var(--gold-line);color:var(--gold);font-weight:700;font-size:13.5px;display:grid;place-items:center}
+summary .t{font-weight:600;font-size:16px;flex:1;min-width:0}
+summary .t small{display:block;font-weight:400;color:var(--muted);font-size:13.2px;margin-top:1px}
+summary .c{flex:none;font-size:12.5px;color:var(--muted);white-space:nowrap}
+summary::after{content:"+";flex:none;color:var(--gold);font-size:20px;line-height:1;width:16px;text-align:center}
+details[open] summary::after{content:"\2212"}
+details[open] summary{border-bottom:1px solid var(--line2);background:var(--raise)}
+details .tw{border:0;border-radius:0;box-shadow:none}
+summary:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+
+/* flow */
+.flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;counter-reset:s}
+.step{position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px 18px 16px;box-shadow:var(--shadow)}
+.step .st{font-size:12px;font-weight:600;color:var(--gold);margin-bottom:6px}
+.step h4{font-size:15px;margin-bottom:6px}
+.step p{font-size:13.3px;color:var(--slate);margin-bottom:8px}
+.step .who{font-size:12.3px;color:var(--muted);border-top:1px solid var(--line2);padding-top:8px;margin-top:auto}
+.step{display:flex;flex-direction:column}
+.step:not(:last-child)::after{content:"";position:absolute;right:-10px;top:50%;width:8px;height:8px;border-top:2px solid var(--gold-soft);border-right:2px solid var(--gold-soft);transform:translateY(-50%) rotate(45deg);z-index:1}
+.sub-flow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:16px}
+.chain{display:flex;flex-wrap:wrap;gap:6px 0;align-items:center;margin-top:10px}
+.chain span{font-size:12.8px;background:var(--raise);border:1px solid var(--line);border-radius:8px;padding:4px 10px;white-space:nowrap}
+.chain i{width:16px;height:1px;background:var(--gold-soft);display:inline-block}
+.rules{margin:0;padding-left:18px;font-size:14px;color:var(--slate)}
+.rules li{margin:5px 0}
+
+/* layers (infra) */
+.layers{display:grid;gap:10px}
+.layer{display:grid;grid-template-columns:150px 1fr;gap:0;background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}
+.layer .ln{background:var(--gold-bg);border-right:1px solid var(--gold-line);padding:16px 18px;font-weight:600;font-size:13.5px;color:var(--gold);display:flex;align-items:center}
+.layer .lc{padding:12px 14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.node{border:1px solid var(--line2);background:var(--raise);border-radius:10px;padding:10px 12px}
+.node b{display:block;font-size:13.6px}
+.node span{font-size:12.6px;color:var(--muted);line-height:1.4;display:block;margin-top:2px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kpi{padding:18px 20px}
+.kpi b{display:block;font-size:22px;color:var(--gold);font-weight:600;letter-spacing:-.01em}
+.kpi span{font-size:13px;color:var(--slate)}
+
+/* data groups */
+.dg h4{font-size:15px;margin-bottom:4px}
+.dg p{font-size:13.4px;color:var(--slate);margin-bottom:10px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.8px;background:var(--raise);border:1px solid var(--line);border-radius:6px;padding:2px 7px;color:var(--slate)}
+
+/* gantt */
+.gw{overflow-x:auto}
+.gantt{min-width:820px;padding:22px 24px}
+.grow{display:grid;grid-template-columns:210px repeat(26,minmax(0,1fr));align-items:center;min-height:34px}
+.grow.head{font-size:12px;color:var(--muted);font-weight:600;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:8px;min-height:0}
+.grow.head span{text-align:left}
+.grow .lb{font-size:13.4px;font-weight:600;padding-right:12px}
+.grow .lb small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.bar{height:18px;border-radius:9px;background:var(--gold);font-size:11.5px;color:#fff;display:flex;align-items:center;padding:0 10px;white-space:nowrap;overflow:hidden}
+.bar.l{background:var(--gold-bg);border:1px solid var(--gold-line);color:var(--gold)}
+.bar.v{background:var(--verd)}
+.ms{justify-self:center;width:12px;height:12px;background:var(--ink);transform:rotate(45deg);border-radius:2px}
+.grow.sep{border-top:1px dashed var(--line);margin-top:6px;padding-top:6px}
+.phase h4{font-size:15.5px;margin-bottom:2px}
+.phase .wk{font-size:12.5px;color:var(--gold);font-weight:600;margin-bottom:10px}
+.phase ul{margin:0;padding-left:18px;font-size:13.6px;color:var(--slate)}
+.phase li{margin:3px 0}
+.phase .exit{font-size:13px;margin-top:12px;padding-top:10px;border-top:1px solid var(--line2);color:var(--ink)}
+.blank{border:1.5px dashed var(--gold-line);background:var(--gold-bg);border-radius:var(--r);padding:20px 24px}
+.blank table{font-size:14px}
+.blank th{background:transparent;border-bottom:1px solid var(--gold-line)}
+.blank td{border-bottom:1px solid var(--gold-line)}
+.blank td.fill{color:var(--muted);font-style:italic}
+.sign{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:20px}
+.sign div{border-top:1px solid var(--ink);padding-top:8px;font-size:13px;color:var(--muted);margin-top:44px}
+footer{margin-top:72px;border-top:1px solid var(--line);background:var(--card)}
+footer .wrap{padding:24px;font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between}
+.toolbar{display:flex;gap:8px;margin:0 0 14px}
+.btn{font:inherit;font-size:13px;font-weight:600;color:var(--gold);background:var(--card);border:1px solid var(--gold-line);border-radius:8px;padding:6px 12px;cursor:pointer}
+.btn:hover{background:var(--gold-bg)} .btn:active{transform:scale(.98)}
+
+@media (max-width:1000px){
+  .flow{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .step:not(:last-child)::after{display:none}
+  .g4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .g3,.out{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:767px){
+  body{font-size:15px}
+  .wrap{padding:0 16px}
+  .brand span{display:none}
+  .hero .wrap{padding-top:40px;padding-bottom:36px}
+  .meta{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .meta div:nth-child(2){border-right:0}
+  .meta div:nth-child(-n+2){border-bottom:1px solid var(--line)}
+  section{padding-top:48px}
+  .g2,.g3,.g4,.out,.flow,.sub-flow,.sign{grid-template-columns:minmax(0,1fr)}
+  .layer{grid-template-columns:minmax(0,1fr)}
+  .layer .ln{border-right:0;border-bottom:1px solid var(--gold-line);padding:10px 14px}
+  summary{padding:14px 16px;gap:10px}
+  summary .c{display:none}
+  .pad{padding:18px}
+}
+@media print{
+  .nav,.toolbar{display:none}
+  body{background:#fff;font-size:11.5pt}
+  .card,.tw,details,.step,.layer,.out{box-shadow:none}
+  section{padding-top:28px}
+  details,.step,.layer,.mod,.phase,tr{break-inside:avoid}
+  .tw,.gw{overflow:visible}
+  .hero .wrap{padding-top:24px;padding-bottom:24px}
+}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <div class="brand"><i></i>Church Budget Platform <span style="color:var(--muted);font-weight:400">| Specification</span></div>
+    <nav aria-label="Sections">
+      <a href="#summary">Summary</a>
+      <a href="#modules">What you get</a>
+      <a href="#compare">Today vs platform</a>
+      <a href="#spec">Functions</a>
+      <a href="#flow">Process</a>
+      <a href="#data">Data</a>
+      <a href="#infra">Cloud</a>
+      <a href="#plan">Plan</a>
+      <a href="#approval">Approval</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <div class="eyebrow">For budget approval</div>
+    <h1>Project and Budget Management Platform for the humanitarian area office</h1>
+    <p class="lede">Functional specification and implementation plan. One web platform that replaces paper forms, spreadsheets and e-mail chains for project funding across 22 countries, from first assessment to signed agreement and implementation.</p>
+    <dl class="meta">
+      <div><dt>Scope baseline</dt><dd>Working prototype v1.2.7.1</dd></div>
+      <div><dt>Coverage</dt><dd>22 countries, 7 user roles</dd></div>
+      <div><dt>Delivery</dt><dd>About 6 months, 4 phases</dd></div>
+      <div><dt>Hosting</dt><dd>Microsoft Azure, managed service</dd></div>
+    </dl>
+  </div>
+</div>
+
+<main class="wrap">
+
+<!-- ============ SUMMARY ============ -->
+<section id="summary">
+  <div class="sec-h">
+    <span class="level">Management view</span>
+    <h2>What this request funds</h2>
+    <p>The prototype already shows every screen and rule described here, tested end to end with sample data. This budget turns it into a secured production service with a real database, single sign-on, e-mail delivery, data migration and rollout to the country teams.</p>
+  </div>
+  <div class="out">
+    <div><b class="n">Visibility</b><h4>One register for every project</h4><p>Each project, its stage, its budget and its owner in one place, filtered by country. No more asking by e-mail where something stands.</p></div>
+    <div><b class="n">Control</b><h4>Budget against country ceiling</h4><p>Committed, queued and available funds per country and year, updated the moment a request moves. Over-commitment is visible before approval, not after.</p></div>
+    <div><b class="n">Speed</b><h4>Approvals that do not wait in inboxes</h4><p>Every person sees one list of what needs their action, oldest first, with reminders when something sits too long.</p></div>
+    <div><b class="n">Assurance</b><h4>A full audit trail</h4><p>Who submitted, reviewed, returned, approved and signed, with date and reason. Nothing is deleted. Ready for internal audit at any time.</p></div>
+    <div><b class="n">Alignment</b><h4>Works with Decision Point and CHaS</h4><p>Formal approval stays in the Church systems. The platform tracks both gates with reference numbers and day counters, and can connect directly when access is granted.</p></div>
+    <div><b class="n">Less paperwork</b><h4>Documents produced by the system</h4><p>Project concept papers, review packs and Corporate Agreements are generated from the record, shared by secure link and signed in order.</p></div>
+  </div>
+</section>
+
+<!-- ============ MODULES ============ -->
+<section id="modules">
+  <div class="sec-h">
+    <span class="level">Management view</span>
+    <h2>What you get: nine functional groups</h2>
+    <p>The platform is organised into nine groups. Each is described in plain terms here and listed function by function in the detailed section below.</p>
+  </div>
+  <div class="grid g3">
+    <div class="card mod"><div class="k">A</div><h4>Project register and records</h4><p>The master list of all projects and a full record page for each one.</p><ul><li>Search, filter and group by country</li><li>Budget, timeline, notes, documents per project</li><li>Owner and backup on every project</li></ul></div>
+    <div class="card mod"><div class="k">B</div><h4>In-development workspace</h4><p>Guided preparation before a request is submitted.</p><ul><li>Assessment, Project Concept, background check, Area communication</li><li>Word and PDF documents generated from the record</li><li>Outside reviewers comment through a secure link</li></ul></div>
+    <div class="card mod"><div class="k">C</div><h4>Approvals and external gates</h4><p>A fixed approval ladder with clear responsibility at each step.</p><ul><li>Submit, review, return with reason, decline</li><li>Decision Point and CHaS tracked as timed gates</li><li>One "Needs you" list per person</li></ul></div>
+    <div class="card mod"><div class="k">D</div><h4>Budget and forecasting</h4><p>Country ceilings and live commitment by year.</p><ul><li>Ceiling, committed, queued, available</li><li>Coverage ranking across all countries</li><li>Next-year plan and trend forecast</li></ul></div>
+    <div class="card mod"><div class="k">E</div><h4>Timeline and planning</h4><p>Gantt views for one project, one country or a whole region.</p><ul><li>Planned versus actual phases</li><li>Drag to adjust, owner shown on each bar</li><li>Target date warnings</li></ul></div>
+    <div class="card mod"><div class="k">F</div><h4>Corporate Agreements</h4><p>Partner agreements from draft to signature.</p><ul><li>Templates per partner type and country</li><li>OGC and Finance review in parallel</li><li>Signing order, authority limits, amendments</li></ul></div>
+    <div class="card mod"><div class="k">G</div><h4>Messages and alerts</h4><p>Conversation stays on the project, not in private mailboxes.</p><ul><li>Notes, questions, decisions in one stream</li><li>21 alert rules with editable e-mail templates</li><li>Daily digest instead of many single e-mails</li></ul></div>
+    <div class="card mod"><div class="k">H</div><h4>Dashboards and reporting</h4><p>A home page for each role and dashboards for leadership.</p><ul><li>Area summary for read-only leaders</li><li>Meeting pack export in one click</li><li>Mobile quick view for approvals</li></ul></div>
+    <div class="card mod"><div class="k">I</div><h4>Administration, security, integration</h4><p>The controls the area office needs to run the service.</p><ul><li>Users, roles, country scope, thresholds</li><li>Backup, restore, export, audit log</li><li>Connectors to CHaS and Decision Point</li></ul></div>
+  </div>
+</section>
+
+<!-- ============ COMPARE ============ -->
+<section id="compare">
+  <div class="sec-h">
+    <span class="level">Management view</span>
+    <h2>Manual work and e-mail, compared with the platform</h2>
+    <p>The left column reflects how project funding is handled today: request forms, wet-ink signatures, spreadsheets and e-mail. The right column is what the prototype already does.</p>
+  </div>
+  <div class="tw">
+    <table class="cmp">
+      <thead><tr><th>Activity</th><th>Today: manual and e-mail</th><th>With the platform</th><th>Result</th></tr></thead>
+      <tbody>
+        <tr><td>Preparing a project request</td><td>Word and PDF forms filled by hand, retyped for each audience, versions sent as attachments.</td><td>One guided workspace. Concept paper and review packs are generated from the record as Word or PDF.</td><td>No retyping, one current version</td></tr>
+        <tr><td>Collecting outside input</td><td>Documents e-mailed to headquarters and the Area office. Replies scattered across mailboxes.</td><td>Secure review link per document. Comments land on the project with name, e-mail and time.</td><td>Feedback kept with the project</td></tr>
+        <tr><td>Knowing where a request stands</td><td>Ask by e-mail or phone. Status lives in people's memory and private spreadsheets.</td><td>Every project shows its stage, days in stage and who holds the next action.</td><td>Status in seconds</td></tr>
+        <tr><td>Approval routing</td><td>Forward, print, sign, scan. Three wet-ink signatures. Delays invisible until someone chases.</td><td>Fixed ladder with named approvers. Return and decline require a written reason. Reminders when a step waits too long.</td><td>Shorter, traceable cycle</td></tr>
+        <tr><td>Decision Point and CHaS</td><td>Entered separately. No link between the request and the two system references.</td><td>Both gates tracked per project with reference numbers, dates and day counters. Direct connection available.</td><td>One view of both gates</td></tr>
+        <tr><td>Budget control</td><td>Country spreadsheets consolidated by hand before each meeting. Over-commitment found late.</td><td>Live ceiling, committed, queued and available per country and year. Over-ceiling countries flagged at once.</td><td>Figures always current</td></tr>
+        <tr><td>Partner agreements</td><td>Template copied by hand, legal and finance review by e-mail, signing order managed by reminder.</td><td>Template library, checklist before review, OGC and Finance in parallel, signing order enforced against authority limits.</td><td>Fewer errors, full evidence</td></tr>
+        <tr><td>Management reporting</td><td>Slides and tables rebuilt for each meeting from several sources.</td><td>Role dashboards, country ranking and a one-click meeting pack.</td><td>Hours saved per meeting</td></tr>
+        <tr><td>Follow-up and reminders</td><td>Depends on individuals remembering to chase.</td><td>21 automatic alert rules and a daily digest per person.</td><td>Nothing silently stalls</td></tr>
+        <tr><td>Audit and handover</td><td>History spread over mailboxes. Lost when staff change.</td><td>Permanent record of every action and decision. New staff see the full history on day one.</td><td>Audit ready, continuity kept</td></tr>
+        <tr><td>Data safety</td><td>Files on laptops and shared drives, no common backup.</td><td>Encrypted cloud database, nightly backup, second region copy, access by country scope.</td><td>Protected and recoverable</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ DETAILED SPEC ============ -->
+<section id="spec">
+  <div class="sec-h">
+    <span class="level">Detailed view</span>
+    <h2>Functional specification by group</h2>
+    <p>Each function below exists in prototype v1.2.7.1. The status shows what the production build adds to it.</p>
+  </div>
+  <div class="legend">
+    <span><span class="tag d">Demonstrated</span> working in the prototype, carried into production as is</span>
+    <span><span class="tag p">Production build</span> shown in the prototype, completed with real services in this project</span>
+  </div>
+  <div class="toolbar"><button class="btn" type="button" id="xall">Expand all</button><button class="btn" type="button" id="call">Collapse all</button></div>
+
+  <details open>
+    <summary><span class="k">A</span><span class="t">Project register and records<small>The master list and the full record of each project</small></span><span class="c">7 functions</span></summary>
+    <div class="tw"><table>
+      <thead><tr><th>ID</th><th>Function</th><th>What it does</th><th>Status</th></tr></thead><tbody>
+      <tr><td class="id">A1</td><td class="fn">Project register</td><td>All projects grouped by country with stage, gate timing, budget, progress and an attention flag. Rows expand to show a mini timeline and the approval strip.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">A2</td><td class="fn">Filter, search, sort</td><td>Combine conditions such as country, stage, owner and attention. Country totals recalculate to match the filter. One click clears all filters.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">A3</td><td class="fn">Project record</td><td>Tabs for Overview, Development, Budget, Timeline, Activity, Contracts and Files. Project ID follows the CHaS pattern (for example WE26BGD0002).</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">A4</td><td class="fn">Alert tray on the record</td><td>Unread messages, open gates, past target dates and overdue reviews summarised at the top of the record.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">A5</td><td class="fn">Owner and backup</td><td>One owner and an optional backup per project. Unowned projects are reported as exceptions.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">A6</td><td class="fn">Files and documents</td><td>Links to documents per project. Production adds a secured document store for confidential files.</td><td><span class="tag p">Production build</span></td></tr>
+      <tr><td class="id">A7</td><td class="fn">Attention flags</td><td>One shared signal on every list: past target, action owed by you, waiting beyond threshold, or quiet.</td><td><span class="tag d">Demonstrated</span></td></tr>
+    </tbody></table></div>
+  </details>
+
+  <details>
+    <summary><span class="k">B</span><span class="t">In-development workspace<small>Four preparation stages before a request can be submitted</small></span><span class="c">8 functions</span></summary>
+    <div class="tw"><table>
+      <thead><tr><th>ID</th><th>Function</th><th>What it does</th><th>Status</th></tr></thead><tbody>
+      <tr><td class="id">B1</td><td class="fn">Four stages</td><td>Assessment, Project Concept, Organisation Background Check, Area Humane Society Communication. Each is Not started, In progress or Done, with a note.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">B2</td><td class="fn">Assessment</td><td>Field observations, justification and up to six photographs per project.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">B3</td><td class="fn">Project Concept editor</td><td>A nine-section concept paper drafted from the record, editable section by section, with reset to the generated text.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">B4</td><td class="fn">Document generation</td><td>Concept paper, background pack and Area pack produced as Word files and print-ready PDF. Outbound documents show the requested amount only, never internal ceilings.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">B5</td><td class="fn">Secure review link</td><td>A reviewer outside the platform opens one page, reads the document and leaves a comment with a mandatory e-mail. One active link per stage, revocable.</td><td><span class="tag p">Production build</span></td></tr>
+      <tr><td class="id">B6</td><td class="fn">Send from the platform</td><td>E-mail the document to headquarters or the Area office with a reply-to address tied to the project.</td><td><span class="tag p">Production build</span></td></tr>
+      <tr><td class="id">B7</td><td class="fn">Release to submission</td><td>When all four stages are Done, the Regional Manager or Admin releases the project. Only then can the request be submitted.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">B8</td><td class="fn">Front view in the register</td><td>Twelve-month strip, budget triple, objectives, key activities and a four-stage progress rail for every project in development.</td><td><span class="tag d">Demonstrated</span></td></tr>
+    </tbody></table></div>
+  </details>
+
+  <details>
+    <summary><span class="k">C</span><span class="t">Approvals and external gates<small>The approval ladder, Decision Point, CHaS and the "Needs you" list</small></span><span class="c">8 functions</span></summary>
+    <div class="tw"><table>
+      <thead><tr><th>ID</th><th>Function</th><th>What it does</th><th>Status</th></tr></thead><tbody>
+      <tr><td class="id">C1</td><td class="fn">Status ladder</td><td>4 In Development, 3 Submitted, 2 Approved, 1 Implementation, plus Declined. The ladder is enforced. No step can be skipped.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">C2</td><td class="fn">Review decisions</td><td>Request approved, Return to Review or Reject. Return and Reject require a written reason, entered on the row.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">C3</td><td class="fn">External gate tracking</td><td>For Decision Point and for CHaS: submitted date, approved date, reference, remark and a day counter for each step.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">C4</td><td class="fn">Mark Approved</td><td>When both gates are approved, the Regional Manager confirms status 2. Two reference numbers are mandatory.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">C5</td><td class="fn">Amount threshold routing</td><td>Admin sets the amounts that decide whether the gate and a Corporate Agreement are required.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">C6</td><td class="fn">"Needs you" list</td><td>One list per person: submissions to review, open gates, ready to mark approved, sync proposals, agreements to complete. Overdue first, then oldest.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">C7</td><td class="fn">Stage clocks</td><td>Days in stage and days per gate step are calculated, never typed. Thresholds per stage are set by Admin.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">C8</td><td class="fn">Approval history</td><td>Who acted before you and when, shown on every row and kept permanently on the record.</td><td><span class="tag d">Demonstrated</span></td></tr>
+    </tbody></table></div>
+  </details>
+
+  <details>
+    <summary><span class="k">D</span><span class="t">Budget and forecasting<small>Country ceilings, commitment and next-year planning</small></span><span class="c">6 functions</span></summary>
+    <div class="tw"><table>
+      <thead><tr><th>ID</th><th>Function</th><th>What it does</th><th>Status</th></tr></thead><tbody>
+      <tr><td class="id">D1</td><td class="fn">Country ceilings</td><td>Annual ceiling per country and year, editable by Admin and Regional Manager, with change history.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">D2</td><td class="fn">Coverage table</td><td>Ceiling, committed, queued and available per country. Drill into the projects behind any figure without leaving the page.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">D3</td><td class="fn">Over-ceiling warning</td><td>Countries above 100 percent coverage are flagged on the budget page, on dashboards and by alert.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">D4</td><td class="fn">Project budget</td><td>Requested, approved and draft amounts per project with a record of every change.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">D5</td><td class="fn">Plan year and forecast</td><td>Next-year plan per country and a trend projection from current commitments.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">D6</td><td class="fn">Reconciliation rule</td><td>Every dashboard figure must equal the sum of project amounts by country and status. This is tested automatically on each release.</td><td><span class="tag d">Demonstrated</span></td></tr>
+    </tbody></table></div>
+  </details>
+
+  <details>
+    <summary><span class="k">E</span><span class="t">Timeline and planning<small>Gantt views from one project to the whole region</small></span><span class="c">4 functions</span></summary>
+    <div class="tw"><table>
+      <thead><tr><th>ID</th><th>Function</th><th>What it does</th><th>Status</th></tr></thead><tbody>
+      <tr><td class="id">E1</td><td class="fn">Cross-project timeline</td><td>All projects of a country or region on one Gantt, owner named on each bar, today marker, dashed bars before approval.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">E2</td><td class="fn">Project phases and tasks</td><td>Phases and tasks per project. Drag to move or resize. Children drive the parent dates.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">E3</td><td class="fn">Edit rights</td><td>Everyone can view. Owners edit their own projects. Regional Manager and above edit all in scope.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">E4</td><td class="fn">Target date tracking</td><td>Alerts 14 and 3 days before the target date and after it passes.</td><td><span class="tag p">Production build</span></td></tr>
+    </tbody></table></div>
+  </details>
+
+  <details>
+    <summary><span class="k">F</span><span class="t">Corporate Agreements<small>Partner agreements from draft to signature and amendment</small></span><span class="c">9 functions</span></summary>
+    <div class="tw"><table>
+      <thead><tr><th>ID</th><th>Function</th><th>What it does</th><th>Status</th></tr></thead><tbody>
+      <tr><td class="id">F1</td><td class="fn">Agreement register</td><td>All agreements with project, partner, country, status, amount and age. Filter by country and status.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">F2</td><td class="fn">New agreement wizard</td><td>Four steps: pick project, preview template, partner and amount, create. Also offered automatically when a project is marked approved above the threshold.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">F3</td><td class="fn">Pre-review checklist</td><td>Four eligibility attestations, due diligence, sanctions screening, partner, amount and template must be complete before review.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">F4</td><td class="fn">OGC and Finance review</td><td>Both divisions review in parallel with due dates. Approve or return with comment. Reviewers see only their own decision controls.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">F5</td><td class="fn">Signing ceremony</td><td>Signatories sign in order: read to the end, confirm intent, type name. Internal click-to-sign. Partner signs by upload of the signed copy, or by e-signature vendor if chosen.</td><td><span class="tag p">Production build</span></td></tr>
+      <tr><td class="id">F6</td><td class="fn">Signing authority</td><td>Who may sign, up to which amount, in which countries. Time-boxed delegation with approver.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">F7</td><td class="fn">Template library</td><td>Templates by partner type and country, versioned, with merge fields.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">F8</td><td class="fn">Versions, obligations, amendments</td><td>Every version kept. Obligations listed. Amendments linked to the parent agreement.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">F9</td><td class="fn">Implementation lock</td><td>A project that needs an agreement cannot start implementation until the agreement is sent out.</td><td><span class="tag d">Demonstrated</span></td></tr>
+    </tbody></table></div>
+  </details>
+
+  <details>
+    <summary><span class="k">G</span><span class="t">Messages and alerts<small>Project conversation, notifications and e-mail</small></span><span class="c">6 functions</span></summary>
+    <div class="tw"><table>
+      <thead><tr><th>ID</th><th>Function</th><th>What it does</th><th>Status</th></tr></thead><tbody>
+      <tr><td class="id">G1</td><td class="fn">Activity stream</td><td>Notes, Questions (assignable, resolvable), Decisions (one pinned to the record header) and System entries. Edits are stamped. Nothing is deleted.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">G2</td><td class="fn">Messages hub</td><td>All messages across projects in one inbox. Group by project, country or sender. Unread filter. Clear from your own view without touching the record.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">G3</td><td class="fn">Alert catalogue</td><td>21 rules covering approval steps, delays, target dates, budget, integration and agreements. Each can be switched on or off.</td><td><span class="tag p">Production build</span></td></tr>
+      <tr><td class="id">G4</td><td class="fn">E-mail templates</td><td>Editable wording with merge fields. Action buttons in the e-mail open the exact row that needs attention.</td><td><span class="tag p">Production build</span></td></tr>
+      <tr><td class="id">G5</td><td class="fn">Daily digest</td><td>Low-urgency alerts folded into one e-mail per person, at the hour they choose. Mute option. Duplicate guard of 24 hours.</td><td><span class="tag p">Production build</span></td></tr>
+      <tr><td class="id">G6</td><td class="fn">Director exception digest</td><td>Weekly e-mail with exceptions only: over-ceiling countries, overdue gates and reviews, failed syncs, idle agreements.</td><td><span class="tag p">Production build</span></td></tr>
+    </tbody></table></div>
+  </details>
+
+  <details>
+    <summary><span class="k">H</span><span class="t">Dashboards and reporting<small>Role home pages, leadership views and exports</small></span><span class="c">6 functions</span></summary>
+    <div class="tw"><table>
+      <thead><tr><th>ID</th><th>Function</th><th>What it does</th><th>Status</th></tr></thead><tbody>
+      <tr><td class="id">H1</td><td class="fn">Role home pages</td><td>My projects (Team Member), Country home (Regional Manager), Portfolio (Area Manager), My reviews (OGC, Finance), Area summary (Viewer).</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">H2</td><td class="fn">Configurable dashboards</td><td>Several named dashboards built from a widget library. Country selection applies to the whole dashboard and is remembered.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">H3</td><td class="fn">Country ranking</td><td>All countries ranked on coverage, average review days, average gate days and delayed projects.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">H4</td><td class="fn">Decisions and questions roll-up</td><td>Every pinned decision and open question across the selected countries in one dated list.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">H5</td><td class="fn">Meeting pack and exports</td><td>One-click dated summary for area reviews. CSV export of projects, agreements, gate events, activity and sent mail.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">H6</td><td class="fn">Mobile quick view</td><td>On a phone, the platform opens to approvals and updates only, with the same actions as the desktop list.</td><td><span class="tag d">Demonstrated</span></td></tr>
+    </tbody></table></div>
+  </details>
+
+  <details>
+    <summary><span class="k">I</span><span class="t">Administration, security and integration<small>Users, configuration, data protection and connectors</small></span><span class="c">9 functions</span></summary>
+    <div class="tw"><table>
+      <thead><tr><th>ID</th><th>Function</th><th>What it does</th><th>Status</th></tr></thead><tbody>
+      <tr><td class="id">I1</td><td class="fn">Users and roles</td><td>Seven roles: Admin, Regional Manager, Area Manager, Team Member, OGC reviewer, Finance reviewer, Viewer. Each user has a country scope.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">I2</td><td class="fn">Single sign-on</td><td>Sign in with the Church identity service. Multi-factor sign-in follows Church policy.</td><td><span class="tag p">Production build</span></td></tr>
+      <tr><td class="id">I3</td><td class="fn">Process settings</td><td>Thresholds per stage, amount routing, agreement threshold, review and signature time limits.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">I4</td><td class="fn">External Gate Connector</td><td>Per system, three working modes: Manual, Assisted (the system proposes, a person confirms) and Auto. Health status, test, retry queue and event log.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">I5</td><td class="fn">CHaS and Decision Point drivers</td><td>Available without Church IT effort: manual entry, deep link to the record, import of the CHaS export. Live connection through a Church-owned flow once access is approved.</td><td><span class="tag p">Production build</span></td></tr>
+      <tr><td class="id">I6</td><td class="fn">Backup and restore</td><td>Backup on demand and on schedule, restore with integrity check, reset controls for Admin.</td><td><span class="tag p">Production build</span></td></tr>
+      <tr><td class="id">I7</td><td class="fn">Audit log</td><td>Permanent, append-only log of every field change and every gate event, with source and confidence.</td><td><span class="tag p">Production build</span></td></tr>
+      <tr><td class="id">I8</td><td class="fn">Accessibility and display</td><td>Contrast to WCAG AA, larger comfort font, light White Gold theme by default with alternative tones, works from phone to wide screen.</td><td><span class="tag d">Demonstrated</span></td></tr>
+      <tr><td class="id">I9</td><td class="fn">Data import</td><td>One-time load of current projects, ceilings and agreements from existing spreadsheets and the CHaS export.</td><td><span class="tag p">Production build</span></td></tr>
+    </tbody></table></div>
+  </details>
+</section>
+
+<!-- ============ FLOW ============ -->
+<section id="flow">
+  <div class="sec-h">
+    <span class="level">Detailed view</span>
+    <h2>Process and approval flow</h2>
+    <p>One path for every project. The platform enforces the order, records each decision and shows who holds the next action.</p>
+  </div>
+  <div class="flow">
+    <div class="step"><div class="st">Status 4</div><h4>In Development</h4><p>Four preparation stages completed, documents generated, outside comments collected. Released when all four are Done.</p><div class="who">Team Member, Area Manager. Release by Regional Manager</div></div>
+    <div class="step"><div class="st">Status 3</div><h4>Submitted and reviewed</h4><p>Area Manager submits. Regional Manager approves the request, returns it with a reason, or declines.</p><div class="who">Area Manager, Regional Manager</div></div>
+    <div class="step"><div class="st">External gate</div><h4>Decision Point and CHaS</h4><p>Formal Church approval. Each system tracked as submitted then approved, with reference and day counter.</p><div class="who">Recorded by Regional Manager, or by connector</div></div>
+    <div class="step"><div class="st">Status 2</div><h4>Approved and agreement</h4><p>Marked approved with both references. Above the threshold, a Corporate Agreement is drafted, reviewed and signed.</p><div class="who">Regional Manager, OGC, Finance, signatories</div></div>
+    <div class="step"><div class="st">Status 1</div><h4>Implementation</h4><p>Starts only when the agreement is sent out. Progress by phase on the timeline until closure.</p><div class="who">Project owner, Regional Manager</div></div>
+  </div>
+
+  <div class="sub-flow">
+    <div class="card pad">
+      <h4 style="font-size:15.5px">Corporate Agreement lifecycle</h4>
+      <div class="chain"><span>Draft</span><i></i><span>In review (OGC and Finance)</span><i></i><span>Approved for signature</span><i></i><span>Signing</span><i></i><span>Executed</span><i></i><span>Sent out</span><i></i><span>Active</span></div>
+      <p class="small" style="margin-top:12px">Side states: Amending, Expired, Terminated, Cancelled. A deviation from the template adds an Area Legal review.</p>
+    </div>
+    <div class="card pad">
+      <h4 style="font-size:15.5px">Rules the platform enforces</h4>
+      <ul class="rules" style="margin-top:8px">
+        <li>Return, Reject and Dismiss always need a written reason.</li>
+        <li>A declined project is closed. A new request gets a new ID.</li>
+        <li>Gate steps can be recorded only by the Regional Manager.</li>
+        <li>A signatory must hold authority for the amount and country.</li>
+        <li>Days in stage are calculated by the system, never typed.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 class="sub">Who can do what</h3>
+  <div class="tw"><table style="min-width:720px">
+    <thead><tr><th>Capability</th><th>Admin</th><th>Regional Manager</th><th>Area Manager</th><th>Team Member</th><th>OGC / Finance</th><th>Viewer</th></tr></thead>
+    <tbody>
+      <tr><td>Create and edit project</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Own, in draft</td><td>No</td><td>No</td></tr>
+      <tr><td>Update development stages</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Own projects</td><td>No</td><td>No</td></tr>
+      <tr><td>Release to submission</td><td>Yes</td><td>Yes</td><td>No</td><td>No</td><td>No</td><td>No</td></tr>
+      <tr><td>Submit request (4 to 3)</td><td>No</td><td>Yes</td><td>Yes</td><td>No</td><td>No</td><td>No</td></tr>
+      <tr><td>Approve, return, decline</td><td>No</td><td>Yes</td><td>No</td><td>No</td><td>No</td><td>No</td></tr>
+      <tr><td>Record gates, Mark Approved</td><td>No</td><td>Yes</td><td>View</td><td>View</td><td>No</td><td>View</td></tr>
+      <tr><td>Review agreement</td><td>No</td><td>No</td><td>No</td><td>No</td><td>Own division</td><td>No</td></tr>
+      <tr><td>Set country ceiling</td><td>Yes</td><td>Yes</td><td>No</td><td>No</td><td>No</td><td>No</td></tr>
+      <tr><td>Users, thresholds, templates</td><td>Yes</td><td>No</td><td>No</td><td>No</td><td>No</td><td>No</td></tr>
+      <tr><td>Data visible</td><td>All countries</td><td>Assigned countries</td><td>Own area</td><td>Own country</td><td>All agreements</td><td>Scope set by Admin</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============ DATA ============ -->
+<section id="data">
+  <div class="sec-h">
+    <span class="level">Detailed view</span>
+    <h2>Data and database</h2>
+    <p>The production data model is already designed and validated on PostgreSQL 16: 35 tables, access rules by country, and an audit log that cannot be edited.</p>
+  </div>
+  <div class="grid g3 dg">
+    <div class="card pad"><h4>Projects and budget</h4><p>The project record, its phases, status history and money.</p><div class="chips"><code>project</code><code>project_phase</code><code>status_event</code><code>budget_history</code><code>plan_year</code><code>country</code></div></div>
+    <div class="card pad"><h4>Approvals and gates</h4><p>Every gate event with source and confidence, proposals awaiting confirmation, the outbound sync queue.</p><div class="chips"><code>gate_event</code><code>gate_proposal</code><code>sync_op</code><code>integration</code></div></div>
+    <div class="card pad"><h4>Corporate Agreements</h4><p>Agreement, versions, reviews, signatories, obligations, templates and signing authority.</p><div class="chips"><code>contract</code><code>contract_version</code><code>contract_review</code><code>contract_signatory</code><code>contract_obligation</code><code>contract_template</code><code>signing_authority</code><code>signing_delegation</code></div></div>
+    <div class="card pad"><h4>Conversation and alerts</h4><p>Activity stream, comments with read state, alert rules, preferences and sent mail.</p><div class="chips"><code>activity_entry</code><code>comment</code><code>comment_read</code><code>alert_rule</code><code>user_alert_pref</code><code>outbox_mail</code></div></div>
+    <div class="card pad"><h4>People and access</h4><p>Users, roles and country scope. Dashboards belong to their owner.</p><div class="chips"><code>app_user</code><code>user_scope</code><code>dashboard</code><code>dashboard_widget</code></div></div>
+    <div class="card pad"><h4>Audit and recovery</h4><p>Append-only audit log, backup runs and restore tests.</p><div class="chips"><code>audit_event</code><code>backup_run</code><code>snapshot</code></div></div>
+  </div>
+
+  <h3 class="sub">Protection and retention</h3>
+  <div class="kpis">
+    <div class="card kpi"><b>15 min</b><span>Maximum data loss in a disaster (recovery point)</span></div>
+    <div class="card kpi"><b>4 hours</b><span>Target time to restore service (recovery time)</span></div>
+    <div class="card kpi"><b>35 days</b><span>Restore to any moment within this window</span></div>
+    <div class="card kpi"><b>7 years</b><span>Retention of financial, agreement and audit records</span></div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card pad"><h4 style="font-size:15px;margin-bottom:8px">Access control</h4><ul class="rules"><li>Row-level security in the database: a user can read and write only the countries in their scope.</li><li>Agreement files and signature evidence are classed Confidential and never copied to test environments.</li><li>Executed agreements are fingerprinted (SHA-256) so any later change is detectable.</li></ul></div>
+    <div class="card pad"><h4 style="font-size:15px;margin-bottom:8px">Operations</h4><ul class="rules"><li>Nightly full backup plus continuous log archiving, copied to a second region within 4 hours.</li><li>Restore drill every quarter, recorded in the system.</li><li>Encryption at rest and in transit. Keys and passwords held in a separate secret store.</li></ul></div>
+  </div>
+</section>
+
+<!-- ============ INFRA ============ -->
+<section id="infra">
+  <div class="sec-h">
+    <span class="level">Detailed view</span>
+    <h2>Web and cloud infrastructure</h2>
+    <p>A managed service on Microsoft Azure, operated by Adeptio. Azure matches the Church's existing Dynamics 365 and Microsoft estate, which keeps sign-on and the CHaS connection simple. The same design can be deployed inside the Church's own Azure tenant if preferred.</p>
+  </div>
+  <div class="layers">
+    <div class="layer"><div class="ln">Users</div><div class="lc">
+      <div class="node"><b>Area office and country teams</b><span>Any modern browser, desktop or phone. No software to install.</span></div>
+      <div class="node"><b>Outside reviewers</b><span>Secure review link only. No account, no access to other data.</span></div>
+    </div></div>
+    <div class="layer"><div class="ln">Edge and identity</div><div class="lc">
+      <div class="node"><b>Azure Front Door with WAF</b><span>HTTPS only, web application firewall, protection against common attacks.</span></div>
+      <div class="node"><b>Microsoft Entra ID</b><span>Single sign-on federated with the Church identity service. Multi-factor by Church policy.</span></div>
+    </div></div>
+    <div class="layer"><div class="ln">Application</div><div class="lc">
+      <div class="node"><b>Web application</b><span>Responsive single-page app, the interface shown in the prototype.</span></div>
+      <div class="node"><b>API service</b><span>Azure App Service. Business rules, permissions and the approval ladder enforced on the server.</span></div>
+      <div class="node"><b>Background worker</b><span>Alert engine, daily digest, sync queue with retry, nightly reconciliation.</span></div>
+    </div></div>
+    <div class="layer"><div class="ln">Data</div><div class="lc">
+      <div class="node"><b>Azure Database for PostgreSQL</b><span>35-table model, row-level security, zone-redundant, point-in-time restore.</span></div>
+      <div class="node"><b>Azure Blob Storage</b><span>Agreements, generated documents and photographs, encrypted, private access only.</span></div>
+      <div class="node"><b>Azure Key Vault</b><span>Keys, connection secrets and certificates, outside the application.</span></div>
+    </div></div>
+    <div class="layer"><div class="ln">Integration</div><div class="lc">
+      <div class="node"><b>CHaS (Dynamics 365)</b><span>Deep link and export import from day one. Live read through a Church-owned Power Automate flow when approved.</span></div>
+      <div class="node"><b>Decision Point</b><span>Manual and deep link from day one. Connector added once the system owner is confirmed.</span></div>
+      <div class="node"><b>E-mail service</b><span>Azure Communication Services or the Church mail relay, with project reply-to addresses.</span></div>
+    </div></div>
+    <div class="layer"><div class="ln">Operations</div><div class="lc">
+      <div class="node"><b>Monitoring and alerts</b><span>Azure Monitor and Application Insights. Availability, errors, backup and sync health.</span></div>
+      <div class="node"><b>Three environments</b><span>Development, User Acceptance, Production. Test data is always masked.</span></div>
+      <div class="node"><b>Second region</b><span>Backup copy in a paired region. Region pair confirmed with the Church.</span></div>
+    </div></div>
+  </div>
+  <p class="small" style="margin-top:14px">The platform never writes the official approval status into CHaS or Decision Point. It mirrors and tracks. Formal authority stays with the Church systems.</p>
+</section>
+
+<!-- ============ PLAN ============ -->
+<section id="plan">
+  <div class="sec-h">
+    <span class="level">Management view</span>
+    <h2>Development and implementation plan</h2>
+    <p>Four phases over about 26 weeks, followed by hypercare and country rollout waves. The prototype shortens design and removes most requirement risk, because users have already seen and shaped the screens.</p>
+  </div>
+  <div class="card gw"><div class="gantt">
+    <div class="grow head"><span></span><span style="grid-column:span 4">Month 1</span><span style="grid-column:span 4">Month 2</span><span style="grid-column:span 5">Month 3</span><span style="grid-column:span 4">Month 4</span><span style="grid-column:span 4">Month 5</span><span style="grid-column:span 5">Month 6</span></div>
+    <div class="grow"><div class="lb">1. Discovery and design<small>Weeks 1 to 4</small></div><div class="bar" style="grid-column:2 / span 4">Confirm</div></div>
+    <div class="grow"><div class="lb">2. Core platform build<small>Weeks 5 to 14</small></div><div class="bar" style="grid-column:6 / span 10">Groups A, B, C, D, E, G, H</div></div>
+    <div class="grow"><div class="lb">3. Agreements, integration, UAT<small>Weeks 13 to 22</small></div><div class="bar" style="grid-column:14 / span 10">Groups F, I and acceptance</div></div>
+    <div class="grow"><div class="lb">4. Pilot and go-live<small>Weeks 23 to 26</small></div><div class="bar v" style="grid-column:24 / span 4">Pilot</div></div>
+    <div class="grow sep"><div class="lb">Azure environments<small>Set up, then operated</small></div><div class="bar l" style="grid-column:4 / span 24">Dev, then UAT, then Production</div></div>
+    <div class="grow"><div class="lb">Data migration<small>Spreadsheets and CHaS export</small></div><div class="bar l" style="grid-column:16 / span 9">Map, trial load, final load</div></div>
+    <div class="grow"><div class="lb">Training and change<small>By role</small></div><div class="bar l" style="grid-column:20 / span 8">Guides, sessions, champions</div></div>
+    <div class="grow sep"><div class="lb">Milestones</div><div class="ms" style="grid-column:5" title="Design sign-off"></div><div class="ms" style="grid-column:15" title="Core release"></div><div class="ms" style="grid-column:23" title="UAT sign-off"></div><div class="ms" style="grid-column:27" title="Go-live"></div></div>
+    <div class="grow" style="min-height:0"><div></div><span class="small" style="grid-column:2 / span 26;font-size:12px">Milestones: design sign-off (week 4), core release (week 14), acceptance sign-off (week 22), go-live (week 26). Hypercare 4 weeks and rollout waves follow.</span></div>
+  </div></div>
+
+  <div class="grid g4" style="margin-top:16px">
+    <div class="card pad phase"><h4>1. Discovery and design</h4><div class="wk">Weeks 1 to 4</div><ul><li>Confirm roles, thresholds and approval rules with the area office</li><li>Security and identity workshop with Church IT</li><li>CHaS and Decision Point questionnaires</li><li>Azure landing zone and environments</li></ul><div class="exit"><b>Exit:</b> signed design baseline</div></div>
+    <div class="card pad phase"><h4>2. Core platform build</h4><div class="wk">Weeks 5 to 14</div><ul><li>Database, API and permissions</li><li>Register, records, in-development workspace</li><li>Approvals, gates, budget, timeline</li><li>Messages, alerts, e-mail, dashboards</li><li>Review every two weeks with key users</li></ul><div class="exit"><b>Exit:</b> core release on UAT</div></div>
+    <div class="card pad phase"><h4>3. Agreements, integration, UAT</h4><div class="wk">Weeks 13 to 22</div><ul><li>Corporate Agreements and signing</li><li>Single sign-on, connectors, document store</li><li>Data migration trial loads</li><li>Security test and performance test</li><li>User acceptance by role</li></ul><div class="exit"><b>Exit:</b> acceptance sign-off</div></div>
+    <div class="card pad phase"><h4>4. Pilot and go-live</h4><div class="wk">Weeks 23 to 26</div><ul><li>Pilot with 2 to 3 countries on live data</li><li>Training by role, quick guides</li><li>Final data load and go-live</li><li>Hand over runbooks and restore drill</li></ul><div class="exit"><b>Exit:</b> production go-live</div></div>
+  </div>
+
+  <h3 class="sub">Indicative effort</h3>
+  <div class="tw"><table style="min-width:640px">
+    <thead><tr><th>Phase</th><th>Duration</th><th>Core team</th><th>Effort (person-months)</th></tr></thead>
+    <tbody>
+      <tr><td class="fn">1. Discovery and design</td><td>4 weeks</td><td>Project manager, business analyst, solution architect, UX</td><td>4</td></tr>
+      <tr><td class="fn">2. Core platform build</td><td>10 weeks</td><td>2 to 3 developers, UI developer, QA, architect part-time</td><td>13</td></tr>
+      <tr><td class="fn">3. Agreements, integration, UAT</td><td>10 weeks, 2 overlap</td><td>Developers, integration engineer, QA, cloud engineer</td><td>10</td></tr>
+      <tr><td class="fn">4. Pilot and go-live</td><td>4 weeks</td><td>Project manager, trainer, developers on support</td><td>4</td></tr>
+      <tr><td class="fn">Total to go-live</td><td>About 26 weeks</td><td></td><td><b>About 31</b></td></tr>
+    </tbody>
+  </table></div>
+  <p class="small" style="margin-top:10px">Effort is indicative and is confirmed at the end of Phase 1. Hypercare, rollout waves, cloud running cost and annual support are quoted separately.</p>
+
+  <h3 class="sub">Investment summary</h3>
+  <div class="blank">
+    <table>
+      <thead><tr><th>Item</th><th>Basis</th><th>Amount</th></tr></thead>
+      <tbody>
+        <tr><td>Implementation, Phases 1 to 4</td><td>One-time, fixed scope as listed in this document</td><td class="fill">To be completed</td></tr>
+        <tr><td>Azure cloud service</td><td>Monthly, three environments</td><td class="fill">To be completed</td></tr>
+        <tr><td>Support and maintenance</td><td>Annual, from go-live</td><td class="fill">To be completed</td></tr>
+        <tr><td>Optional: e-signature vendor, live connectors</td><td>When selected</td><td class="fill">To be completed</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="sub">What we need from the Church</h3>
+  <div class="grid g2">
+    <div class="card pad"><h4 style="font-size:15px;margin-bottom:8px">Dependencies</h4><ul class="rules"><li>A named sponsor and one product owner from the area office.</li><li>Key users from each role for fortnightly reviews and acceptance.</li><li>A Church IT contact for identity, e-mail and security review.</li><li>Owners for CHaS and Decision Point to answer the integration questionnaires.</li><li>Current project lists, ceilings and agreement templates for migration.</li></ul></div>
+    <div class="card pad"><h4 style="font-size:15px;margin-bottom:8px">Decisions to confirm in Phase 1</h4><ul class="rules"><li>Hosting: Adeptio-managed Azure, or inside the Church tenant.</li><li>Document store for confidential agreement files.</li><li>E-signature: internal click-to-sign with partner upload, or a vendor.</li><li>Retention of 7 years against personal data erasure rules, by jurisdiction.</li><li>Cloud region pair and key custody.</li></ul></div>
+  </div>
+</section>
+
+<!-- ============ APPROVAL ============ -->
+<section id="approval">
+  <div class="sec-h">
+    <h2>Approval requested</h2>
+    <p>Approval of the budget to deliver the platform as specified in groups A to I, on the four-phase plan above, starting with Phase 1 Discovery and design.</p>
+  </div>
+  <div class="card pad">
+    <p style="color:var(--slate)">A live walkthrough of prototype v1.2.7.1 is available on request. It runs from a local folder with sample data for seven countries and shows every function listed here.</p>
+    <div class="sign">
+      <div>Requested by, date</div>
+      <div>Reviewed by, date</div>
+      <div>Approved by, date</div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer><div class="wrap"><span>Church Budget Platform. Functional specification and implementation plan, based on prototype v1.2.7.1.</span><span>Prepared by Adeptio, 17 September 2026. Confidential.</span></div></footer>
+
+<script>
+(function(){
+  var d=document.querySelectorAll('#spec details');
+  function set(v){for(var i=0;i<d.length;i++)d[i].open=v;}
+  document.getElementById('xall').onclick=function(){set(true)};
+  document.getElementById('call').onclick=function(){set(false)};
+  window.addEventListener('beforeprint',function(){set(true)});
+})();
+</script>
+</body>
+</html>
