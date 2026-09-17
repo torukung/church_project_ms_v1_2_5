@@ -1,0 +1,50 @@
+/* print.css — v1.2.7 (Lane A). P19 print view (#/doc/<id>) + the shared .dc-*
+   document renderer (CBP.docgen.toHtml), which the public review page (p18)
+   also renders inside its own frame. Linked AFTER app.css (research review §1):
+   under @media print the tone tokens are re-pointed to ink on white, whatever
+   tone / ground is active on screen, because Chrome drops backgrounds when
+   printing. Tokens only; no literal colour outside the print block. */
+
+.dc-page{min-height:100vh;background:var(--paper);color:var(--ink);padding:16px 16px 40px}
+.dc-bar{max-width:210mm;margin:0 auto 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.dc-bar .dc-hint{flex:1 1 220px;font-size:12.5px;color:var(--slate);overflow-wrap:anywhere}
+.dc-bar .dc-hint b{color:var(--ink);display:inline-block}   /* v1.2.7 D: no wrapped-inline overlap in the toolbar hint */
+.dc-bar .btn:focus-visible{outline:2px solid var(--glass);outline-offset:2px}   /* audit 1.2.7 */
+.dc-notice{max-width:210mm;margin:0 auto 12px}
+.dc-meta{max-width:210mm;margin:10px auto 0;font-size:12.5px;color:var(--slate);overflow-wrap:anywhere}
+.dc-sheet{max-width:210mm;margin:0 auto;background:var(--card);color:var(--ink);border:1px solid var(--line);
+  border-radius:var(--r);box-shadow:var(--shadow);padding:18mm 16mm;font-size:14px;line-height:1.55;overflow-wrap:anywhere}
+.dc-sheet.dc-empty p{margin:0 0 8px;color:var(--slate)}
+.dc-kind{font-size:12.5px;font-weight:600;color:var(--slate);margin:0 0 2px}
+.dc-title{font-size:25px;line-height:1.25;margin:0 0 4px;color:var(--ink);text-wrap:balance}
+.dc-sub{font-style:italic;color:var(--slate);margin:0 0 12px}
+.dc-kv{width:100%;border-collapse:collapse;margin:8px 0 14px;font-size:12.5px}
+.dc-kv th,.dc-kv td{text-align:left;vertical-align:top;padding:5px 8px;border-top:1px solid var(--line)}
+.dc-kv tr:last-child th,.dc-kv tr:last-child td{border-bottom:1px solid var(--line)}
+.dc-kv th{width:34%;font-weight:600;color:var(--slate)}
+.dc-sec h2,.dc-sec h3:not(.dc-h3){font-size:20px;margin:20px 0 6px;color:var(--ink)}
+.dc-h3{font-size:16px;margin:12px 0 4px;color:var(--ink)}
+.dc-sec p{margin:0 0 8px}
+.dc-sec ul,.dc-sec ol{margin:0 0 8px 22px}
+.dc-fig{margin:10px 0 14px}
+.dc-fig img{display:block;max-width:100%;max-height:110mm;height:auto;border:1px solid var(--line);border-radius:4px}
+.dc-fig figcaption{font-size:12.5px;font-style:italic;color:var(--slate);margin-top:4px}
+.dc-foot{margin-top:24px;padding-top:8px;border-top:1px solid var(--line);font-size:12.5px;color:var(--slate)}
+@media (max-width:560px){.dc-page{padding:12px 0 32px}.dc-bar,.dc-meta,.dc-notice{padding:0 16px}
+  .dc-sheet{padding:20px 16px;border-radius:0;border-left:0;border-right:0}.dc-title{font-size:20px}}
+@page{size:A4;margin:16mm 14mm 18mm;
+  @bottom-right{content:"Page " counter(page) " of " counter(pages);font-size:9pt;color:#555}}
+@media print{
+  /* paper is always light: re-point the tone tokens, whatever tone/ground is active on screen */
+  :root,:root[data-tone]{--paper:#fff;--card:#fff;--raise:#fff;--hover:#fff;--ink:#111;--slate:#333;--muted:#555;--faint:#777;
+    --line:#bbb;--line2:#ddd;--shadow:none;--shadow-sm:none}
+  html,body{background:#fff !important;color:#111}
+  .dc-bar,.dc-notice,.dc-meta,.hintbar,.no-print{display:none !important}
+  .dc-page{padding:0;min-height:0;background:#fff}
+  .dc-sheet{max-width:none;border:0;border-radius:0;box-shadow:none;padding:0;font-size:10.5pt}
+  .dc-title{font-size:18pt}
+  .dc-sec h2,.dc-sec h3:not(.dc-h3),.dc-h3{break-after:avoid;page-break-after:avoid}
+  .dc-fig,.dc-kv tr,.dc-sec li{break-inside:avoid;page-break-inside:avoid}
+  .dc-fig img{max-height:120mm}
+  p{orphans:3;widows:3}
+}

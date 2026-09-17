@@ -1,4 +1,4 @@
-# Church Project-Budget Management Platform - Demo v1.2.6
+# Church Project-Budget Management Platform - Demo v1.2.7.1
 
 A fully client-side demo of a budget approval and visibility platform for a church humanitarian
 area office running **22 countries × $1,000,000/year** (7 countries seeded). Built from
@@ -20,9 +20,52 @@ fix to the today marker's halo — plus thirteen more defects an independent aud
 in a build where, again, every automated gate was already green; v1.2.5 is a no-new-scope
 demo-safety patch; v1.2.5.1 adds a top-bar Tone picker; v1.2.5.2 replaces it with a full
 seven-tone, dark-capable theming system and adds the Decision Point/CHaS and Cooperation
-Agreement step-lines to the stepper; **v1.2.6 is a minor presentational pass** — sidebar
+Agreement step-lines to the stepper; v1.2.6 is a minor presentational pass — sidebar
 group headers, labelled register cells, and on the project record a book-style tab bar, a
-collapsible alert tray and side-by-side approval cards.
+collapsible alert tray and side-by-side approval cards; **v1.2.7 is a feature pass** — the
+status-4 "In development" phase gets its own four-stage workflow (Assessment · Project
+Concept · Org Background check · Area Humane Society Communication) with real .docx +
+print-to-PDF documents, public review links with mandatory-e-mail comments, outbound
+portal mail with a reply-to, and an M1/Admin release that opens the road to submission —
+plus an "Open" icon column on the Projects register.
+
+## What is new in v1.2.7
+
+A feature pass (17 Sep 2026), driven by two Ask-gates with ToR (rulings R-1…R-8 plus
+R-8a/R-3a/R-2a/R-1a in `docs/BUILD_BRIEF_v1.2.7.md` §1). New folder from the shipped
+v1.2.6. `APP_VERSION` 1.2.6 → 1.2.7; **schema_version 3 → 4** (additive migration; a
+v1.2.x backup still restores). Full detail, the decision record and the gate board:
+`docs/CHANGES_v1.2.7.md`; the independent audit (verdict SHIP-WITH-NOTES):
+`docs/AUDIT_v1.2.7.md`; reading order: `docs/HANDOVER_INDEX_v1.2.7.md`.
+
+- **Projects register — Open column.** A right-most "Open" icon after Comments links
+  straight to the record (middle-click and Cmd-click both work); for a status-4 project,
+  the register's expanded Status segment becomes a purpose-built front view — a 12-month
+  strip for the budget year, the budget triple, an Objectives/Activities brief preview,
+  owner and backup, and four labelled stage dots.
+- **Project record — Development tab.** First in the tab strip while a project is status
+  4 and unreleased; four accordion panels (current stage open) let any project-scoped
+  role (M3 owner, M2, M1, Admin) flip a stage Not started → In progress → Done with a
+  note. Assessment takes observations, a justification and up to 6 images (400 KB each).
+  Project Concept generates a 9-section editable pre-draft (headings/bold/bullets, a
+  per-section "Reset to generated"). Every stage can then generate its document, mint a
+  public review link, send it from the portal with a shown reply-to, and see the
+  comments that come back.
+- **Documents.** A real **.docx** (a hand-built OOXML zip, no library) and a
+  print-to-PDF view come from the same document model, so what a reviewer sees on the
+  public page, on screen and on paper never drifts apart. Assessment images embed in the
+  .docx and show in the print view too.
+- **Public review page.** `#/review/<token>` — no sign-in, fullbleed: the document plus a
+  comment box with a mandatory e-mail. A revoked or unknown token shows "This review link
+  is no longer active," never stale content.
+- **Release gate.** Request submitted stays disabled on a status-4 project until all four
+  stages are Done and an M1/Admin clicks Release to submission (Needs-you surfaces it);
+  the ladder itself and every other act are unchanged.
+- **Ask-gate 4 fixes.** The Budget summary section on documents leaving the building now
+  shows the requested amount only (no country-level figures to an outside reviewer);
+  Send from portal refuses until a review link exists; external mail drops the internal
+  footer; the Open icon sits beside the row's toggle button, not nested inside it; the
+  Org check/Area comm mail subjects use their own document title.
 
 ## What is new in v1.2.6
 
@@ -344,6 +387,10 @@ to see it: WE26BGD0002's tray carries the CHaS gate, the past target date and it
 message together.
 
 1. **Anik (M3, Bangladesh)** — create and edit a status-4 project; progress reads *"not submitted"*, never 0%.
+   1b. **Still Anik, on WE26BGD0003** — Development tab: mint the review link on Project
+   Concept, open it in a new tab as an anonymous reviewer, leave a comment. **Priya (M1)**
+   then releases WE26NPL0011 (all four stages already Done) to submission — its Request
+   submitted enables the moment the release lands. See `docs/DEMO_SCRIPT_v1.2.7.md`.
 2. **Daniel (M2)** — open WE26BGD0005, **Request submitted** → status 3; stage clock restarts; the Needs-you queue gains an item.
 3. **Priya (M1)** — Needs you: **Return to Review** (reason now inline, no modal), **Request approved** on WE26BGD0005 → external gate opens.
 4. **Still Priya** — tick the gate: Decision Point submitted → approved, CHaS submitted → approved; **Mark Approved** demands both reference numbers → status 2. Contrast WE26BGD0002's CHaS counter (197 days and counting).
@@ -462,9 +509,15 @@ node tools/flow_approval.js
 node tools/flow_messages.js
 node tools/flow_persist.js
 node tools/flow_perm.js         # F-6 permission truth table, DIFFERENTIAL: needs the baseline
-                                 # tree beside this one (../CBP_v1.2.5.2/ for v1.2.6); expected
-                                 # 221/1 — the 1 is the F7 santoso-clear ruling item, red on purpose
+                                 # tree beside this one (../CBP_v1.2.6/ for v1.2.7); expected
+                                 # 260/1 — the 1 is the F7 santoso-clear ruling item, red on purpose
 node tools/align_probe.js       # column/label alignment across the register and Needs-you rows
+node tools/test_docgen.js       # v1.2.7 NEW: builds concept/orgpack/areapack for the seeded
+                                 # projects, validates the zip, parses every XML part, byte-
+                                 # identity across two builds, python-docx cross-check (224/0)
+node tools/flow_dev.js          # v1.2.7 NEW: UI walk — stage flips, images, generate, mint/
+                                 # revoke a link, public comment, portal mail, release, the
+                                 # R-3a gate (94/0)
 ```
 
 The differential gates (`flow_perm.js`, `test_flow.js`'s sub-line diff, `audit_identity.js`)
@@ -487,9 +540,9 @@ This folder (`app/`, alongside `fixtures/`, `tools/` and `docs/` at the
 repo root) is the **complete, self-contained application** - not a patch
 or a change-pack layered onto some other checkout. There is no "base" to
 apply this on top of and no pack stacking: clone the repo, open
-`app/index.html`, and every change from v1.0 through v1.2.6 is already there,
+`app/index.html`, and every change from v1.0 through v1.2.7 is already there,
 generated from the fixtures already in `fixtures/`. Earlier releases live in their
-own sibling folders (`CBP_v1.2.5.2/`, `CBP_v1.2.5.1/`, …) and are never edited.
+own sibling folders (`CBP_v1.2.6/`, `CBP_v1.2.5.2/`, …) and are never edited.
 
 ## Structure
 
@@ -509,9 +562,16 @@ css/                app.css (tokens + shared components; v1.2.3: stepper grid,
                     sets · v1.2.6: app.css .side a.navhead/.sub (sidebar header band
                     + child indent), v101-proj.css .l3-* (labelled register cells),
                     p4v126.css NEW (book tabs .bk-*, alert tray .atr-*, split status
-                    cards .sc-*, the ≥1280 aside width) — loaded last, after uikit.css
+                    cards .sc-*, the ≥1280 aside width) — loaded last, after uikit.css ·
+                    v1.2.7: v101-proj.css .l-open/.xopen, p3dev.css NEW (.dv-* front
+                    view: year strip, budget triple, brief, dot rail), p4dev.css NEW
+                    (.pd-*/.pdc-*/.ed-* Development tab, editor toolbar, stage chips),
+                    p18.css NEW (public review page .rv-*), print.css NEW (.dc-* print
+                    sheet shared by p18/p19, the @media print tone re-point)
 js/config.js        TODAY constant + thresholds - the demo ages from here; v1.2.6: NAV
-                    rows carry head/child flags (Projects header, indented children)
+                    rows carry head/child flags (Projects header, indented children);
+                    v1.2.7: DEV_STAGES/DEV_RECIPIENTS/DEV_IMG_MAX/DEV_IMG_BYTES,
+                    ROUTES += review/doc
 js/data.js          GENERATED from ../fixtures/*.json - the only place numbers live
 js/uikit.js         v1.2.2 - the shared view kit (CBP.uikit / CBP.K): state bags
                     (flt/col/seg), collapse, the attention flag, filter+sort, the
@@ -525,16 +585,20 @@ js/derive.js        pure derivations (coverage, clocks, league table, permission
                     byte-identical in v1.2.4
 js/store.js         state + dashboard seed (5 boards per blueprint RM-4); v1.2.5.x:
                     CBP.TONES / DEFAULT_TONE / setTone + ui.tone; v1.2.6: ui.p4AlertsOpen
-                    default (false, not persisted)
+                    default (false, not persisted); v1.2.7: devStages/devSeq domain
+                    slices, ui.devDraft/ui.reviewSent (session-only, not persisted)
 js/actions.js       every mutation: submit / return / reject / gate / mark approved / activity /
                     advanceDay / runDigest / setAlertPref (v1.2.0); v1.2.4: the
                     dead msggroup handler made string-safe against ui.msgGroup's
                     boolean-to-string change; v1.2.6: the one new act, 'p4alerts'
-                    (alert-tray toggle), beside 'p4tab'
+                    (alert-tray toggle), beside 'p4tab'; v1.2.7: every dev-* act
+                    (§"Acts table" in docs/CHANGES_v1.2.7.md) + review-comment, the
+                    R-3a gate on A.can(user,'submit',p), send()'s opts.external
 js/persist.js       v1.2.0 - the whole persistence engine: boot/save/restore/reset, backups,
                     CSV export, IndexedDB → localStorage → memory fallback ladder;
                     byte-identical in v1.2.4 - P11's msgSel/msgCleared/msgUndo are
-                    deliberately excluded from UI_KEYS, not persisted
+                    deliberately excluded from UI_KEYS, not persisted; v1.2.7:
+                    DOMAIN_KEYS += devStages/devSeq, MIGRATIONS[3] (schema 3→4)
 js/ui.js, widgets.js  shared components + 13-widget dashboard library +
                     v1.2.0 U.stepper/U.needsRow/U.taskList/U.chain/U.countryBarRow
                     (v1.2.2: U.needsRow rewritten for P6's collapse; v1.2.3:
@@ -543,24 +607,41 @@ js/ui.js, widgets.js  shared components + 13-widget dashboard library +
                     identical in v1.2.4
 js/egc.js           v1.1.0 - External Gate Connector: sync modes, proposals, outbound queue
 js/contracts.js     v1.1.0 - Corporate Agreement lifecycle: reviews, signing, amendments
+js/docgen.js        v1.2.7 NEW - CBP.docgen: build/toHtml/toDocx/download for the
+                    concept/orgpack/areapack document model; a stored (uncompressed)
+                    zip, CRC-32, fixed DOS dates, numbering.xml for bullets, images
+                    via atob + PNG IHDR/JPEG SOF sizing; sanitize/htmlToBlocks/
+                    plainToHtml for the section editor. See docs/CORE_API_v1.2.7.md §7
 js/pages/           p1 sign-in · p2 dashboard · p3 register (v1.2.2 reframe; v1.2.6:
-                    labelled Stage/Gate|Timing/Attention cells) · p4 detail (v1.2.6:
-                    book tabs, alertTray() replacing unreadStrip(), DP|CHaS and
-                    OGC|Finance cards; v1.2.5.2: the two step-lines via U.stepper) ·
+                    labelled Stage/Gate|Timing/Attention cells; v1.2.7: the right-most
+                    Open column, devFrontView() for status-4 projects) · p4 detail
+                    (v1.2.6: book tabs, alertTray() replacing unreadStrip(), DP|CHaS and
+                    OGC|Finance cards; v1.2.5.2: the two step-lines via U.stepper;
+                    v1.2.7: the Development tab, the In-development aside card) ·
                     p5 timeline (v1.2.2 reframe; v1.2.3: project/task bar tiers,
                     the indent tint) · p6 needs you (v1.2.2 reframe; v1.2.3: the
-                    fixed-track collapsed row, relocateId deleted) ·
+                    fixed-track collapsed row, relocateId deleted; v1.2.7: the
+                    dev-release row) ·
                     p7 budget (v1.2.2 reframe; v1.2.3: one sentence corrected) ·
                     p8 alerts (v1.2.4: gains My alerts, persona-aware landing
-                    tab, head moved onto K.viewBar) · p9 admin · p10 mobile ·
+                    tab, head moved onto K.viewBar; v1.2.7: reply_to + External chip
+                    on outbox rows) · p9 admin · p10 mobile ·
                     p11 messages & alerts (v1.2.4: rebuilt - six type tags, the
                     column-one stack, the Date/Status/Sender/Subject frame,
                     multi-select clear, K.filterBar, the rebuilt pinned rail;
                     alertPanel() deleted) ·
                     p12 Corporate Agreements (v1.2.2 reframe) ·
                     p13 worker home · p14 country home · p15 portfolio · p16 reviewer home ·
-                    p17 viewer home (v1.2.0 role homes)
+                    p17 viewer home (v1.2.0 role homes) ·
+                    p18 v1.2.7 NEW - public review page, route review, fullbleed, no
+                    persona · p19 v1.2.7 NEW - print/PDF view, route doc, fullbleed
 ```
+
+## Fixtures — v1.2.7 additions
+
+`fixtures/dev_stages.json` NEW - the devStages seeds for WE26BGD0003 / WE26NPL0011 /
+WE26BGD0005 (see `docs/04_DATA_MODEL.md` §"v1.2.7 additions"). `fixtures/meta.json` -
+schema_version 4. `tools/gen-data.js` picks it up alongside the other fixture files.
 
 ## Ground rules honoured
 

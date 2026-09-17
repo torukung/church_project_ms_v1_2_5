@@ -36,8 +36,8 @@
      the DEFAULT tone's (dark-brass) values as their fallback. Every real render
      always carries data-tone on <html>, so a tone block below always wins; this
      is purely the "no undefined var" floor. */
-  --raise:#221F1C; --hover:#2A2622; --faint:#5C5750;
-  --brass-glow:rgba(200,164,85,.08); --shadow-sm:0 1px 4px rgba(0,0,0,.3);
+  --raise:#FAF8F4; --hover:#F0EDE6; --faint:#A8A298;   /* v1.2.7.1 — floor now = white-gold, the default */
+  --brass-glow:rgba(154,122,48,.06); --shadow-sm:0 1px 4px rgba(40,30,20,.06);
 }
 body.comfort{--f:var(--comfort)}
 
@@ -59,7 +59,7 @@ body.comfort{--f:var(--comfort)}
      --rose←rose  --rose-ink←rose-dim  --rose-bg←rose-surface
      --verd←done  --verd-bg←done-surface  --shadow←shadow  --shadow-sm←shadow-sm       */
 
-:root[data-tone="white-gold"]{
+:root[data-tone="white-gold"]{   /* DEFAULT (v1.2.7.1, ToR) */
   --paper:#F5F2ED; --card:#FFFFFF; --raise:#FAF8F4; --hover:#F0EDE6;
   --ink:#1A1816; --slate:#4A4540; --muted:#726E67; --faint:#A8A298;   /* v1.2.5.2-uxA: muted #7A756E→#726E67, ≥4.54 on paper/tints (was 4.09) */
   --line:#E0DBD4; --line2:#EAE6E0;
@@ -68,7 +68,7 @@ body.comfort{--f:var(--comfort)}
   --verd:#347C48; --verd-bg:#F0FAF2;   /* v1.2.5.2-uxA: verd #3A8A50→#347C48, 4.56 on paper + 5.09 card-on-verd (were 3.81/4.26) */
   --shadow:0 2px 12px rgba(40,30,20,.08); --shadow-sm:0 1px 4px rgba(40,30,20,.06);
 }
-:root[data-tone="dark-brass"]{   /* DEFAULT */
+:root[data-tone="dark-brass"]{
   --paper:#110F0E; --card:#1A1816; --raise:#221F1C; --hover:#2A2622;
   --ink:#F0ECE6; --slate:#C8C2B8; --muted:#8A847A; --faint:#5C5750;
   --line:#302B26; --line2:#262220;
@@ -208,8 +208,8 @@ summary::marker{content:''}
   background:var(--line)}
 .badge{font-size:11.5px;font-weight:600;color:var(--card);background:var(--rose);
   border-radius:999px;padding:1px 8px;font-variant-numeric:tabular-nums;flex:none}
-.side .ver{margin-top:auto;padding:0 20px 8px;font-size:11px;letter-spacing:.02em;
-  color:var(--muted);font-variant-numeric:tabular-nums}   /* v1.2.6 — version remark above the rule */
+.side .ver{margin-top:auto;padding:0 20px 8px;font-size:11.5px;letter-spacing:.02em;
+  color:var(--muted);font-variant-numeric:tabular-nums}   /* v1.2.6 — version remark above the rule; v1.2.7 11px → 11.5px (type scale back to 6 sizes) */
 .side .me{padding:14px 20px 0;border-top:1px solid var(--line2);
   font-size:12.5px;color:var(--muted);min-width:0}
 .side .me b{display:block;color:var(--slate);font-size:12.5px}

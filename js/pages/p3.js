@@ -134,6 +134,8 @@
       '<span class="l-flag">Attention</span>' +
       '<span class="l-budget r">Budget</span>' +
       '<span class="l-cmt r">Comments</span>' +
+      /* v1.2.7 (A) — the Open column: blank to the eye, named for AT */
+      '<span class="l-open"><span class="vh">Open</span></span>' +
       '<span class="l-chev" aria-hidden="true"></span></div>';
 
     var anyRow = false;
@@ -316,10 +318,13 @@
         '<small>' + e(budgetSub) + '</small></span>' +
       commentCell(p, state);
 
-    return '<div class="xrow" data-open="' + (open ? 'true' : 'false') + '">' +
+    /* v1.2.7 F4 — the Open link is a SIBLING of the toggle button inside
+       .xhead (its own grid cell), never nested interactive content. */
+    return '<div class="xrow" data-open="' + (open ? 'true' : 'false') + '"><div class="xhead">' +
       '<button class="xsum" data-act="k-row" data-page="p3" data-id="' + e(p.id) + '"' +
       ' aria-expanded="' + (open ? 'true' : 'false') + '">' + cols +
       '<span class="xchev" aria-hidden="true">' + (open ? '▴' : '▾') + '</span></button>' +
+      openCell(p) + '</div>' +
       (open ? xpanel(p, state, r) : '') + '</div>';
   }
 
@@ -345,6 +350,20 @@
       '<span class="n num">' + n + '</span>' +
       (unread ? '<span class="dot" aria-hidden="true"></span>' : '') +
       '</span></span>';
+  }
+
+  /* v1.2.7 (A) — the Open column. A real <a href> so middle-click and
+     cmd-click work. Since F4 it sits beside the row's toggle <button> in
+     .xhead (not inside it), so a click follows the href and never reaches
+     the k-row toggle — no capture-phase guard needed. */
+  var OPEN_SVG = '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" ' +
+    'fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M13 9.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h3.5"/>' +
+    '<path d="M9.5 2H14v4.5"/><path d="M14 2 7.5 8.5"/></svg>';
+
+  function openCell(p) {
+    return '<span class="xc xc-open"><a class="xopen" href="#/project/' + e(p.id) + '"' +
+      ' title="Open project details" aria-label="Open project details">' + OPEN_SVG + '</a></span>';
   }
 
   /* -------------------------------------------------------- open panel --
@@ -382,6 +401,7 @@
      line, the progress bar (moved out of the collapsed line, D.2) and the
      row's own action bar, all unchanged from v1.0.1's open panel. */
   function statusSeg(p, user) {
+    if (p.status === 4 && D.devFront) return devFrontView(p, user);
     var html = '<div class="ph">Approval stage' + rowActions(p, user) + '</div>';
     html += U.stepper(p);
 
@@ -507,6 +527,143 @@
       contract
     ].filter(Boolean);
     return acts.length ? '<span class="r">' + acts.join('') + '</span>' : '';
+  }
+
+  /* Request submitted — v1.2.7 R-3a: U.action renders it disabled, with the
+     reason as its title, while the in-development phase is not released. */
+
+  /* ============================================ v1.2.7 · front view (R-4) ==
+     Status segment of a status-4 project. Everything drawn comes from
+     D.devFront(p); the three blocks (year strip, budget triple, dot rail) are
+     the verified recipes of docs/RESEARCH_v1.2.7_yearstrip.md, styled in
+     p3dev.css. */
+  var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  function isoParts(iso) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || '');
+    return m ? { y: +m[1], m: +m[2], d: +m[3] } : null;
+  }
+  function dim(y, m) {
+    return m === 2 ? ((y % 4 === 0 && y % 100 !== 0) || y % 400 === 0 ? 29 : 28)
+      : [31, 0, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m - 1];
+  }
+  /* position in months 0..12 inside `year`; endOfDay puts a window end at the day's close */
+  function ysPos(iso, year, endOfDay) {
+    var p = isoParts(iso);
+    if (!p) return null;
+    if (p.y < year) return 0;
+    if (p.y > year) return 12;
+    return (p.m - 1) + (p.d - (endOfDay ? 0 : 1)) / dim(p.y, p.m);
+  }
+  function ysPct(v) { return (Math.round(v / 12 * 10000) / 100) + '%'; }
+  function dshort(iso) { var p = isoParts(iso); return p ? p.d + ' ' + MON[p.m - 1] + ' ' + p.y : ''; }
+
+  function yearStrip(ys) {
+    var y = ys.year;
+    var s = ysPos(ys.startISO, y, false), en = ysPos(ys.endISO, y, true), t = ysPos(ys.todayISO, y, false);
+    var ps = isoParts(ys.startISO), pe = isoParts(ys.endISO), pt = isoParts(ys.todayISO);
+    var cells = '', bar = '', marks = '', lab = [], i;
+    for (i = 0; i < 12; i++) {
+      cells += '<div class="ys-m' + (i % 3 === 0 && i ? ' q' : '') +
+        (pt && pt.y === y && pt.m === i + 1 ? ' now' : '') + '" aria-hidden="true">' +
+        '<span class="ys-l">' + MON[i] + '</span><span class="ys-s">' + MON[i].charAt(0) + '</span></div>';
+    }
+    if (s !== null && en !== null && en > s) {
+      bar = '<div class="ys-bar' + (ps.y < y ? ' from' : '') + (pe.y > y ? ' to' : '') +
+        '" style="left:' + ysPct(s) + ';width:' + ysPct(en - s) + '"></div>';
+      lab.push('planned ' + dshort(ys.startISO) + ' to ' + dshort(ys.endISO));
+    } else {
+      lab.push('no planned window');
+    }
+    /* the "Today" label flips to the line's left after October, and also when
+       the target diamond sits within ~2 months to its right (it would collide) */
+    if (t !== null && pt.y === y) {
+      marks += '<div class="ys-today' + (t > 10 || (pe && pe.y === y && en >= t && en - t < 2.2) ? ' r' : '') + '" style="left:' + ysPct(t) + '"><span>Today</span></div>';
+      lab.push('today ' + dshort(ys.todayISO));
+    }
+    if (pe && pe.y === y) {
+      marks += '<div class="ys-tgt' + (en > 11.85 ? ' end' : '') + '" style="left:' + ysPct(en) + '"><i></i></div>';
+      lab.push('target ' + dshort(ys.endISO));
+    } else if (pe) {
+      lab.push('target ' + dshort(ys.endISO) + ', after ' + y);
+    }
+    return '<figure class="ys" role="img" aria-label="' + e(y + ': ' + lab.join('; ')) + '">' +
+      '<figcaption class="ys-cap"><b>' + y + '</b><span>Planned ' + e(ps ? dshort(ys.startISO) : '—') +
+      ' → <span class="ys-tgk" aria-hidden="true">◆</span> ' + e(pe ? dshort(ys.endISO) : 'no target date') +
+      '</span></figcaption>' +
+      '<div class="ys-track">' + cells + '<div class="ys-lay">' + bar + marks + '</div></div></figure>';
+  }
+
+  function budgetTriple(id, b) {
+    function st(k, v, sub, neg) {
+      return '<div class="bt-s"><dt>' + k + '</dt><dd><b class="num' + (neg ? ' neg' : '') + '">' + v + '</b>' +
+        (sub ? '<span>' + sub + '</span>' : '') + '</dd></div>';
+    }
+    var over = b.available < 0;
+    return '<dl class="bt">' +
+      st('Budget no. ' + e(id), D.money(b.requested), 'requested') +
+      st('Current budget available', D.money(b.available),
+         (over ? 'over the ' : 'of ') + D.money(b.total) + ' country ceiling', over) +
+      st('Total', D.money(b.total), 'country ceiling') + '</dl>';
+  }
+
+  var DOT = { notstarted: ['○', 'Not started'], inprogress: ['◐', 'In progress'], done: ['✓', 'Done'] };
+  function dotRail(stages, doneCount) {
+    var li = stages.map(function (s, i) {
+      var k = DOT[s.status] ? s.status : 'notstarted';
+      return '<li class="dr-i ' + k + '">' +
+        '<span class="dr-dot" aria-hidden="true">' + DOT[k][0] + '</span>' +
+        '<span class="dr-tx"><span class="dr-lb">' + (i + 1) + ' · ' + e(s.label) + '</span>' +
+        '<span class="dr-st">' + DOT[k][1] + '</span></span></li>';
+    }).join('');
+    return '<div class="dr"><p class="dr-sum">' + doneCount + ' of ' + stages.length + ' stages done</p>' +
+      '<ol class="dr-rail">' + li + '</ol></div>';
+  }
+
+  /* two short lines per brief field; the rest is counted, never cut */
+  function briefField(label, text) {
+    var lines = String(text || '').split('\n').map(function (l) {
+      return l.replace(/^\s*(?:[•\-*]|\d+[.)])\s*/, '').trim();
+    }).filter(Boolean);
+    var body = lines.length
+      ? '<ul class="dv-lines">' + lines.slice(0, 2).map(function (l) { return '<li>' + e(l) + '</li>'; }).join('') +
+        '</ul>' + (lines.length > 2 ? '<span class="dv-more">+' + (lines.length - 2) + ' more in the concept draft</span>' : '')
+      : '<span class="dv-none">not drafted yet</span>';
+    return '<div class="dv-f"><dt>' + e(label) + '</dt><dd>' + body + '</dd></div>';
+  }
+
+  function devFrontView(p, user) {
+    var f = D.devFront(p);
+    var chip = f.released
+      ? '<span class="dv-chip rel"><span aria-hidden="true">✓</span> Released</span>'
+      : '<span class="dv-chip">Not released</span>';
+    var html = '<div class="ph dv-ph"><span class="dv-t">In development</span>' + chip + rowActions(p, user) + '</div>';
+    html += '<div class="dv">';
+    html += yearStrip(f.yearStrip);
+    html += budgetTriple(p.id, f.budget);
+    var br = f.brief || {};
+    html += '<div class="dv-row">' +
+      '<dl class="dv-brief">' + briefField('Objectives', br.objectives) + briefField('Key activities', br.activities) + '</dl>' +
+      '<dl class="dv-ppl">' +
+        '<div class="dv-f"><dt>Owner</dt><dd><b>' + e(f.owner.name) + '</b></dd></div>' +
+        '<div class="dv-f"><dt>Backup</dt><dd>' + (f.owner.backupName ? '<b>' + e(f.owner.backupName) + '</b>'
+          : '<span class="dv-none">none set</span>') + '</dd></div>' +
+      '</dl></div>';
+    html += dotRail(f.stages, f.doneCount);
+    var note;
+    if (f.released) {
+      note = 'Released' + (f.released_by ? ' by ' + e(CBP.userName(f.released_by)) : '') +
+        (f.released_at ? ' on ' + e(D.fmtDateY(f.released_at)) : '') + ' — Request submitted is open.';
+    } else if (f.allDone) {
+      note = 'All ' + f.stages.length + ' stages done — waiting for the Regional Manager or Admin to release it to submission.';
+    } else {
+      note = 'Request submitted opens once all ' + f.stages.length +
+        ' stages are done and the Regional Manager or Admin releases the phase.';
+    }
+    html += '<p class="dv-note">' + note + '</p></div>';
+    if (!p.owner) {
+      html += '<div class="gnote">No owner set — alerts cannot route until one is assigned (D-14).</div>';
+    }
+    return html;
   }
 
   /* ================================================ delegated listener ====

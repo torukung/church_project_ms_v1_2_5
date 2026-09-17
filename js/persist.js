@@ -25,7 +25,9 @@
     'gateEvents', 'gateEventSeq', 'gateProposals', 'proposalSeq',
     'syncQueue', 'syncSeq',
     'contracts', 'contractSeq', 'contractTemplates', 'signingAuthority', 'signingDelegations',
-    'scopeByDashboard', 'clock', 'alertPrefs', 'digestQueue'
+    'scopeByDashboard', 'clock', 'alertPrefs', 'digestQueue',
+    /* v1.2.7 — in-development records + their sequence (schema 4) */
+    'devStages', 'devSeq'
   ];
 
   /* CORE_API §5 — the safe navigation/disclosure ui keys (F8/F9/F35). */
@@ -267,6 +269,21 @@
       if (!('portfolioSort' in s.ui)) s.ui.portfolioSort = 'coverage';
       if (!('homeCountry' in s.ui)) s.ui.homeCountry = null;
       return prune(s);
+    },
+
+    /* 3 → 4 : v1.2.x → v1.2.7 — the in-development records arrive (R-8).
+       Seeded projects gain their fixture record; every other project stays
+       untouched (empty on read, gated until released). devSeq starts at the
+       seed's counter so ids minted after the migration never collide. */
+    3: function (s) {
+      var seed = (typeof CBP_DATA !== 'undefined' && CBP_DATA) || {};
+      var fromSeed = JSON.parse(JSON.stringify(seed.dev_stages || {}));
+      if (!s.devStages || typeof s.devStages !== 'object') s.devStages = {};
+      Object.keys(fromSeed).forEach(function (pid) {
+        if (!s.devStages[pid]) s.devStages[pid] = fromSeed[pid];
+      });
+      if (typeof s.devSeq !== 'number') s.devSeq = seed.dev_seq || 0;
+      return s;
     }
   };
 

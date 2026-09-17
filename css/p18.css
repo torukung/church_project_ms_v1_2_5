@@ -1,0 +1,67 @@
+/* p18.css — v1.2.7 public review page #/review/<token> (.rv-*), Lane C.
+   The document itself is the shared .dc-* renderer (print.css). Field edges use
+   --muted (the global .inp --line border is < 3:1). Invalid fields carry a 2px
+   --rose edge + ⚠ + words, never colour alone. */
+.rv{min-height:100vh;background:var(--paper);color:var(--ink)}
+.rv-brand{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;padding:12px 20px;
+  border-bottom:1px solid var(--line);background:var(--card)}
+.rv-brand b{font-size:16px;color:var(--ink)}
+.rv-brand span{font-size:12.5px;color:var(--slate)}
+.rv-main{max-width:210mm;margin:0 auto;padding:20px 16px 56px;display:grid;gap:16px;min-width:0}
+
+.rv-ask{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--glass);
+  border-radius:var(--r);padding:16px 18px}
+.rv-ask h1{font-size:20px;line-height:1.3;margin:0 0 6px;color:var(--ink);text-wrap:balance}
+.rv-ask p{margin:0 0 10px;color:var(--slate);font-size:14px;text-wrap:pretty}
+.rv-ask p b{color:var(--ink)}
+.rv-facts{margin:0;padding:0;list-style:none;display:grid;gap:4px;font-size:12.5px;color:var(--slate)}
+.rv-facts li{padding-left:20px;text-indent:-20px}
+.rv-facts li::before{content:'\2713';display:inline-block;width:20px;text-indent:0;color:var(--verd);font-weight:700}
+
+.rv .dc-sheet{padding:28px 28px 24px}
+
+.rv-form{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+.rv-form h2{font-size:16px;margin:0 0 4px;color:var(--ink)}
+.rv-form > p{margin:0 0 14px;font-size:12.5px;color:var(--slate)}
+.rv-f{display:grid;gap:4px;margin:0 0 14px;max-width:560px}
+.rv-f:has(textarea){max-width:none}
+.rv-f label{font-size:14px;font-weight:600;color:var(--ink)}
+.rv-f label small{font-weight:400;font-size:12.5px;color:var(--slate)}
+.rv-f .hint{font-size:12.5px;color:var(--slate)}
+.rv .inp{border-color:var(--muted);font-size:14px}
+.rv textarea.inp{resize:vertical;line-height:1.5}
+.rv .inp:focus-visible{outline:2px solid var(--glass);outline-offset:1px}
+.rv .inp[aria-invalid="true"]{border-color:var(--rose);border-width:2px}
+.rv-err{font-size:12.5px;font-weight:600;color:var(--rose)}
+.rv-err::before{content:'\26A0  '}
+.rv-sum{border:2px solid var(--rose);background:var(--rose-bg);color:var(--rose);border-radius:var(--r);
+  padding:10px 14px;margin:0 0 14px;font-size:12.5px}
+.rv-sum:focus{outline:2px solid var(--glass);outline-offset:2px}
+.rv-sum ul{margin:4px 0 0 18px;padding:0}
+.rv-sum a{color:var(--rose);font-weight:600}
+.rv-act{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.rv-act .btn{min-height:40px;padding-left:16px;padding-right:16px;font-size:14px}
+.rv .btn:focus-visible{outline:2px solid var(--glass);outline-offset:2px}   /* audit 1.2.7: visible 2px ring, not the UA auto ring */
+.rv-act small{font-size:12.5px;color:var(--slate)}
+
+.rv-done,.rv-gone{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--verd);
+  border-radius:var(--r);padding:18px}
+.rv-done:focus{outline:2px solid var(--glass);outline-offset:2px}
+.rv-done h1,.rv-gone h1{font-size:20px;line-height:1.3;margin:0 0 6px;color:var(--ink);text-wrap:balance}
+.rv-gone{border-left-color:var(--muted);max-width:560px;width:100%;margin:8vh auto 0}
+.rv-done p,.rv-gone p{margin:0 0 10px;color:var(--slate);font-size:14px;text-wrap:pretty}
+.rv-done p b{color:var(--ink);overflow-wrap:anywhere}
+.rv-who{overflow-wrap:anywhere}
+.rv-done blockquote{margin:8px 0 12px;padding:8px 12px;border-left:3px solid var(--muted);color:var(--ink);
+  background:var(--paper);white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px}
+
+@media (max-width:560px){
+  .rv-brand{padding:10px 16px}
+  .rv-main{padding:12px 0 40px;gap:12px}
+  .rv-ask,.rv-form,.rv-done{border-radius:0;border-right:0;padding:14px 16px}
+  .rv-form{border-left:0}
+  .rv-gone{margin:4vh 0 0;border-radius:0;border-right:0}
+  .rv-ask h1{font-size:20px}
+  .rv .dc-sheet{padding:20px 16px}
+  .rv-act .btn{flex:1 1 100%;justify-content:center}
+}

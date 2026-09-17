@@ -526,7 +526,11 @@
     contract_admin:    { admin: 1, m1: 0, m2: 0, m3: 0, viewer: 0 },
     /* v1.2.0 — T-14: exactly these two new rows */
     backup:            { admin: 1, m1: 0, m2: 0, m3: 0, viewer: 0 },
-    advance_clock:     { admin: 1, m1: 0, m2: 0, m3: 0, viewer: 0 }
+    advance_clock:     { admin: 1, m1: 0, m2: 0, m3: 0, viewer: 0 },
+    /* v1.2.7 — in-development stages (R-3): any project-scoped role flips a
+       stage (m3 only on their own record); M1 / Admin release to submission. */
+    dev_edit:          { admin: 1, m1: 1, m2: 1, m3: 1, viewer: 0 },
+    dev_release:       { admin: 1, m1: 1, m2: 0, m3: 0, viewer: 0 }
   };
   D.MATRIX = MATRIX;   /* v1.1.0 — exposed read-only for the P9 permission table and audits */
 
@@ -550,6 +554,14 @@
       }
     }
     if (user.role === 'm2' && action === 'editGantt') return owns;
+    /* v1.2.7 — dev_edit / dev_release are scope-bound: the project's country
+       must be in the persona's data scope, and an M3 must own the record. */
+    if (action === 'dev_edit' || action === 'dev_release') {
+      var st0 = S();
+      if (st0 && D.visibleCountries(user, st0.countries).indexOf(project.country) === -1) return false;
+      if (user.role === 'm3') return owns;
+      return true;
+    }
     if (action === 'submit') return project.status === 4;
     if (action === 'review') return project.status === 3 && !D.gateStarted(project);
     if (action === 'gate') return project.status === 3 && D.gateStarted(project);
@@ -1306,7 +1318,9 @@
 
   D.NEEDS_KINDS = ['review', 'gate', 'ready', 'proposal', 'mine_return', 'watching',
                    'contract_draft', 'contract_review', 'contract_approve_sig',
-                   'contract_sign', 'contract_send'];
+                   'contract_sign', 'contract_send',
+                   /* v1.2.7 R-3a — M1/Admin "Release to submission" */
+                   'dev-release'];
 
   /* the chip a kind answers to (F6 keeps the v1.1.0 headings as chip labels) */
   D.NEEDS_CHIPS = [
@@ -1361,7 +1375,8 @@
     'ask-submit':        'Submit',    /* "Request submitted" */
     'ask-gate':          'Gate',      /* "Update gate" */
     'p6x-confirm':       'Confirm',   /* "Confirm" (proposal) */
-    'p6x-open-contract': 'Contracts'  /* "Open agreement" / "Open Contracts" */
+    'p6x-open-contract': 'Contracts', /* "Open agreement" / "Open Contracts" */
+    'dev-release':       'Release'    /* v1.2.7 "Release to submission" */
   };
 
   function act(a, label, needs, brass) {
@@ -1449,9 +1464,21 @@
         });
     }
 
+    /* (c2) v1.2.7 R-3a — status-4 projects with all four development stages
+       Done that this persona (M1 in scope / Admin) can release to submission.
+       Runs before (d) so the release row wins over a "ready" row on a project
+       the same persona also owns: until it is released nobody can submit. */
+    D.devNeedsRelease(user).forEach(function (p) {
+      pushProject(p, 'dev-release',
+        [act('dev-release', 'Release to submission', 'none', true)],
+        { reason: 'release', devDone: D.devDoneCount(p), devGated: false });
+    });
+
     /* (d) my projects ready to submit — p6.js:218. A returned record is the
        same row wearing a different hat: it is called out as mine_return so the
-       owner can see it came back. */
+       owner can see it came back. v1.2.7: the row carries `devGated` (true
+       while the in-development phase is not yet released, R-3a) so the page
+       can render Request submitted disabled rather than hide the row. */
     if (canSubmit) {
       scoped.filter(function (p) {
         return p.status === 4 && (p.owner === user.id || p.backup === user.id);
@@ -1459,7 +1486,7 @@
         var returned = D.wasReturned(p);
         pushProject(p, returned ? 'mine_return' : 'ready',
           [act('ask-submit', 'Request submitted', 'none', true)],
-          { reason: 'submit' });
+          { reason: 'submit', devGated: !D.devReleased(p), devDone: D.devDoneCount(p) });
       });
     }
 
@@ -1804,6 +1831,216 @@
       coverage: cov, committed: committed, ceiling: ceiling,
       topExceptions: ex.slice(0, 6),
       countries: D.portfolio(user)
+    };
+  };
+
+  /* ================================================ v1.2.7 · in development ==
+     The status-4 phase (R-3 … R-8a). Records live in state.devStages keyed by
+     project id; a project with no record is "never touched" and reads as an
+     empty default here. Everything is pure: D.devOf never writes the state —
+     CBP.actions owns the record creation. Names are the brief §3 names. */
+
+  var DEV_STATUS = ['notstarted', 'inprogress', 'done'];
+  D.DEV_STATUS = DEV_STATUS;
+
+  function devStages() { return (CFG().DEV_STAGES) || []; }
+
+  function emptyStage() {
+    return { status: 'notstarted', note: '', updated_by: null, updated_at: null,
+             observations: [], justification: '', images: [], draft: null,
+             docs: [], links: [], comments: [] };
+  }
+
+  /* the empty default record (a fresh object every call) */
+  D.devEmpty = function () {
+    var stages = {};
+    devStages().forEach(function (st) { stages[st.key] = emptyStage(); });
+    return { released: false, released_by: null, released_at: null, stages: stages };
+  };
+
+  /* the live record, or the empty default when the project was never touched */
+  D.devOf = function (p) {
+    var st = S();
+    var id = p && (typeof p === 'string' ? p : p.id);
+    var rec = st && st.devStages && id ? st.devStages[id] : null;
+    if (rec) return rec;
+    return D.devEmpty();
+  };
+
+  /* one stage, always with every field present (the record may be sparse) */
+  D.devStage = function (p, key) {
+    var rec = D.devOf(p);
+    var raw = (rec.stages && rec.stages[key]) || null;
+    var out = emptyStage();
+    if (raw) Object.keys(raw).forEach(function (k) { out[k] = raw[k]; });
+    if (DEV_STATUS.indexOf(out.status) === -1) out.status = 'notstarted';
+    return out;
+  };
+
+  D.devStageLabel = function (key) {
+    var row = devStages().filter(function (st) { return st.key === key; })[0];
+    return row ? row.label : key;
+  };
+
+  D.devStatusLabel = function (status) {
+    return (CFG().DEV_STATUS || {})[status] || 'Not started';
+  };
+
+  D.devDoneCount = function (p) {
+    return devStages().filter(function (st) { return D.devStage(p, st.key).status === 'done'; }).length;
+  };
+
+  D.devAllDone = function (p) {
+    var n = devStages().length;
+    return n > 0 && D.devDoneCount(p) === n;
+  };
+
+  D.devReleased = function (p) { return !!D.devOf(p).released; };
+
+  /* who may flip a stage / edit inputs: admin, M1 and M2 in scope, the M3
+     owner — only while the project is at status 4 and not yet released */
+  D.devCanEdit = function (user, p) {
+    if (!user || !p) return false;
+    if (p.status !== 4) return false;
+    if (D.devReleased(p)) return false;
+    return D.can(user, 'dev_edit', p);
+  };
+
+  /* who may release: admin, M1 in scope — status 4, all four Done, unreleased */
+  D.devCanRelease = function (user, p) {
+    if (!user || !p) return false;
+    if (p.status !== 4 || D.devReleased(p)) return false;
+    if (!D.can(user, 'dev_release', p)) return false;
+    return D.devAllDone(p);
+  };
+
+  /* every status-4 project in scope waiting on this persona's release */
+  D.devNeedsRelease = function (user) {
+    var st = S();
+    if (!user || !st) return [];
+    if (!D.can(user, 'dev_release')) return [];
+    return D.visibleProjects(user, st.projects, st.countries).filter(function (p) {
+      return D.devCanRelease(user, p);
+    });
+  };
+
+  /* the year strip window: planned from created_at / first activity to the
+     target date, inside the budget year */
+  function devWindow(p) {
+    var st = S();
+    var year = String(CFG().BUDGET_YEAR || (CFG().TODAY || '').slice(0, 4));
+    var first = p.created_at || null;
+    if (!first && st) {
+      (st.activity || []).forEach(function (a) {
+        if ((a.project || a.project_id) !== p.id || !a.at) return;
+        if (!first || a.at < first) first = a.at;
+      });
+    }
+    return {
+      year: +year,
+      startISO: first || (year + '-01-01'),
+      endISO: p.target_date || (year + '-12-31'),
+      todayISO: CFG().TODAY || null
+    };
+  }
+
+  var MON3 = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  /* R-4 — everything the P3 expanded row's Status segment draws for a
+     status-4 project. Pure data; the page owns the markup. */
+  D.devFront = function (p) {
+    var st = S();
+    var rec = D.devOf(p);
+    var win = devWindow(p);
+    var months = MON3.map(function (m, i) {
+      var iso = win.year + '-' + (i < 9 ? '0' : '') + (i + 1);
+      return { n: i + 1, label: m, iso: iso, current: !!win.todayISO && win.todayISO.slice(0, 7) === iso };
+    });
+    var country = st ? st.countries.filter(function (c) { return c.code === p.country; })[0] : null;
+    var ceiling = country ? country.ceiling : 0;
+    var others = st ? st.projects.filter(function (x) { return x.country === p.country && x.id !== p.id; }) : [];
+    var committedExcl = D.committedTotal(others);
+
+    var G = CBP.docgen;
+    var brief = null;
+    var c = D.devStage(p, 'concept');
+    if (c.draft && c.draft.sections && G) {
+      var pick = function (key) {
+        var s = c.draft.sections.filter(function (x) { return x.key === key; })[0];
+        return s ? G.blocksToPlain(G.htmlToBlocks(s.html)) : null;
+      };
+      brief = { objectives: pick('objectives'), activities: pick('activities') };
+      if (!brief.objectives && !brief.activities) brief = null;
+    }
+
+    return {
+      yearStrip: { year: win.year, startISO: win.startISO, endISO: win.endISO, todayISO: win.todayISO, months: months },
+      budget: { requested: p.amount || 0, available: ceiling - committedExcl, total: ceiling, committedExcl: committedExcl },
+      brief: brief,
+      owner: { id: p.owner || null, name: p.owner ? CBP.userName(p.owner) : 'unassigned',
+               backup: p.backup || null, backupName: p.backup ? CBP.userName(p.backup) : null },
+      stages: devStages().map(function (s) {
+        var sg = D.devStage(p, s.key);
+        return { key: s.key, label: s.label, status: sg.status, statusLabel: D.devStatusLabel(sg.status),
+                 updated_by: sg.updated_by, updated_at: sg.updated_at, note: sg.note || '' };
+      }),
+      doneCount: D.devDoneCount(p),
+      allDone: D.devAllDone(p),
+      released: !!rec.released, released_by: rec.released_by || null, released_at: rec.released_at || null
+    };
+  };
+
+  /* the document a review token points at: { p, stageKey, link, doc } or
+     null for an unknown token. A revoked token still resolves (link.active
+     === false) so the public page can say "no longer active" without
+     leaking whether it ever existed elsewhere. */
+  D.reviewByToken = function (token) {
+    var st = S();
+    if (!st || !token || !st.devStages) return null;
+    var out = null;
+    Object.keys(st.devStages).forEach(function (pid) {
+      if (out) return;
+      var rec = st.devStages[pid];
+      Object.keys(rec.stages || {}).forEach(function (key) {
+        if (out) return;
+        var sg = rec.stages[key];
+        (sg.links || []).forEach(function (l) {
+          if (out || l.token !== token) return;
+          var doc = (sg.docs || []).filter(function (d) { return d.id === l.doc_id; })[0] || null;
+          out = { p: CBP.projectById(pid), stageKey: key, link: l, doc: doc };
+        });
+      });
+    });
+    return out;
+  };
+
+  /* a doc by id: { p, stageKey, doc } or null */
+  D.devDocById = function (docId) {
+    var st = S();
+    if (!st || !docId || !st.devStages) return null;
+    var out = null;
+    Object.keys(st.devStages).forEach(function (pid) {
+      if (out) return;
+      var rec = st.devStages[pid];
+      Object.keys(rec.stages || {}).forEach(function (key) {
+        if (out) return;
+        ((rec.stages[key] || {}).docs || []).forEach(function (d) {
+          if (!out && d.id === docId) out = { p: CBP.projectById(pid), stageKey: key, doc: d };
+        });
+      });
+    });
+    return out;
+  };
+
+  /* the audience key / label / default recipients / reply-to for a stage */
+  D.devAudience = function (p, stageKey) {
+    var row = devStages().filter(function (s) { return s.key === stageKey; })[0] || {};
+    var aud = row.audience || 'specialist';
+    return {
+      key: aud,
+      label: (CFG().DEV_AUDIENCE || {})[aud] || aud,
+      to: ((CFG().DEV_RECIPIENTS || {})[aud] || []).slice(),
+      reply_to: 'dev-' + stageKey + '-' + (p ? p.id : '') + '@' + (CFG().DEV_REPLY_DOMAIN || 'portal.example.org')
     };
   };
 

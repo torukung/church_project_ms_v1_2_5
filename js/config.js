@@ -36,8 +36,8 @@ CBP.CONFIG = {
      APP_VERSION + schema_version + a hash of location.pathname namespace the
      IndexedDB database and record key, because every file:// folder shares one
      origin in Chromium (audit F7). STORAGE_KEY is filled by initConfig. */
-  APP_VERSION: '1.2.6',
-  SCHEMA_VERSION: null,          /* filled from CBP_DATA.schema_version (3) */
+  APP_VERSION: '1.2.7.1',
+  SCHEMA_VERSION: null,          /* filled from CBP_DATA.schema_version (4 since v1.2.7) */
   STORAGE_KEY: null,             /* 'cbp.<schema>.<app>.<hash(pathname)>' */
   DIGEST_HOUR: 7,                /* default per-user digest hour (Ask-gate §7.1) */
   BACKUP_KEEP: 7,                /* scheduled backups kept in the IDB store (§7.2) */
@@ -102,12 +102,34 @@ CBP.CONFIG = {
   CONTRACT_MET: ['sent', 'active', 'amending'],   /* S-08: statuses that satisfy the contract gate */
   REVIEW_DIVISIONS: [ { key: 'ogc', label: 'OGC', role: 'ogc' }, { key: 'finance', label: 'Finance', role: 'finance' } ],
 
+  /* v1.2.7 — the four in-development stages (R-3/R-5), in order. `audience`
+     names the external reviewer group a stage's document goes to; the two
+     stages without one (assessment, concept) address the local humanitarian
+     specialist ('specialist'). Status enum: notstarted | inprogress | done. */
+  DEV_STAGES: [
+    { key: 'assessment', label: 'Assessment',                          audience: 'specialist' },
+    { key: 'concept',    label: 'Project Concept',                     audience: 'specialist' },
+    { key: 'orgcheck',   label: 'Org Background check',                audience: 'hq' },
+    { key: 'areacomm',   label: 'Area Humane Society Communication',   audience: 'area' }
+  ],
+  DEV_STATUS: { notstarted: 'Not started', inprogress: 'In progress', done: 'Done' },
+  DEV_AUDIENCE: { specialist: 'Local humanitarian specialist', hq: 'HQ', area: 'Area office' },
+  /* R-2a — default external recipients per audience (e-mail strings, not
+     personas) and the reply-to pattern dev-<stage>-<projectId>@portal.example.org */
+  DEV_RECIPIENTS: { specialist: [], hq: ['humanitarian-review@hq.example.org'], area: ['area-humanitarian@asia.example.org'] },
+  DEV_REPLY_DOMAIN: 'portal.example.org',
+  DEV_IMG_MAX: 6,                 /* images per project (Assessment) */
+  DEV_IMG_BYTES: 400 * 1024,      /* per image */
+
 
   /* hash routes; anything not listed falls back to FALLBACK_ROUTE */
   ROUTES: ['dashboard','projects','project','timeline','approvals','budget',
            'messages','alerts','admin','signin','mobile','contracts',
            /* v1.2.0 — D4 role homes; `home` dispatches by role (T-11) */
-           'home','worker','country','portfolio','reviews','viewer'],
+           'home','worker','country','portfolio','reviews','viewer',
+           /* v1.2.7 — public review page (#/review/<token>) and the document
+              print view (#/doc/<docId>); both fullbleed, no persona needed */
+           'review','doc'],
   DEFAULT_ROUTE: 'signin',    /* the front door (P1) */
   FALLBACK_ROUTE: 'signin',    /* unknown route, per the brief */
 
@@ -142,7 +164,8 @@ CBP.CONFIG = {
     timeline: 'C', alerts: 'C', budget: 'C', admin: 'C',
     signin: 'D', mobile: 'D', contracts: 'v1.1.0',
     home: 'v1.2.0', worker: 'v1.2.0', country: 'v1.2.0', portfolio: 'v1.2.0',
-    reviews: 'v1.2.0', viewer: 'v1.2.0'
+    reviews: 'v1.2.0', viewer: 'v1.2.0',
+    review: 'v1.2.7', doc: 'v1.2.7'
   }
 };
 

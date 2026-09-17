@@ -106,11 +106,23 @@
        from any other tab brings the tab pointer with it */
     if (state.ui.p4Edit) state.ui.p4Tab = 'overview';
 
+    /* v1.2.7 (R-6) — entering a status-4 record that has not been released
+       opens on the Development tab, unless a tab other than the default was
+       already chosen (ui.p4Tab is persisted and defaults to 'overview').
+       Clicks on the tab strip never pass through here: the id is unchanged. */
+    if (state.ui.p4TabFor !== p.id) {
+      state.ui.p4TabFor = p.id;
+      if (devDefault(p) && !state.ui.p4Edit && (!state.ui.p4Tab || state.ui.p4Tab === 'overview')) {
+        state.ui.p4Tab = 'development';
+      }
+    }
+    if (state.ui.p4Tab === 'development' && !hasDevTab(p)) state.ui.p4Tab = 'overview';
+
     /* v1.2.6 (R-C) — the unread strip is now one item of the alert tray */
     var html = drillCrumb(state) + header(p, state) + returnBar(p, state) + alertTray(p, state) +
       banner(p, state) +
       '<div class="p4-cols">' +
-        '<div class="p4-main bk">' + tabs(state) +
+        '<div class="p4-main bk">' + tabs(state, p) +
           '<div class="bk-panel" role="tabpanel" id="p4-panel" aria-labelledby="p4-tab-' +
             e(state.ui.p4Tab || 'overview') + '">' + tabBody(p, state) + '</div>' +
         '</div>' +
@@ -391,7 +403,7 @@
 
   /* ---------------------------------------------------------------tabs -- */
 
-  function tabs(state) {
+  function tabs(state, p) {
     var openQ = 0, unread = 0;
     if (state.ui.param) {
       openQ = CBP.entriesFor(state.ui.param).filter(function (x) {
@@ -401,8 +413,10 @@
     }
     /* v1.2.6 — book tabs (.bk-): same keys, labels, badges and acts; the
        .p4-tabs / .p4-tab classes stay for the walks that select on them. */
-    return '<div class="p4-tabs bk-strip" role="tablist" aria-label="Project record">' +
-      TABS.map(function (t) {
+    var list = tabList(state.ui.param ? CBP.projectById(state.ui.param) : p);
+    return '<div class="p4-tabs bk-strip' + (list.length > TABS.length ? ' bk-many' : '') +
+      '" role="tablist" aria-label="Project record">' +
+      list.map(function (t) {
         var n = (t.k === 'activity') ? openQ : (t.k === 'comments' ? unread : 0);
         var badge = n ? ' <span class="p4-tbadge num">' + n + '</span>' : '';
         var on = state.ui.p4Tab === t.k;
@@ -415,6 +429,7 @@
 
   function tabBody(p, state) {
     switch (state.ui.p4Tab) {
+      case 'development': return hasDevTab(p) ? devTab(p, state) : overviewTab(p, state);
       case 'budget':   return budgetTab(p, state);
       case 'timeline': return timelineTab(p, state);
       case 'comments': return commentsTab(p, state);
@@ -1037,9 +1052,13 @@
   }
 
   function approvalPanel(p, state) {
+    /* v1.2.7 (R-6) — while status 4 and not yet released, the aside is the
+       In development card; after release a one-line note leads the v1.2.6
+       cards, which are otherwise untouched. */
+    if (p.status === 4 && !D.devReleased(p)) return devCard(p, state);
     var user = state.user;
     var declined = p.status === 'declined';
-    var html = '';
+    var html = releasedLine(p);
 
     /* T-08 — steps 1, 2, the Corporate Agreement step and Implementation used to
        be four hand-written stepRow() narratives here, a second telling of the
@@ -1161,6 +1180,617 @@
       (A.can(state.user, 'edit', p)
         ? '<div class="p4-actrow">' + btn('Owner settings', 'p4-edit', p.id) + '</div>' : ''));
   }
+
+  /* ============================= v1.2.7 · in development (R-3 … R-8a) =====
+     Lane C. Everything below reads D.dev* (derive.js) and writes only through
+     the dev-* acts in actions.js. Page-local state, all session-only:
+       ui.p4TabFor      the record the tab default was last applied to
+       ui.p4DevOpen     {pid: {stage: bool}} — accordion state (details toggle)
+       ui.p4DevKeep     {pid: {fieldId: value}} — typed-but-unsent field text
+       ui.p4DevConfirm  section key whose "Reset to generated" asks to confirm
+       ui.devDraft      {pid: {sec: html}} — unsaved editor text (CORE_API §1) */
+
+  var DEV_GLYPH = { notstarted: '○', inprogress: '◐', done: '✓' };
+  var DEV_ORDER = ['notstarted', 'inprogress', 'done'];
+  var GATED_TITLE = 'In development not yet released by the Regional Manager or Admin';
+  var STAGE_SUMMARY = {
+    assessment: 'Observations, justification and images',
+    concept: 'Pre-draft, documents, review link and mail',
+    orgcheck: 'Information pack, review link and mail to HQ',
+    areacomm: 'Information pack, review link and mail to the Area office'
+  };
+
+  function devStagesCfg() { return CBP.CONFIG.DEV_STAGES || []; }
+  function devRec(p) {
+    var st = CBP.state.devStages;
+    return st && p && st[p.id] ? st[p.id] : null;
+  }
+  function hasDevTab(p) { return !!p && (p.status === 4 || !!devRec(p)); }
+  function devDefault(p) { return p.status === 4 && !D.devReleased(p); }
+  function tabList(p) {
+    return hasDevTab(p) ? [{ k: 'development', label: 'Development' }].concat(TABS) : TABS;
+  }
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : (many || one + 's')); }
+  function statusLabel(s) { return D.devStatusLabel ? D.devStatusLabel(s) : s; }
+
+  function devChip(status) {
+    var s = DEV_GLYPH[status] ? status : 'notstarted';
+    return '<span class="pd-chip is-' + s + '"><span aria-hidden="true">' + DEV_GLYPH[s] +
+      '</span>' + e(statusLabel(s)) + '</span>';
+  }
+
+  function devProgress(done, total) {
+    var cells = '';
+    for (var i = 0; i < total; i++) cells += '<i' + (i < done ? ' class="on"' : '') + '></i>';
+    return '<div class="pd-prog"><span class="pd-bar" aria-hidden="true">' + cells + '</span>' +
+      '<span class="pd-cnt"><b class="num">' + done + ' of ' + total + '</b> stages done</span></div>';
+  }
+
+  function keepOf(pid) {
+    var k = CBP.state.ui.p4DevKeep;
+    return (k && k[pid]) || {};
+  }
+  function kept(pid, id, dflt) {
+    var k = keepOf(pid);
+    return typeof k[id] === 'string' ? k[id] : (dflt == null ? '' : dflt);
+  }
+
+  function releasedLine(p) {
+    var r = D.devOf(p);
+    if (!r.released) return '';
+    return '<p class="pdc-rel"><span class="pdc-relic" aria-hidden="true">✓</span><span>' +
+      'Released to submission by <b>' + e(CBP.userName(r.released_by)) + '</b> on ' +
+      '<span class="num">' + e(D.fmtDateY(r.released_at)) + '</span> · ' +
+      '<button type="button" class="p4-inlink" data-act="p4tab" data-tab="development">' +
+      'development record</button></span></p>';
+  }
+
+  /* ---- aside: the In development card (replaces the gate cards) ---- */
+  function devCard(p, state) {
+    var user = state.user;
+    var f = D.devFront(p);
+    var total = f.stages.length;
+    var rows = f.stages.map(function (s) {
+      return '<li class="pdc-i is-' + e(s.status) + '">' +
+        '<div class="pdc-top"><b class="pdc-lb">' + e(s.label) + '</b>' + devChip(s.status) + '</div>' +
+        '<p class="pdc-by">' + (s.updated_by
+          ? 'by ' + e(CBP.userName(s.updated_by)) + ' · <span class="num">' +
+            e(D.fmtDateY(s.updated_at)) + '</span>'
+          : 'No change recorded yet') + '</p>' +
+        (s.note ? '<p class="pdc-note">' + e(s.note) + '</p>' : '') +
+        '</li>';
+    }).join('');
+
+    var foot = '';
+    if (D.can(user, 'dev_release', p)) {
+      foot += '<div class="p4-actrow pdc-act"><button class="btn brass" data-act="dev-release" data-id="' +
+        e(p.id) + '"' + (f.allDone ? '' : ' disabled title="' +
+        e('All four stages must be Done before release (' + f.doneCount + ' of ' + total + ')') + '"') +
+        '>Release to submission</button></div>' +
+        '<p class="pdc-hint">' + (f.allDone
+          ? 'All four stages are Done. Releasing opens Request submitted for the owner and notifies them and the Area Manager.'
+          : 'Opens once all four stages are Done (' + f.doneCount + ' of ' + total + ' so far).') + '</p>';
+    } else if (f.allDone) {
+      foot += '<p class="pdc-wait">All four stages are Done. Waiting for the Regional Manager or Admin to release it to submission.</p>';
+    } else {
+      foot += '<p class="pdc-hint">When all four stages are Done, the Regional Manager or Admin releases the project to submission.</p>';
+    }
+    if (D.can(user, 'submit', p) && !A.can(user, 'submit', p)) {
+      foot += '<div class="p4-actrow pdc-act"><button class="btn" disabled title="' + e(GATED_TITLE) +
+        '">Request submitted</button></div>' +
+        '<p class="pdc-hint">Request submitted opens after the release.</p>';
+    }
+    var onTab = state.ui.p4Tab === 'development';
+    var errs = (onTab ? '' : err(state, 'dev')) + err(state, 'submit');
+    return U.card('In development',
+      devProgress(f.doneCount, total) +
+      '<ol class="pdc-list">' + rows + '</ol>' + errs + foot +
+      (onTab ? '' : '<p class="pdc-go"><button type="button" class="p4-inlink" data-act="p4tab" ' +
+        'data-tab="development">Open the Development tab</button></p>'),
+      { cls: 'p4-appr pdc' });
+  }
+
+  /* ---- Development tab ---- */
+  function devTab(p, state) {
+    var user = state.user;
+    var f = D.devFront(p);
+    var canEdit = D.devCanEdit(user, p);
+    var cur = null;
+    f.stages.forEach(function (s) { if (!cur && s.status !== 'done') cur = s.key; });
+    var openMap = (state.ui.p4DevOpen && state.ui.p4DevOpen[p.id]) || {};
+
+    var ro = '';
+    if (f.released) {
+      ro = '<p class="pd-ro"><span aria-hidden="true">✓</span> Released to submission by <b>' +
+        e(CBP.userName(f.released_by)) + '</b> on ' + e(D.fmtDateY(f.released_at)) +
+        '. This record is read-only history.</p>';
+    } else if (p.status !== 4) {
+      ro = '<p class="pd-ro">The project has left status 4. This record is read-only history.</p>';
+    } else if (!canEdit) {
+      ro = '<p class="pd-ro">Read-only for your role. You can read every stage and open or download ' +
+        'the documents; the owner, the Area Manager, the Regional Manager or Admin make the changes.</p>';
+    }
+    var x = state.ui.err;
+    var errHtml = (x && x.key === 'dev')
+      ? '<div class="p4-err pd-err" role="alert">' + e(x.msg) + '</div>' : '';
+
+    var panels = devStagesCfg().map(function (st, i) {
+      var open = typeof openMap[st.key] === 'boolean' ? openMap[st.key] : st.key === cur;
+      return stagePanel(p, st, i, open, canEdit, state);
+    }).join('');
+
+    return '<section class="card pd" aria-labelledby="pd-h">' +
+      '<div class="pd-top"><h2 id="pd-h">In development</h2>' + devProgress(f.doneCount, f.stages.length) + '</div>' +
+      '<p class="pd-lede">Four stages, in order. Each one is marked Not started, In progress or Done with a ' +
+      'note; when all four are Done the Regional Manager or Admin releases the project to submission.</p>' +
+      ro + errHtml + '<div class="pd-stages">' + panels + '</div></section>';
+  }
+
+  function stageCounts(key, sg) {
+    var bits = [];
+    if (key === 'assessment') {
+      bits.push(plural(sg.observations.length, 'observation'));
+      bits.push(plural(sg.images.length, 'image'));
+    } else {
+      if (key === 'concept' && sg.draft) {
+        var ed = sg.draft.sections.filter(function (s) { return s.edited; }).length;
+        bits.push('pre-draft' + (ed ? ', ' + ed + ' edited' : ''));
+      }
+      bits.push(plural(sg.docs.length, 'document'));
+      bits.push(plural(sg.comments.length, 'comment'));
+    }
+    return bits.join(' · ');
+  }
+
+  function stagePanel(p, st, i, open, canEdit, state) {
+    var key = st.key, pid = p.id;
+    var sg = D.devStage(p, key);
+    var aud = key !== 'assessment' && st.audience ? D.devAudience(p, key) : null;
+    var meta = (aud ? 'For ' + e(aud.label) + ' · ' : '') + (sg.updated_by
+      ? 'by ' + e(CBP.userName(sg.updated_by)) + ' · <span class="num">' + e(D.fmtDateY(sg.updated_at)) + '</span>'
+      : 'no change recorded yet');
+
+    var ctl = '';
+    if (canEdit) {
+      ctl = '<div class="pd-ctl">' +
+        '<div class="pd-seg" role="group" aria-label="' + e('Status of ' + st.label) + '">' +
+        DEV_ORDER.map(function (v) {
+          var on = sg.status === v;
+          return '<button type="button" class="pd-sb is-' + v + (on ? ' on' : '') +
+            '" data-act="dev-stage-status" data-id="' + e(pid) + '" data-stage="' + e(key) +
+            '" data-value="' + v + '" aria-pressed="' + (on ? 'true' : 'false') + '">' +
+            '<span aria-hidden="true">' + DEV_GLYPH[v] + '</span>' + e(statusLabel(v)) + '</button>';
+        }).join('') + '</div>' +
+        '<div class="pd-notef"><label for="devNote-' + e(key) + '">Note</label>' +
+        '<input class="inp pd-in" type="text" id="devNote-' + e(key) + '" data-keep="1" value="' +
+        e(kept(pid, 'devNote-' + key, sg.note)) + '" placeholder="Saved with the status you press">' +
+        '</div></div>';
+    } else if (sg.note) {
+      ctl = '<p class="pd-noteRo"><b>Note</b> ' + e(sg.note) + '</p>';
+    }
+
+    var body;
+    if (key === 'assessment') body = assessBody(p, sg, canEdit);
+    else if (key === 'concept') body = conceptBody(p, sg, canEdit, state) + docStrip(p, key, sg, canEdit);
+    else body = '<p class="pd-sub">' + (key === 'orgcheck'
+        ? 'The Org Background check goes to HQ with the project information pack.'
+        : 'The Area Humane Society Communication goes to the Area office with the project information pack.') +
+        '</p>' + docStrip(p, key, sg, canEdit);
+
+    return '<section class="pd-stage is-' + e(sg.status) + '" id="pd-' + e(key) + '" aria-labelledby="pd-h-' + e(key) + '">' +
+      '<div class="pd-hd">' +
+        '<span class="pd-num" aria-hidden="true">' + (i + 1) + '</span>' +
+        '<div class="pd-ttl"><h3 id="pd-h-' + e(key) + '">' + e(st.label) + '</h3>' +
+          '<p class="pd-meta">' + meta + '</p></div>' +
+        devChip(sg.status) +
+      '</div>' + ctl +
+      '<details class="pd-det" data-pid="' + e(pid) + '" data-stage="' + e(key) + '"' + (open ? ' open' : '') + '>' +
+        '<summary><span class="pd-sumt">' + e(STAGE_SUMMARY[key] || 'Stage work') + '</span>' +
+        '<span class="pd-sumc">' + e(stageCounts(key, sg)) + '</span></summary>' +
+        '<div class="pd-body">' + body + '</div></details>' +
+      '</section>';
+  }
+
+  /* the "new observation" box empties once an add has gone through */
+  function obsNewValue(pid, sg) {
+    var k = keepOf(pid);
+    if (k._obsN !== undefined && sg.observations.length > +k._obsN) {
+      delete k.devObsNew; delete k._obsN;
+    }
+    return kept(pid, 'devObsNew');
+  }
+
+  /* ---- stage 1 · Assessment ---- */
+  function assessBody(p, sg, canEdit) {
+    var pid = p.id;
+    var cfg = CBP.CONFIG;
+    var max = cfg.DEV_IMG_MAX || 6, kb = Math.round((cfg.DEV_IMG_BYTES || 409600) / 1024);
+    var obs, just, imgs;
+
+    if (canEdit) {
+      obs = '<ol class="pd-obs">' + sg.observations.map(function (o, i) {
+        var id = 'devObs-' + o.id;
+        return '<li><label class="vh" for="' + e(id) + '">Observation ' + (i + 1) + '</label>' +
+          '<input class="inp pd-in" type="text" id="' + e(id) + '" data-keep="1" value="' +
+          e(kept(pid, id, o.text)) + '">' +
+          '<button type="button" class="btn sm" data-act="dev-obs-del" data-id="' + e(pid) +
+          '" data-obs="' + e(o.id) + '" aria-label="' + e('Remove observation ' + (i + 1)) + '">Remove</button></li>';
+      }).join('') + '</ol>' +
+      (sg.observations.length ? '' : '<p class="pd-empty">No observations yet.</p>') +
+      '<div class="pd-add"><label class="vh" for="devObsNew">New observation</label>' +
+        '<input class="inp pd-in" type="text" id="devObsNew" data-keep="1" value="' +
+        e(obsNewValue(pid, sg)) +
+        '" placeholder="Add an observation from the site visit">' +
+        '<button type="button" class="btn sm" data-act="dev-obs-add" data-id="' + e(pid) + '">Add</button></div>';
+      just = '<label class="pd-lab" for="devJust">Justification</label>' +
+        '<textarea class="inp pd-in" id="devJust" rows="4" data-keep="1" placeholder="Why this project is needed, in a few sentences">' +
+        e(kept(pid, 'devJust', sg.justification)) + '</textarea>' +
+        '<div class="pd-actrow"><button type="button" class="btn sm brass" data-act="dev-assess-save" data-id="' +
+        e(pid) + '">Save assessment</button><span class="pd-hint">Saves the observations and the justification.</span></div>';
+    } else {
+      obs = sg.observations.length
+        ? '<ul class="pd-obsro">' + sg.observations.map(function (o) { return '<li>' + e(o.text) + '</li>'; }).join('') + '</ul>'
+        : '<p class="pd-empty">No observations recorded.</p>';
+      just = '<h4>Justification</h4>' + (sg.justification
+        ? '<p class="pd-just">' + e(sg.justification) + '</p>'
+        : '<p class="pd-empty">No justification recorded.</p>');
+    }
+
+    imgs = '<ul class="pd-imgs">' + sg.images.map(function (im) {
+      var src = /^data:image\/(png|jpeg);base64,/.test(im.data || '') ? im.data : '';
+      var capId = 'devCap-' + im.id;
+      return '<li class="pd-img"><figure>' +
+        (src ? '<img src="' + e(src) + '" alt="' + e(im.caption || im.name) + '">' : '<div class="pd-noimg">No preview</div>') +
+        '<figcaption><b>' + e(im.name) + '</b>' +
+        (im.bytes ? '<span class="num">' + Math.max(1, Math.round(im.bytes / 1024)) + ' KB</span>' : '') +
+        (canEdit ? '' : (im.caption ? '<span class="pd-cap">' + e(im.caption) + '</span>' : '')) +
+        '</figcaption></figure>' +
+        (canEdit
+          ? '<label class="vh" for="' + e(capId) + '">Caption for ' + e(im.name) + '</label>' +
+            '<input class="inp pd-in" type="text" id="' + e(capId) + '" data-keep="1" value="' +
+            e(kept(pid, capId, im.caption)) + '" placeholder="Caption">' +
+            '<div class="pd-imact"><button type="button" class="btn sm" data-act="dev-img-caption" data-id="' +
+            e(pid) + '" data-img="' + e(im.id) + '">Save caption</button>' +
+            '<button type="button" class="btn sm" data-act="dev-img-del" data-id="' + e(pid) +
+            '" data-img="' + e(im.id) + '" aria-label="' + e('Remove image ' + im.name) + '">Remove</button></div>'
+          : '') +
+        '</li>';
+    }).join('') + '</ul>' +
+    (sg.images.length ? '' : '<p class="pd-empty">No images yet.</p>');
+
+    var add = canEdit
+      ? '<div class="pd-actrow">' + (sg.images.length < max
+          ? '<label class="btn sm pd-file">Add images<input class="vh" type="file" data-act="dev-img-add" data-id="' +
+            e(pid) + '" accept="image/png,image/jpeg" multiple></label>'
+          : '<button type="button" class="btn sm" disabled>Add images</button>') +
+        '<span class="pd-hint">' + sg.images.length + ' of ' + max + ' images · PNG or JPEG · up to ' + kb +
+        ' KB each. Images appear in the concept draft appendix.</span></div>'
+      : '';
+
+    return '<div class="pd-grid2">' +
+      '<div class="pd-blk"><h4>Observations</h4>' + obs + '</div>' +
+      '<div class="pd-blk">' + just + '</div></div>' +
+      '<div class="pd-blk"><h4>Images</h4>' + imgs + add + '</div>';
+  }
+
+  /* ---- stage 2 · Project Concept pre-draft (block editor) ---- */
+  function conceptBody(p, sg, canEdit, state) {
+    var pid = p.id, d = sg.draft;
+    if (!d || !d.sections || !d.sections.length) {
+      return '<div class="pd-blk pd-gen"><h4>Pre-draft</h4>' +
+        '<p class="pd-empty">No pre-draft yet. Generating one fills nine sections from the project record and the Assessment; each section can then be edited.</p>' +
+        (canEdit ? '<button type="button" class="btn sm brass" data-act="dev-concept-generate" data-id="' +
+          e(pid) + '">Generate pre-draft</button>' : '') + '</div>';
+    }
+    var drafts = (state.ui.devDraft && state.ui.devDraft[pid]) || {};
+    var edited = d.sections.filter(function (s) { return s.edited; }).length;
+    var head = '<div class="pd-bh"><h4>Pre-draft · 9 sections</h4>' +
+      (canEdit ? '<button type="button" class="btn sm" data-act="dev-concept-generate" data-id="' + e(pid) +
+        '" title="Rebuilds the sections you have not edited">Regenerate unedited sections</button>' : '') + '</div>' +
+      '<p class="pd-sub">Generated <span class="num">' + e(D.fmtDateY(d.generated_at)) + '</span>' +
+      (d.by ? ' by ' + e(CBP.userName(d.by)) : '') + ' · ' + plural(edited, 'section') + ' edited' +
+      (canEdit ? '. Format with the small toolbar; paste comes in as plain text.' : '') + '</p>';
+    var blocks = d.sections.map(function (sec, i) {
+      return edBlock(pid, sec, i + 1, canEdit, drafts, state.ui.p4DevConfirm);
+    }).join('');
+    return '<div class="pd-blk pd-draft">' + head + blocks + '</div>';
+  }
+
+  function edBlock(pid, sec, n, canEdit, drafts, confirmSec) {
+    var k = sec.key, G = CBP.docgen;
+    var hasDraft = typeof drafts[k] === 'string';
+    var html = G.sanitize(hasDraft ? drafts[k] : sec.html);
+    var dirty = hasDraft && drafts[k] !== sec.html;
+    var hid = 'edh-' + k;
+    var title = n + ' · ' + sec.title;
+    var flag = sec.edited ? '<span class="ed-flag">✎ Edited</span>' : '';
+    if (!canEdit) {
+      return '<div class="ed-block ed-roblk" data-sec="' + e(k) + '"><div class="ed-hd"><h5 id="' + e(hid) + '">' +
+        e(title) + '</h5>' + flag + '</div>' +
+        '<div class="ed-area ed-ro" role="region" aria-labelledby="' + e(hid) + '">' + html + '</div></div>';
+    }
+    var tb = '<div class="ed-tb" role="toolbar" aria-label="' + e('Formatting for ' + sec.title) + '" aria-controls="ed-' + e(k) + '">' +
+      '<button type="button" data-ed="h3" tabindex="0" aria-pressed="false" title="Sub-heading">H3</button>' +
+      '<button type="button" data-ed="bold" tabindex="-1" aria-pressed="false" aria-label="Bold" title="Bold (Ctrl+B)"><b>B</b></button>' +
+      '<button type="button" data-ed="italic" tabindex="-1" aria-pressed="false" aria-label="Italic" title="Italic (Ctrl+I)"><span class="i">I</span></button>' +
+      '<button type="button" data-ed="ul" tabindex="-1" aria-pressed="false" aria-label="Bullet list" title="Bullet list">•≡</button>' +
+      '</div>';
+    var foot;
+    if (confirmSec === k) {
+      foot = '<div class="ed-confirm" role="group" aria-label="Confirm reset"><span>Discard your edits to <b>' +
+        e(sec.title) + '</b>?</span>' +
+        '<button type="button" class="btn sm brass" data-act="dev-section-reset" data-id="' + e(pid) +
+        '" data-sec="' + e(k) + '" data-confirm="1">Reset</button>' +
+        '<button type="button" class="btn sm" data-act="dev-section-reset" data-id="' + e(pid) +
+        '" data-sec="' + e(k) + '" data-cancel="1">Keep editing</button></div>';
+    } else {
+      foot = '<span class="ed-state" id="eds-' + e(k) + '" aria-live="polite">' +
+        (dirty ? 'Unsaved changes' : (sec.edited ? 'Saved · edited' : 'As generated')) + '</span>' +
+        '<button type="button" class="btn sm brass" data-act="dev-section-save" data-id="' + e(pid) +
+        '" data-sec="' + e(k) + '">Save section</button>' +
+        '<button type="button" class="btn sm" data-act="dev-section-reset" data-id="' + e(pid) +
+        '" data-sec="' + e(k) + '">Reset to generated</button>';
+    }
+    return '<div class="ed-block' + (dirty ? ' dirty' : '') + '" data-sec="' + e(k) + '">' +
+      '<div class="ed-hd"><h5 id="' + e(hid) + '">' + e(title) + '</h5>' + flag + tb + '</div>' +
+      '<div class="ed-area" id="ed-' + e(k) + '" contenteditable="true" role="textbox" aria-multiline="true" ' +
+        'aria-labelledby="' + e(hid) + '" aria-describedby="eds-' + e(k) + '" spellcheck="true" ' +
+        'data-placeholder="' + e('Write the ' + sec.title.toLowerCase() + '…') + '">' + html + '</div>' +
+      '<div class="ed-ft">' + foot + '</div></div>';
+  }
+
+  /* ---- Documents · Review link · Send from portal · Comments ---- */
+  function docNoun(key) { return key === 'concept' ? 'Project Concept Draft' : 'project information pack'; }
+
+  function docStrip(p, key, sg, canEdit) {
+    var pid = p.id;
+    var aud = D.devAudience(p, key);
+    var docs = sg.docs.slice().reverse();
+    var latest = docs[0] || null;
+
+    var docsHtml = '<div class="pd-blk"><div class="pd-bh"><h4>Documents</h4>' +
+      (canEdit ? '<button type="button" class="btn sm brass" data-act="dev-doc-generate" data-id="' + e(pid) +
+        '" data-stage="' + e(key) + '">Generate ' + e(key === 'concept' ? 'Project Concept Draft' : 'information pack') +
+        '</button>' : '') + '</div>' +
+      (docs.length ? '<ul class="pd-docs">' + docs.map(function (d, i) {
+        return '<li><div class="pd-dtx"><b>' + e(d.title) + '</b><span>by ' + e(CBP.userName(d.by)) +
+          ' · <span class="num">' + e(D.fmtDateY(d.at)) + '</span>' + (i === 0 ? ' · latest' : '') + '</span></div>' +
+          '<div class="pd-dact"><button type="button" class="btn sm" data-act="dev-doc-print" data-doc="' + e(d.id) +
+          '">Open · print / PDF</button><button type="button" class="btn sm" data-act="dev-doc-docx" data-doc="' +
+          e(d.id) + '">Download .docx</button></div></li>';
+      }).join('') + '</ul>'
+        : '<p class="pd-empty">No ' + e(docNoun(key)) + ' generated yet.</p>') + '</div>';
+
+    var active = sg.links.filter(function (l) { return l.active; }).pop() || null;
+    var inactive = sg.links.filter(function (l) { return !l.active; }).length;
+    var linkDoc = active ? sg.docs.filter(function (d) { return d.id === active.doc_id; })[0] : null;
+    var linkHtml = '<div class="pd-blk"><div class="pd-bh"><h4>Review link</h4>' +
+      '<span class="pd-aud">Audience: <b>' + e(aud.label) + '</b></span></div>';
+    if (active) {
+      var url = A.devReviewUrl ? A.devReviewUrl(active.token) : '#/review/' + active.token;
+      linkHtml += '<div class="pd-link"><label class="vh" for="devLink-' + e(active.token) + '">' +
+        e('Review link for ' + aud.label) + '</label>' +
+        '<input class="inp pd-in" type="text" readonly id="devLink-' + e(active.token) + '" value="' + e(url) + '">' +
+        '<div class="pd-lact"><button type="button" class="btn sm" data-act="dev-link-copy" data-id="' + e(pid) +
+        '" data-token="' + e(active.token) + '">Copy</button>' +
+        '<a class="btn sm" href="#/review/' + e(active.token) + '" target="_blank" rel="noopener">Preview ↗</a>' +
+        (canEdit ? '<button type="button" class="btn sm" data-act="dev-link-revoke" data-id="' + e(pid) +
+          '" data-token="' + e(active.token) + '">Revoke</button>' : '') + '</div></div>' +
+        '<p class="pd-hint">Opens ' + (linkDoc ? '<b>' + e(linkDoc.title) + '</b>' : 'the document') +
+        ' · created by ' + e(CBP.userName(active.by)) + ' on <span class="num">' + e(D.fmtDateY(active.created_at)) +
+        '</span>. No sign-in; an e-mail address is required to comment.</p>';
+    } else {
+      linkHtml += '<p class="pd-empty">No active link' + (D.devReleased(p) ? ' — links close at release.' : '.') + '</p>';
+    }
+    if (canEdit) {
+      linkHtml += '<div class="pd-actrow"><button type="button" class="btn sm" data-act="dev-link-mint" data-id="' +
+        e(pid) + '" data-stage="' + e(key) + '"' + (latest ? '' : ' disabled') + '>' +
+        (active ? 'Replace with a new link' : 'Create review link') + '</button>' +
+        '<span class="pd-hint">' + (latest ? 'A link always opens the latest document; creating one closes the previous link.'
+          : 'Generate the document first.') + '</span></div>';
+    }
+    if (inactive) linkHtml += '<p class="pd-hint">' + plural(inactive, 'earlier link') + ' no longer active.</p>';
+    linkHtml += '</div>';
+
+    return '<div class="pd-grid2">' + docsHtml + linkHtml + '</div>' +
+      mailForm(p, key, sg, aud, active, canEdit) + commentsList(sg);
+  }
+
+  function mailChips(value) {
+    var list = String(value || '').split(/[,;\s]+/).filter(Boolean);
+    return list.map(function (a) {
+      var ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a);
+      return '<span class="ml-chip' + (ok ? '' : ' bad') + '"><span aria-hidden="true">' + (ok ? '✓' : '⚠') +
+        '</span>' + e(a) + (ok ? '' : ' · not an e-mail address') + '</span>';
+    }).join('');
+  }
+
+  function mailForm(p, key, sg, aud, active, canEdit) {
+    var pid = p.id;
+    var sent = (sg.mails || []).slice().reverse();
+    var sentHtml = sent.length ? '<ul class="pd-sent">' + sent.map(function (m) {
+      return '<li><b>' + e(m.subject) + '</b><span>to ' + e((m.to || []).join(', ')) + ' · <span class="num">' +
+        e(D.fmtDateY(m.at)) + '</span>' + (m.by ? ' · by ' + e(CBP.userName(m.by)) : '') + '</span></li>';
+    }).join('') + '</ul>' : '';
+    if (!canEdit) {
+      return sent.length ? '<div class="pd-blk"><h4>Mail sent from the portal</h4>' + sentHtml + '</div>' : '';
+    }
+    var keep = keepOf(pid);
+    if (keep['_mailN-' + key] !== undefined && sent.length > +keep['_mailN-' + key]) {
+      /* a send went through since the text was typed: start the form afresh */
+      ['devMailTo-', 'devMailSubj-', 'devMailBody-', '_mailN-'].forEach(function (x) { delete keep[x + key]; });
+    }
+    var owner = p.owner ? CBP.userById(p.owner) : null;
+    var country = countryName(p.country);
+    var noun = docNoun(key);
+    var url = active ? (A.devReviewUrl ? A.devReviewUrl(active.token) : '#/review/' + active.token)
+                     : '[create a review link first]';
+    /* v1.2.7 F10 — one subject per stage kind */
+    var dSubj = key === 'orgcheck' ? 'Org background check: ' + pid + ' ' + p.name
+              : key === 'areacomm' ? 'Area humanitarian communication: ' + pid + ' ' + p.name
+              : 'Review request: ' + noun + ' — ' + pid + ' ' + p.name;
+    var dBody = 'Hello,\n\nPlease review the ' + noun + ' for ' + pid + ' · ' + p.name + ' (' + country + ').\n\n' +
+      'Open the document and leave a comment here, no sign-in needed:\n' + url + '\n\n' +
+      'Replies to this e-mail reach the project team.\n\nThank you,\n' +
+      (owner ? owner.name : CBP.userName(p.owner)) + '\n' +
+      (owner ? (owner.title || CBP.CONFIG.ROLE_LABEL[owner.role] || '') : 'Project owner') + ', ' + country;
+    var to = kept(pid, 'devMailTo-' + key, aud.to.join(', '));
+    var k = e(key);
+    return '<fieldset class="ml pd-blk"><legend>Send from portal</legend>' +
+      '<div class="ml-row"><label for="devMailTo-' + k + '">To</label><div>' +
+        '<input class="inp" type="text" id="devMailTo-' + k + '" data-keep="1" data-chips="devMailChips-' + k +
+        '" value="' + e(to) + '" autocomplete="off" aria-describedby="devMailToHelp-' + k + '">' +
+        '<div class="ml-chips" id="devMailChips-' + k + '" aria-live="polite">' + mailChips(to) + '</div>' +
+        '<p class="ml-note" id="devMailToHelp-' + k + '">Separate addresses with commas. Recipients do not need an account.</p></div></div>' +
+      '<div class="ml-row"><label for="devMailSubj-' + k + '">Subject</label><div><input class="inp" type="text" id="devMailSubj-' + k +
+        '" data-keep="1" value="' + e(kept(pid, 'devMailSubj-' + key, dSubj)) + '"></div></div>' +
+      '<div class="ml-row"><label for="devMailBody-' + k + '">Message</label><div><textarea class="inp" id="devMailBody-' + k +
+        '" data-keep="1" rows="10">' + e(kept(pid, 'devMailBody-' + key, dBody)) + '</textarea></div></div>' +
+      '<div class="ml-row"><span class="k" id="devMailRt-' + k + '">Reply-to</span><div>' +
+        '<div class="ml-ro" aria-labelledby="devMailRt-' + k + '">' + e(aud.reply_to) + '</div>' +
+        '<p class="ml-note">Set by the portal; replies are filed on this project.</p></div></div>' +
+      '<div class="pd-actrow"><button type="button" class="btn sm brass" data-act="dev-mail-send" data-id="' + e(pid) +
+        '" data-stage="' + k + '"' + (active ? '' : ' disabled title="Create a review link first"') + '>Send from portal</button>' +
+        '<span class="pd-hint">Sent from the portal’s address. In this demo it lands in Alerts › Sent log; no real mail leaves.</span></div>' +
+      (sentHtml ? '<h5 class="pd-lab">Sent</h5>' + sentHtml : '') +
+      '</fieldset>';
+  }
+
+  function commentsList(sg) {
+    var list = sg.comments.slice().reverse();
+    return '<div class="pd-blk"><div class="pd-bh"><h4>Comments received <span class="pd-n num">' +
+      list.length + '</span></h4></div>' +
+      (list.length ? '<ul class="pd-cms">' + list.map(function (c) {
+        return '<li class="pd-cm"><div class="pd-cmh"><b>' + e(c.name || c.email) + '</b>' +
+          '<span>' + e(c.email) + ' · <span class="num">' + e(D.fmtDateY(c.at)) + '</span> · via ' +
+          e(c.via) + '</span></div><p>' + e(c.body) + '</p></li>';
+      }).join('') + '</ul>'
+        : '<p class="pd-empty">No comments yet. Comments left on the review page appear here.</p>') + '</div>';
+  }
+
+  /* ---- editor kit (RESEARCH_v1.2.7_editor, DOM part). Toolbar buttons use
+     data-ed on mousedown — never data-act — so the selection survives and no
+     render runs. Sanitizing is CBP.docgen.sanitize (Lane A). ---- */
+  var EDK = (function () {
+    var installed = false;
+    function sanitize(h) { return CBP.docgen.sanitize(h); }
+    function areaOf(el) { var b = el && el.closest && el.closest('.ed-block'); return b ? b.querySelector('.ed-area[contenteditable]') : null; }
+    function blockOf(node, area) {
+      while (node && node !== area) { if (node.nodeType === 1 && /^(P|H3|LI|DIV)$/.test(node.tagName)) return node; node = node.parentNode; }
+      return null;
+    }
+    function exec(cmd, val) { try { return document.execCommand(cmd, false, val); } catch (x) { return false; } }
+    function qs(c) { try { return document.queryCommandState(c); } catch (x) { return false; } }
+    function qv(c) { try { return document.queryCommandValue(c); } catch (x) { return ''; } }
+    function fallbackInline(tag) {
+      var sel = window.getSelection(); if (!sel || !sel.rangeCount || sel.isCollapsed) return;
+      var r = sel.getRangeAt(0), w = document.createElement(tag);
+      try { w.appendChild(r.extractContents()); r.insertNode(w); sel.removeAllRanges(); var n = document.createRange(); n.selectNodeContents(w); sel.addRange(n); } catch (x) {}
+    }
+    function fallbackBlock(area, tag) {
+      var sel = window.getSelection(); if (!sel || !sel.rangeCount) return;
+      var blk = blockOf(sel.anchorNode, area); if (!blk) return;
+      var el = document.createElement(tag === 'ul' ? 'ul' : tag), inner = el;
+      if (tag === 'ul') { inner = document.createElement('li'); el.appendChild(inner); }
+      while (blk.firstChild) inner.appendChild(blk.firstChild);
+      blk.parentNode.replaceChild(el, blk);
+    }
+    function syncToolbar() {
+      var sel = window.getSelection();
+      var n = sel && sel.anchorNode;
+      var a = n && areaOf(n.nodeType === 1 ? n : n.parentNode);
+      if (!a) return;
+      var st = { bold: qs('bold'), italic: qs('italic'), ul: qs('insertUnorderedList'),
+                 h3: String(qv('formatBlock')).toLowerCase() === 'h3' };
+      var bs = a.parentNode.querySelectorAll('[data-ed]');
+      for (var i = 0; i < bs.length; i++) bs[i].setAttribute('aria-pressed', st[bs[i].getAttribute('data-ed')] ? 'true' : 'false');
+    }
+    function markDirty(area) {
+      var blk = area.closest('.ed-block'); if (!blk) return;
+      blk.classList.add('dirty');
+      var sec = blk.getAttribute('data-sec');
+      var ui = CBP.state.ui, pid = ui.param;
+      if (!pid) return;
+      ui.devDraft = ui.devDraft || {};
+      ui.devDraft[pid] = ui.devDraft[pid] || {};
+      ui.devDraft[pid][sec] = sanitize(area.innerHTML);
+      var s = document.getElementById('eds-' + sec);
+      if (s && s.textContent !== 'Unsaved changes') s.textContent = 'Unsaved changes';
+    }
+    function format(area, cmd) {
+      area.focus();
+      var ok, inH3 = String(qv('formatBlock')).toLowerCase() === 'h3';
+      if (cmd === 'bold' || cmd === 'italic') { ok = exec(cmd); if (!ok) fallbackInline(cmd === 'bold' ? 'strong' : 'em'); }
+      else if (cmd === 'ul') { ok = exec('insertUnorderedList'); if (!ok) fallbackBlock(area, 'ul'); }
+      else if (cmd === 'h3') { ok = exec('formatBlock', inH3 ? '<p>' : '<h3>'); if (!ok) fallbackBlock(area, inH3 ? 'p' : 'h3'); }
+      markDirty(area); syncToolbar();
+    }
+    function insertPlain(text) {
+      text = String(text || '').replace(/\r\n?/g, '\n');
+      if (exec('insertText', text)) return;
+      var sel = window.getSelection(); if (!sel.rangeCount) return;
+      var r = sel.getRangeAt(0); r.deleteContents(); var n = document.createTextNode(text); r.insertNode(n);
+      r.setStartAfter(n); r.collapse(true); sel.removeAllRanges(); sel.addRange(r);
+    }
+    function install() {
+      if (installed || typeof document === 'undefined') return;
+      installed = true;
+      document.addEventListener('mousedown', function (ev) {
+        var b = ev.target.closest && ev.target.closest('[data-ed]'); if (!b) return;
+        ev.preventDefault(); var a = areaOf(b); if (a) format(a, b.getAttribute('data-ed'));
+      });
+      document.addEventListener('keydown', function (ev) {
+        var b = ev.target.closest && ev.target.closest('[data-ed]');
+        if (b && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); var a0 = areaOf(b); if (a0) format(a0, b.getAttribute('data-ed')); return; }
+        if (b && (ev.key === 'ArrowRight' || ev.key === 'ArrowLeft')) {
+          var all = b.parentNode.querySelectorAll('[data-ed]'), i = [].indexOf.call(all, b);
+          var nx = all[(i + (ev.key === 'ArrowRight' ? 1 : all.length - 1)) % all.length];
+          b.tabIndex = -1; nx.tabIndex = 0; nx.focus(); ev.preventDefault(); return;
+        }
+        var area = ev.target.classList && ev.target.classList.contains('ed-area') && ev.target.isContentEditable ? ev.target : null;
+        if (!area) return;
+        if (ev.key === 'Enter' && !ev.shiftKey) {
+          var sel = window.getSelection(), h = sel.rangeCount && blockOf(sel.anchorNode, area);
+          if (h && h.tagName === 'H3') {
+            ev.preventDefault();
+            var r = sel.getRangeAt(0), tail = document.createRange(); tail.setStart(r.endContainer, r.endOffset);
+            tail.setEndAfter(h.lastChild || h); var frag = tail.extractContents(), pp = document.createElement('p');
+            while (frag.firstChild && frag.firstChild.nodeType === 1 && frag.firstChild.tagName === 'H3') frag = frag.firstChild;
+            while (frag.firstChild) pp.appendChild(frag.firstChild);
+            if (!pp.textContent) pp.innerHTML = '<br>';
+            h.parentNode.insertBefore(pp, h.nextSibling);
+            var c = document.createRange(); c.setStart(pp, 0); c.collapse(true); sel.removeAllRanges(); sel.addRange(c);
+            markDirty(area); return;
+          }
+        }
+        if ((ev.ctrlKey || ev.metaKey) && !ev.altKey) {
+          var kk = String(ev.key).toLowerCase();
+          if (kk === 'b' || kk === 'i') { ev.preventDefault(); format(area, kk === 'b' ? 'bold' : 'italic'); }
+          if (kk === 'u') ev.preventDefault();
+        }
+      });
+      document.addEventListener('paste', function (ev) {
+        var area = ev.target.closest && ev.target.closest('.ed-area[contenteditable]'); if (!area) return;
+        ev.preventDefault();
+        var cd = ev.clipboardData || window.clipboardData;
+        insertPlain(cd ? cd.getData(ev.clipboardData ? 'text/plain' : 'Text') : '');
+        markDirty(area);
+      });
+      document.addEventListener('drop', function (ev) {
+        var area = ev.target.closest && ev.target.closest('.ed-area[contenteditable]'); if (!area) return;
+        ev.preventDefault();
+      });
+      document.addEventListener('input', function (ev) {
+        var t = ev.target;
+        if (t && t.classList && t.classList.contains('ed-area')) markDirty(t);
+      });
+      document.addEventListener('selectionchange', syncToolbar);
+      exec('defaultParagraphSeparator', 'p');
+      exec('styleWithCSS', false);
+    }
+    return { install: install, format: format };
+  })();
+  CBP.p4.EDK = EDK;
 
   /* ================================================= create / edit form ===*/
 
@@ -1477,5 +2107,79 @@
       S().ui.p4cDraftFor = S().ui.param;
     }
   });
+
+  /* ================================ v1.2.7 · development tab listeners ====
+     Registered once. None of them introduces an act: they keep typed text and
+     accordion state in ui without rendering, and give dev-section-reset its
+     page-side two-step confirm (CORE_API §5). */
+  EDK.install();
+
+  function devKeepBag(pid) {
+    var ui = S().ui;
+    ui.p4DevKeep = ui.p4DevKeep || {};
+    ui.p4DevKeep[pid] = ui.p4DevKeep[pid] || {};
+    return ui.p4DevKeep[pid];
+  }
+
+  document.addEventListener('click', function (ev) {
+    var t = ev.target.closest ? ev.target.closest('[data-act]') : null;
+    if (!t) return;
+    var act = t.getAttribute('data-act');
+    var ui = S().ui;
+    if (act === 'dev-section-reset') {
+      var sec = t.getAttribute('data-sec');
+      var pid = t.getAttribute('data-id') || ui.param;
+      if (t.getAttribute('data-cancel')) {
+        ui.p4DevConfirm = null;
+        ev.preventDefault(); ev.stopImmediatePropagation();
+        CBP.render();
+        return;
+      }
+      if (!t.getAttribute('data-confirm')) {
+        var d = D.devStage(pid, 'concept').draft;
+        var s = d && d.sections ? d.sections.filter(function (x) { return x.key === sec; })[0] : null;
+        var dr = ui.devDraft && ui.devDraft[pid] && typeof ui.devDraft[pid][sec] === 'string' &&
+                 s && ui.devDraft[pid][sec] !== s.html;
+        if (s && (s.edited || dr)) {
+          ui.p4DevConfirm = sec;
+          ev.preventDefault(); ev.stopImmediatePropagation();
+          CBP.render();
+          return;
+        }
+      }
+      ui.p4DevConfirm = null;               /* falls through to actions.js */
+    } else if (act === 'dev-obs-add') {
+      var p1 = t.getAttribute('data-id') || ui.param;
+      devKeepBag(p1)._obsN = String(D.devStage(p1, 'assessment').observations.length);
+    } else if (act === 'dev-mail-send') {
+      var p2 = t.getAttribute('data-id') || ui.param, st = t.getAttribute('data-stage');
+      devKeepBag(p2)['_mailN-' + st] = String((D.devStage(p2, st).mails || []).length);
+    } else if (act === 'dev-concept-generate' || act === 'dev-section-save') {
+      ui.p4DevConfirm = null;
+    }
+  }, true);
+
+  document.addEventListener('input', function (ev) {
+    var t = ev.target;
+    if (!t || !t.getAttribute || !t.getAttribute('data-keep') || !t.id) return;
+    var pid = S().ui.param;
+    if (S().ui.route !== 'project' || !pid) return;
+    devKeepBag(pid)[t.id] = t.value;
+    var chips = t.getAttribute('data-chips');
+    if (chips) {
+      var box = document.getElementById(chips);
+      if (box) box.innerHTML = mailChips(t.value);
+    }
+  });
+
+  /* <details> toggle does not bubble: capture it */
+  document.addEventListener('toggle', function (ev) {
+    var d = ev.target;
+    if (!d || d.tagName !== 'DETAILS' || !d.classList.contains('pd-det')) return;
+    var ui = S().ui, pid = d.getAttribute('data-pid');
+    ui.p4DevOpen = ui.p4DevOpen || {};
+    ui.p4DevOpen[pid] = ui.p4DevOpen[pid] || {};
+    ui.p4DevOpen[pid][d.getAttribute('data-stage')] = d.open;
+  }, true);
 
 })();

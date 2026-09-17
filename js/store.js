@@ -26,7 +26,7 @@
   var GROUNDS = {};
   TONE_LIST.forEach(function (t) { TONES[t.slug] = t.name; GROUNDS[t.slug] = t.ground; });
   CBP.TONES = TONE_LIST;
-  CBP.DEFAULT_TONE = 'dark-brass';
+  CBP.DEFAULT_TONE = 'white-gold';   /* v1.2.7.1 — ToR: default White Gold */
   /* returns a known slug, falling back to the default for anything unknown */
   CBP.toneOrDefault = function (t) { return TONES[t] ? t : CBP.DEFAULT_TONE; };
   /* the ground ('light' | 'dark') a tone renders on; unknown -> default's */
@@ -168,6 +168,13 @@
       digestQueue: [],       /* { user_id, rule, project_id, subject, line, queued_on } */
       backups: [],           /* mirror of IDB store rows { id, name, saved_at, actor, bytes, checksum, kind } */
 
+      /* v1.2.7 — the in-development phase (brief §2). Keyed by project id;
+         a project with no key was never touched and D.devOf reads it as the
+         empty default. devSeq is the one deterministic counter behind doc
+         ids, review tokens and comment ids (no Date.now / Math.random). */
+      devStages: clone(data.dev_stages || {}),
+      devSeq: data.dev_seq || 0,
+
       dashboards: [
         /* v1.0.4 — the Overview board leads with the country budget track
            (ToR 30 Aug: "move to the top"), then the headline figures, then the
@@ -234,7 +241,7 @@
         p3Search: '',
         openRows: { WE26BGD0002: true, WE25NPL0007: true },
         comfort: false,
-        tone: 'dark-brass',
+        tone: 'white-gold',
         notice: null,
 
         /* P4 / P6 (Phase B) */
@@ -369,6 +376,29 @@
     return CBP.state.projects.filter(function (p) { return p.id === id; })[0] || null;
   };
 
+  /* v1.2.7 — the live in-development record for a project, created on first
+     write (the only place a record is created; D.devOf never writes). */
+  CBP.devRecord = function (id) {
+    var st = CBP.state;
+    st.devStages = st.devStages || {};
+    if (!st.devStages[id]) st.devStages[id] = CBP.D.devEmpty();
+    var rec = st.devStages[id];
+    rec.stages = rec.stages || {};
+    (CBP.CONFIG.DEV_STAGES || []).forEach(function (s) {
+      if (!rec.stages[s.key]) rec.stages[s.key] = CBP.D.devEmpty().stages[s.key];
+      var sg = rec.stages[s.key];
+      ['observations', 'images', 'docs', 'links', 'comments'].forEach(function (k) { if (!sg[k]) sg[k] = []; });
+      if (!sg.status) sg.status = 'notstarted';
+    });
+    return rec;
+  };
+
+  /* next deterministic sequence number for doc ids / tokens / comment ids */
+  CBP.devNextSeq = function () {
+    CBP.state.devSeq = (CBP.state.devSeq || 0) + 1;
+    return CBP.state.devSeq;
+  };
+
   /* status change: appends a status_event and restarts the stage clock by
      writing the new stage's start date. Phase B drives this from P6. */
   CBP.setStatus = function (id, to, meta) {
@@ -415,7 +445,8 @@
     var entry = {
       id: 'E' + (++CBP.state.entrySeq),
       project: id, project_id: id, type: type, body: body,
-      author: CBP.state.user.id, at: CBP.CONFIG.TODAY
+      /* v1.2.7 — null-safe: the public review page writes with no persona */
+      author: (CBP.state.user && CBP.state.user.id) || null, at: CBP.CONFIG.TODAY
     };
     if (extra) { Object.keys(extra).forEach(function (k) { entry[k] = extra[k]; }); }
     CBP.state.activity.push(entry);

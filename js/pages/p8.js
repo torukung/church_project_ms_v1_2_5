@@ -549,7 +549,12 @@
         '<span class="p8-mailtx"><b>' + e(m.subject) + '</b>' +
         '<span>' + e((m.to && m.to.length ? m.to.join(', ') : 'no recipient · no owner set') +
           (p ? ' · ' + W.countryName(state, p.country) : '') +
-          ' · ' + D.fmtDateY(m.at)) + '</span></span>' +
+          ' · ' + D.fmtDateY(m.at)) + '</span>' +
+        /* v1.2.7 (R-2a) — mail sent from the portal to outside addresses */
+        (m.external || m.reply_to
+          ? '<span class="p8-ext">' + (m.external ? '<span class="p8-extchip">\u2197 External</span>' : '') +
+            (m.reply_to ? 'Reply-to ' + e(m.reply_to) : '') + '</span>' : '') +
+        '</span>' +
         deliveryChip(m) +
         '<span class="p8-chev">' + (open ? '▴' : '▾') + '</span></button>';
 
@@ -562,7 +567,9 @@
             '<div class="p8-meta"><span>To</span><b>' +
               e(m.to && m.to.length ? m.to.join(', ') : '—') +
               (m.to_ids && m.to_ids.length
-                ? ' <small>(' + e(m.to_ids.join(', ')) + ')</small>' : '') + '</b></div>' +
+                ? ' <small>(' + e(m.to_ids.join(', ')) + ')</small>' : '') +
+              (m.external ? ' <small>(external)</small>' : '') + '</b></div>' +
+            (m.reply_to ? '<div class="p8-meta"><span>Reply-to</span><b>' + e(m.reply_to) + '</b></div>' : '') +
             (p ? '<div class="p8-meta"><span>Project</span><b><a href="#/project/' +
                  e(p.id) + '">' + e(p.id + ' · ' + p.name) + '</a></b></div>'
                : '<div class="p8-meta"><span>Project</span><b>several: one line per record ' +

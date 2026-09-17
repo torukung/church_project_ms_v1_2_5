@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" data-tone="dark-brass" data-ground="dark">
+<html lang="en" data-tone="white-gold" data-ground="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Church Budget Platform — Demo v1.2.4</title>
+<title>Church Budget Platform — Demo v1.2.7</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
@@ -24,6 +24,15 @@
 <link rel="stylesheet" href="css/uikit.css">
 <!-- v1.2.6 P4 book tabs · alert tray · split status (Lane C) -->
 <link rel="stylesheet" href="css/p4v126.css">
+<!-- v1.2.7 P3 register · Open column + in-development front view (Lane B) -->
+<link rel="stylesheet" href="css/p3dev.css">
+<!-- v1.2.7 print view + shared .dc-* document renderer (Lane A): after app.css so its
+     @media print token re-pointing wins at equal specificity -->
+<link rel="stylesheet" href="css/print.css">
+<!-- v1.2.7 P4 Development tab + aside card, mail form, Sent-log extension (Lane C) -->
+<link rel="stylesheet" href="css/p4dev.css">
+<!-- v1.2.7 public review page #/review/<token> (Lane C) -->
+<link rel="stylesheet" href="css/p18.css">
 </head>
 <body>
 
@@ -32,6 +41,8 @@
 <script src="js/config.js"></script>
 <script src="js/data.js"></script>
 <script src="js/derive.js"></script>
+<!-- v1.2.7 document model + .docx writer: after derive.js, before actions.js (Lane A) -->
+<script src="js/docgen.js"></script>
 <script src="js/store.js"></script>
 <script src="js/actions.js"></script>
 <script src="js/egc.js"></script>
@@ -59,6 +70,10 @@
 <script src="js/pages/p15.js"></script>
 <script src="js/pages/p16.js"></script>
 <script src="js/pages/p17.js"></script>
+<!-- v1.2.7 document print view #/doc/<id> (Lane A) -->
+<script src="js/pages/p19.js"></script>
+<!-- v1.2.7 public review page #/review/<token> (Lane C) -->
+<script src="js/pages/p18.js"></script>
 <!-- v1.2.0 persistence: immediately before app.js (T-01, F1) -->
 <script src="js/persist.js"></script>
 <script src="js/app.js"></script>

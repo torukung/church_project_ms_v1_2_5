@@ -177,7 +177,7 @@
     /* v1.2.5.2 — the tone lives on the ROOT <html> as TWO attributes: data-tone
        (the full palette block) and data-ground (the light/dark identity set —
        country tints, status pastels, gantt, --glass). An unknown stored value
-       falls back to the default tone (dark-brass), whose ground is dark. */
+       falls back to the default tone (white-gold since v1.2.7.1), whose ground is light. */
     state.ui.tone = CBP.toneOrDefault(state.ui.tone);
     document.documentElement.setAttribute('data-tone', state.ui.tone);
     document.documentElement.setAttribute('data-ground', CBP.groundOf(state.ui.tone));

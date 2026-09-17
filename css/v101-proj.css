@@ -35,8 +35,8 @@
    below only ever change the grid, never the markup or the JS. */
 .preg .lhead,.xsum{
   display:grid;
-  grid-template-columns:minmax(0,1fr) 208px 150px 128px 96px 22px;
-  grid-template-areas:"name stage flag budget cmt chev";
+  grid-template-columns:minmax(0,1fr) 208px 150px 128px 96px 28px 22px;
+  grid-template-areas:"name stage flag budget cmt open chev";
   gap:14px;align-items:center;min-width:0}
 /* v1.2.5 S3 (F9) — the header row must sit in the SAME inset box the project
    rows do, not span the full .preg. A row's content box is inset from .preg by
@@ -49,6 +49,7 @@
 .preg .lhead .r{text-align:right}
 .l-name{grid-area:name}.l-stage{grid-area:stage}.l-flag{grid-area:flag}
 .l-budget{grid-area:budget}.l-cmt{grid-area:cmt}.l-chev{grid-area:chev}
+.l-open{grid-area:open;min-width:0}
 
 .cgrp{margin-bottom:var(--gap);min-width:0}
 
@@ -73,8 +74,24 @@
 
 .xsum{width:100%;font:inherit;text-align:left;color:inherit;background:none;
   border:none;padding:11px 40px 11px 16px;position:relative;cursor:pointer}
-.xsum:hover{background:var(--hover)}
-.xrow[data-open="true"] .xsum{background:var(--raise);border-bottom:1px solid var(--line2)}
+/* v1.2.7 F4 — the row head is its own grid: [toggle button][Open][tail].
+   The button no longer spans the Open column; its inner tracks are the
+   header's name…comments tracks, and gap + 28px Open + tail (chevron track +
+   the old 40px right padding) put Open and the chevron exactly where they
+   were. The chevron stays inside the button (click toggles) but is placed
+   against .xhead; the button's ::after covers the tail so that strip still
+   toggles too. Header (.lhead) tracks are unchanged. */
+.xhead{position:relative;display:grid;min-width:0;
+  grid-template-columns:minmax(0,1fr) 28px 62px;column-gap:14px;align-items:stretch}
+.xhead > .xsum{grid-column:1;grid-row:1;position:static;padding-right:0;
+  grid-template-columns:minmax(0,1fr) 208px 150px 128px 96px;
+  grid-template-areas:"name stage flag budget cmt"}
+.xhead > .xsum::after{content:"";position:absolute;top:0;right:0;bottom:0;width:62px}
+.xhead > .xc-open{grid-area:auto;grid-column:2;grid-row:1}
+.xhead > .xsum .xchev{grid-area:auto;top:0;bottom:0;transform:none;display:flex;align-items:center}
+.xhead:hover{background:var(--hover)}
+.xhead > .xsum:hover{background:none}
+.xrow[data-open="true"] .xhead{background:var(--raise);border-bottom:1px solid var(--line2)}
 
 .xc{min-width:0}
 .xc-name{grid-area:name;display:flex;align-items:baseline;gap:8px;min-width:0}
@@ -142,6 +159,16 @@
 
 .xchev{grid-area:chev;position:absolute;right:14px;top:50%;
   transform:translateY(-50%);color:var(--muted);font-size:11.5px}
+
+/* v1.2.7 (A) — Open column: a 28px track, a 32px hit area centred on it
+   (2px spills into the 14px gaps on each side, never into a neighbour). */
+.xc-open{grid-area:open;display:flex;justify-content:center;align-items:center;min-width:0}
+.xopen{flex:none;display:inline-flex;align-items:center;justify-content:center;
+  width:32px;height:32px;margin:0 -2px;border-radius:var(--r);
+  color:var(--slate);border:1px solid transparent;text-decoration:none}
+.xopen svg{display:block;width:16px;height:16px}
+.xopen:hover{color:var(--ink);background:var(--card);border-color:var(--muted)}
+.xopen:focus-visible{outline:2px solid var(--glass);outline-offset:1px;color:var(--ink)}
 
 /* the conversation pill — count, plus a dot when something is unread for you */
 .cpill{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;
@@ -263,7 +290,8 @@
    budget gives 16px back. Header and rows share this rule, so they stay
    aligned. */
 @media(min-width:1281px){
-  .preg .lhead,.xsum{grid-template-columns:minmax(0,1fr) 232px 212px 112px 96px 22px}
+  .preg .lhead,.xsum{grid-template-columns:minmax(0,1fr) 232px 212px 112px 96px 28px 22px}
+  .xhead > .xsum{grid-template-columns:minmax(0,1fr) 232px 212px 112px 96px}
 }
 /* Every narrower tier keeps its v1.2.5.2 tracks; there the key sits on its
    own line above the value (an eyebrow) instead of beside it, so no value is
@@ -277,8 +305,23 @@
   .k-flag.k-flab .k-ftxt{white-space:normal;overflow-wrap:break-word}
   .k-flag.k-flab .l3-why{padding-left:0}
 }
+/* v1.2.7 (A) — the Open track (28px + one gap) came out of the name track,
+   which had no slack left at 1101–1280 (22px at 1101) or at 1024 (75px, less
+   than the 88px project id). ≤1280 now takes compact tracks (the old ≤1100
+   set with comments 40→56 so the pill no longer spills onto the budget
+   figure, and budget 104→96) and a 10px gap. The single-row tiers below 1400
+   (1281 leaves a 132px name track) put the id above the name, so the name
+   keeps the whole track. Header and rows share the rule. */
+@media(max-width:1280px){
+  .preg .lhead,.xsum{grid-template-columns:minmax(0,1fr) 176px 132px 96px 56px 28px 22px;column-gap:10px}
+  .xhead{column-gap:10px}
+  .xhead > .xsum{grid-template-columns:minmax(0,1fr) 176px 132px 96px 56px}
+}
+@media(min-width:1001px) and (max-width:1399px),(min-width:861px) and (max-width:880px){
+  .xc-name{flex-direction:column;align-items:flex-start;gap:1px}
+  .xc-name b{max-width:100%}
+}
 @media(max-width:1100px){
-  .preg .lhead,.xsum{grid-template-columns:minmax(0,1fr) 176px 132px 104px 40px 22px}
   .xc-budget small{display:none}
 }
 /* v1.2.5 S3 (F13) — the sidebar-collapse trap. The register's own box is
@@ -294,9 +337,13 @@
    the sidebar has collapsed and the box is wide again. */
 @media(min-width:881px) and (max-width:1000px){
   .preg .lhead{display:none}
-  .xsum{grid-template-columns:minmax(0,1fr) 132px 166px;
-    grid-template-areas:"name name stage" "flag budget cmt";
+  .xsum{grid-template-columns:minmax(0,1fr) 132px 166px 28px;
+    grid-template-areas:"name name stage open" "flag budget cmt open";
     row-gap:8px;padding:11px 40px 11px 14px}
+  .xhead{grid-template-columns:minmax(0,1fr) 28px 40px}
+  .xhead > .xsum{grid-template-columns:minmax(0,1fr) 132px 166px;
+    grid-template-areas:"name name stage" "flag budget cmt";padding-right:0}
+  .xhead > .xsum::after{width:40px}
   .xc-budget{text-align:left}
   .xc-cmt{justify-content:flex-start}
 }
@@ -311,9 +358,13 @@
      budget and flag widths the 1100 tier uses (stage widened 150→166 in v1.2.5
      S3 — the widest status pill, "1 Implementation"/"4 In Development", is
      160px and burst a 150px stage track at 768; F13). */
-  .xsum{grid-template-columns:minmax(0,1fr) 132px 166px;
-    grid-template-areas:"name name stage" "flag budget cmt";
+  .xsum{grid-template-columns:minmax(0,1fr) 132px 166px 28px;
+    grid-template-areas:"name name stage open" "flag budget cmt open";
     row-gap:8px;padding:11px 40px 11px 14px}
+  .xhead{grid-template-columns:minmax(0,1fr) 28px 40px}
+  .xhead > .xsum{grid-template-columns:minmax(0,1fr) 132px 166px;
+    grid-template-areas:"name name stage" "flag budget cmt";padding-right:0}
+  .xhead > .xsum::after{width:40px}
   .xc-budget{text-align:left}
   .xc-cmt{justify-content:flex-start}
 }
@@ -326,9 +377,16 @@
   .k-flag.k-flab .k-ftxt{white-space:nowrap}
   .k-flag.k-flab .l3-why{padding-left:72px}
   .xstg.l3-cell{min-height:0}
-  .xsum{grid-template-columns:minmax(0,1fr);
-    grid-template-areas:"name" "stage" "flag" "budget" "cmt";
+  .xsum{grid-template-columns:minmax(0,1fr) 28px;
+    grid-template-areas:"name name" "stage stage" "flag flag" "budget budget" "cmt open";
     row-gap:6px;padding:11px 34px 11px 12px}
+  /* Open sits level with the comments pill on the last line */
+  .xhead{grid-template-columns:minmax(0,1fr) 28px 34px}
+  .xhead > .xsum{grid-template-columns:minmax(0,1fr);
+    grid-template-areas:"name" "stage" "flag" "budget" "cmt";padding-right:0}
+  .xhead > .xsum::after{width:34px}
+  .xhead > .xc-open{align-self:end;height:32px;margin-bottom:11px}
+  .xhead > .xsum .xc-cmt{min-height:32px;align-items:center}
   .xrow::before{left:-8px;width:8px}
   .cbody{margin-left:8px;padding-left:10px}
   .xpanel{padding:2px 12px 16px}

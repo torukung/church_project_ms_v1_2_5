@@ -155,6 +155,20 @@
     opts = opts || {};
     var html = withInline(item, function () { return U.needsRow(item, opts); });
 
+    /* v1.2.7 (R-3a) — a status-4 row whose in-development phase is not yet
+       released keeps its Request submitted control, disabled, with the reason
+       as its title (the S-08 pattern), rather than losing the row. */
+    if (item.devGated && html.indexOf(' disabled title="In development not yet released') < 0) {
+      html = html.replace(/(<button class="[^"]*" data-act="ask-submit"[^>]*?)>/g,
+        '$1 disabled title="In development not yet released by the Regional Manager or Admin">');
+    }
+    /* v1.2.7 — the release row says how far the four stages are */
+    if (item.kind === 'dev-release' && !opts.compact) {
+      html = html.replace(WHO_END, '<div class="p6-meta p6-devdone">' +
+        e((item.devDone || 0) + ' of 4 development stages done · Release to submission opens Request submitted') +
+        '</div>' + WHO_END);
+    }
+
     /* R-10 — the disclosure <button class="p6-sum"> wraps BOTH the bold title
        and the id text, so neither navigates and the record is only reachable by
        expanding the row. Lift the project id out of the button and render it as

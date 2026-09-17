@@ -377,13 +377,25 @@
            (opts.action ? ' act' : '') + '"' +
            (opts.act ? ' data-act="' + e(opts.act) + '"' : '') +
            (opts.id ? ' data-id="' + e(opts.id) + '"' : '') +
-           (opts.disabled ? ' disabled' : '') + '>' + e(label) + '</button>';
+           (opts.disabled ? ' disabled' : '') +
+           (opts.title ? ' title="' + e(opts.title) + '"' : '') + '>' + e(label) + '</button>';
   };
+
+  /* v1.2.7 R-3a — the reason a role-permitted Request submitted is refused */
+  U.DEV_GATED_TITLE = 'In development not yet released by the Regional Manager or Admin';
 
   /* an action control — rendered only when can() says so */
   U.action = function (user, permission, project, label, opts) {
     if (!D.can(user, permission, project)) return '';
     opts = opts || {};
+    /* v1.2.7 R-3a — D.can is the role half; a status-4 project whose
+       in-development phase is not released keeps the button, disabled, with
+       the reason as its title (S-08's pattern). A.can refuses the same case. */
+    if (permission === 'submit' && project && project.status === 4 &&
+        D.devReleased && !D.devReleased(project)) {
+      opts.disabled = true;
+      opts.title = U.DEV_GATED_TITLE;
+    }
     opts.action = true;
     opts.act = opts.act || 'phaseb';
     opts.id = project ? project.id : '';
@@ -673,7 +685,8 @@
     proposal: 'Sync proposal', watching: 'Watching',
     contract_draft: 'Contract · Draft', contract_review: 'Contract · Review',
     contract_approve_sig: 'Contract · Sign-off', contract_sign: 'Contract · Signature',
-    contract_send: 'Contract · Send'
+    contract_send: 'Contract · Send',
+    'dev-release': 'Release'            /* v1.2.7 · Release to submission */
   };
 
   U.needsRow = function (item, opts) {

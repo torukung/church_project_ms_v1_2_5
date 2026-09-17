@@ -65,7 +65,11 @@
     if (!p) return true;
 
     switch (action) {
-      case 'submit':       return p.status === 4;
+      /* v1.2.7 R-3a — a status-4 project is submittable only once its
+         in-development phase has been released by M1 / Admin. D.can (the
+         role half) is unchanged, so a page can tell "not your role" (no
+         button) from "not yet released" (a disabled button with a title). */
+      case 'submit':       return p.status === 4 && D.devReleased(p);
       case 'review':       return p.status === 3 && !A.gateOpen(p);
       case 'gate':         return p.status === 3 && A.gateOpen(p);
       case 'markApproved': return A.readyToMark(p);
@@ -108,9 +112,12 @@
     return out;
   };
 
-  function bodyFor(p, lines) {
-    return [p.name + ' · ' + p.id + ' · ' + countryName(p.country) + ' · ' + D.money(p.amount)]
-      .concat(lines)
+  /* v1.2.7 F3 — external rows (opts.external) carry no internal footer: no
+     owner line and no in-portal deep link (the reply-to stays on the row). */
+  function bodyFor(p, lines, external) {
+    var head = [p.name + ' · ' + p.id + ' · ' + countryName(p.country) + ' · ' + D.money(p.amount)].concat(lines);
+    if (external) return head.join('\n');
+    return head
       .concat(['Owner: ' + (p.owner ? CBP.userName(p.owner) : 'unassigned') +
                (p.backup ? ' · backup: ' + CBP.userName(p.backup) : ''),
                'Open the project: #/project/' + p.id])
@@ -122,20 +129,31 @@
      optional immediate action buttons and the deep-link focus id. A digest row
      additionally queues a line for the folded A-14 mail (A.runDigest). The
      `actions` argument is optional and every v1.1.0 call site is unchanged. */
-  function send(rule, p, kinds, subject, lines, actions) {
-    var ids = A.recipients(p, kinds);
-    var names = ids.map(function (i) { return CBP.userName(i); });
+  /* v1.2.7 R-2a — optional 7th arg `opts`:
+       opts.external = { to: [e-mail strings], reply_to }  → the row addresses
+         external people, not personas: `to` = the strings, `to_ids` = [],
+         `external: true`, `reply_to` shown by P8 under the subject. `kinds`
+         is ignored when external is given.
+       opts.silent = true → no "Alert … sent" activity line (the calling dev
+         act writes its own single line, Ask-gate 3). */
+  function send(rule, p, kinds, subject, lines, actions, opts) {
+    opts = opts || {};
+    var ext = opts.external || null;
+    var ids = ext ? [] : A.recipients(p, kinds);
+    var names = ext ? (ext.to || []).slice() : ids.map(function (i) { return CBP.userName(i); });
     var bucket = (CBP.CONFIG.ALERT_BUCKET && CBP.CONFIG.ALERT_BUCKET[rule]) || 'immediate';
     if (String(rule).indexOf('SYS-') === 0) bucket = 'immediate';   /* SYS-* always immediate */
     var row = {
       rule: rule, to: names, to_ids: ids,
-      subject: subject, body: bodyFor(p, lines),
+      subject: subject, body: bodyFor(p, lines, !!ext),
       at: TODAY(), project: p.id,
       bucket: bucket, delivered: bucket === 'immediate',
       actions: (bucket === 'immediate' && actions) ? actions : [],
       focus_id: p.id
     };
+    if (ext) { row.external = true; row.reply_to = ext.reply_to || null; }
     S().outbox.push(row);
+    if (opts.silent) return ids;
     if (bucket === 'digest') {
       ids.forEach(function (uid) {
         S().digestQueue.push({
@@ -1280,6 +1298,24 @@
     return el ? el.value : '';
   }
 
+  /* v1.2.7 — the project a dev-* control acts on: its data-id, else the
+     record open on the route (#/project/<id>) */
+  function pidOf(t) {
+    return (t && t.getAttribute && t.getAttribute('data-id')) ||
+           (S().ui.route === 'project' ? S().ui.param : null);
+  }
+  /* keep the typed observation rows before a row is added / removed */
+  function keepObs(id) {
+    var rec = S().devStages && S().devStages[id];
+    if (!rec || !rec.stages || !rec.stages.assessment) return;
+    rec.stages.assessment.observations.forEach(function (o) {
+      var el = document.getElementById('devObs-' + o.id);
+      if (el) o.text = el.value;
+    });
+    var j = document.getElementById('devJust');
+    if (j) rec.stages.assessment.justification = j.value;
+  }
+
   function remarkFor(system) {
     var el = document.querySelector('[data-remark-for="' + system + '"]');
     return el ? el.value : '';
@@ -1432,7 +1468,389 @@
 
   /* === end WP1 === */
 
+  /* ===================================================== v1.2.7 · in development ==
+     Brief §4. Every act: checks D.devCanEdit / D.devCanRelease → mutates the
+     project's devStages record (CBP.devRecord creates it on first write) →
+     writes ONE activity line (type 'system', dev:true) → done(). Ids come from
+     CBP.devNextSeq(); dates from CONFIG.TODAY. `review-comment` is the one act
+     with no persona: it never reads state.user. */
+
+  function devLog(p, body, extra) {
+    var x = { dev: true };
+    if (extra) Object.keys(extra).forEach(function (k) { x[k] = extra[k]; });
+    return CBP.addLog(p.id, 'system', body, x);
+  }
+  function stageRow(key) {
+    return (CBP.CONFIG.DEV_STAGES || []).filter(function (s) { return s.key === key; })[0] || null;
+  }
+  function devGuard(id, key) {
+    var u = me(), p = CBP.projectById(id);
+    if (!p) return { err: fail('dev', 'Project ' + id + ' not found.') };
+    if (p.status !== 4) return { err: fail('dev', 'The in-development stages apply only while the project is at status 4.') };
+    if (D.devReleased(p)) return { err: fail('dev', 'This project has been released to submission — the development record is read-only.') };
+    if (!D.devCanEdit(u, p)) return { err: fail('dev', 'Your role cannot edit the in-development stages of this project.') };
+    if (key && !stageRow(key)) return { err: fail('dev', 'Unknown stage “' + key + '”.') };
+    return { u: u, p: p, rec: CBP.devRecord(id), sg: key ? CBP.devRecord(id).stages[key] : null };
+  }
+  function docTitleOf(kind, p) { return CBP.docgen.KIND_LABEL[kind] + ' — ' + p.name; }
+  function reviewUrl(token) {
+    var base = '';
+    try { base = (typeof location !== 'undefined' && location.href) ? location.href.split('#')[0] : ''; } catch (e) { base = ''; }
+    return base + '#/review/' + token;
+  }
+  A.devReviewUrl = reviewUrl;
+
+  /* dev-stage-status */
+  A.devStageStatus = function (id, key, status, note) {
+    var g = devGuard(id, key); if (g.err) return g.err;
+    if (D.DEV_STATUS.indexOf(status) === -1) return fail('dev', 'Unknown stage status.');
+    var sg = g.sg, from = sg.status;
+    sg.status = status;
+    sg.note = (note || '').trim();
+    sg.updated_by = g.u.id;
+    sg.updated_at = TODAY();
+    devLog(g.p, 'Stage ' + stageRow(key).label + ': ' + D.devStatusLabel(status) +
+      (from !== status ? ' (was ' + D.devStatusLabel(from) + ')' : '') +
+      ' — ' + CBP.userName(g.u.id) + (sg.note ? ' · ' + sg.note : ''), { stage: key });
+    return done({ id: id, stage: key, status: status });
+  };
+
+  /* dev-assess-save — observations [{id,text}] | [string], justification */
+  A.devAssessSave = function (id, fields) {
+    var g = devGuard(id, 'assessment'); if (g.err) return g.err;
+    var f = fields || {}, sg = g.sg;
+    if (f.observations) {
+      var obs = [];
+      f.observations.forEach(function (o) {
+        var text = (typeof o === 'string' ? o : (o && o.text) || '').trim();
+        var oid = (o && typeof o === 'object' && o.id) || ('ob' + CBP.devNextSeq());
+        if (text) obs.push({ id: oid, text: text });
+      });
+      sg.observations = obs;
+    }
+    if ('justification' in f) sg.justification = (f.justification || '').trim();
+    sg.updated_by = g.u.id; sg.updated_at = TODAY();
+    if (sg.status === 'notstarted') sg.status = 'inprogress';
+    devLog(g.p, 'Assessment saved — ' + sg.observations.length + ' observation' +
+      (sg.observations.length === 1 ? '' : 's') + (sg.justification ? ', justification' : '') +
+      ' — ' + CBP.userName(g.u.id), { stage: 'assessment' });
+    return done({ id: id });
+  };
+
+  A.devObsAdd = function (id, text) {
+    var g = devGuard(id, 'assessment'); if (g.err) return g.err;
+    var o = { id: 'ob' + CBP.devNextSeq(), text: (text || '').trim() };
+    g.sg.observations.push(o);
+    S().ui.err = null;
+    CBP.render();
+    return { ok: true, id: id, observation: o };
+  };
+  A.devObsDel = function (id, obsId) {
+    var g = devGuard(id, 'assessment'); if (g.err) return g.err;
+    var before = g.sg.observations.length;
+    g.sg.observations = g.sg.observations.filter(function (o) { return o.id !== obsId; });
+    if (g.sg.observations.length === before) return fail('dev', 'Observation not found.');
+    devLog(g.p, 'Assessment observation removed — ' + CBP.userName(g.u.id), { stage: 'assessment' });
+    return done({ id: id });
+  };
+
+  /* dev-img-add — file: { name, data (data URL), size } ; cap 6 × 400 KB, PNG/JPEG */
+  A.devImgAdd = function (id, file) {
+    var g = devGuard(id, 'assessment'); if (g.err) return g.err;
+    var f = file || {};
+    var max = CBP.CONFIG.DEV_IMG_MAX || 6, cap = CBP.CONFIG.DEV_IMG_BYTES || 409600;
+    if (g.sg.images.length >= max) return fail('dev', 'At most ' + max + ' images per project.');
+    var m = /^data:image\/(png|jpeg|jpg);base64,/i.exec(f.data || '');
+    if (!m) return fail('dev', 'Only PNG or JPEG images can be added.');
+    var bytes = f.size || Math.floor((f.data.length - f.data.indexOf(',') - 1) * 3 / 4);
+    if (bytes > cap) return fail('dev', 'Each image must be ' + Math.round(cap / 1024) + ' KB or smaller (this one is ' + Math.round(bytes / 1024) + ' KB).');
+    var im = { id: 'im' + CBP.devNextSeq(), name: (f.name || 'image').slice(0, 80), caption: (f.caption || '').trim(), data: f.data, bytes: bytes };
+    g.sg.images.push(im);
+    if (g.sg.status === 'notstarted') g.sg.status = 'inprogress';
+    g.sg.updated_by = g.u.id; g.sg.updated_at = TODAY();
+    devLog(g.p, 'Assessment image added: ' + im.name + ' — ' + CBP.userName(g.u.id), { stage: 'assessment' });
+    return done({ id: id, image: im });
+  };
+  A.devImgDel = function (id, imgId) {
+    var g = devGuard(id, 'assessment'); if (g.err) return g.err;
+    var gone = g.sg.images.filter(function (i) { return i.id === imgId; })[0];
+    if (!gone) return fail('dev', 'Image not found.');
+    g.sg.images = g.sg.images.filter(function (i) { return i.id !== imgId; });
+    devLog(g.p, 'Assessment image removed: ' + gone.name + ' — ' + CBP.userName(g.u.id), { stage: 'assessment' });
+    return done({ id: id });
+  };
+  A.devImgCaption = function (id, imgId, caption) {
+    var g = devGuard(id, 'assessment'); if (g.err) return g.err;
+    var im = g.sg.images.filter(function (i) { return i.id === imgId; })[0];
+    if (!im) return fail('dev', 'Image not found.');
+    im.caption = (caption || '').trim();
+    devLog(g.p, 'Assessment image caption set: ' + im.name + ' — ' + CBP.userName(g.u.id), { stage: 'assessment' });
+    return done({ id: id });
+  };
+
+  /* dev-concept-generate — builds/rebuilds the 9-section pre-draft */
+  A.devConceptGenerate = function (id, force) {
+    var g = devGuard(id, 'concept'); if (g.err) return g.err;
+    var fresh = CBP.docgen.draftSections(g.p, g.rec);
+    var old = (g.sg.draft && g.sg.draft.sections) || [];
+    var kept = 0;
+    fresh.forEach(function (s) {
+      var prev = old.filter(function (o) { return o.key === s.key; })[0];
+      if (prev && prev.edited && !force) { s.html = prev.html; s.edited = true; kept++; }
+    });
+    g.sg.draft = { generated_at: TODAY(), by: g.u.id, sections: fresh };
+    if (g.sg.status === 'notstarted') g.sg.status = 'inprogress';
+    g.sg.updated_by = g.u.id; g.sg.updated_at = TODAY();
+    if (S().ui.devDraft) delete S().ui.devDraft[id];
+    devLog(g.p, 'Project Concept pre-draft ' + (old.length ? 're' : '') + 'generated (9 sections' +
+      (kept ? ', ' + kept + ' edited kept' : '') + ') — ' + CBP.userName(g.u.id), { stage: 'concept' });
+    return done({ id: id, kept: kept });
+  };
+
+  /* dev-section-save — html is sanitized here, always */
+  A.devSectionSave = function (id, secKey, html) {
+    var g = devGuard(id, 'concept'); if (g.err) return g.err;
+    if (!g.sg.draft) return fail('dev', 'Generate the pre-draft first.');
+    var sec = g.sg.draft.sections.filter(function (s) { return s.key === secKey; })[0];
+    if (!sec) return fail('dev', 'Unknown section “' + secKey + '”.');
+    sec.html = CBP.docgen.sanitize(html);
+    sec.edited = sec.html !== sec.generated_html;
+    g.sg.updated_by = g.u.id; g.sg.updated_at = TODAY();
+    if (S().ui.devDraft && S().ui.devDraft[id]) delete S().ui.devDraft[id][secKey];
+    if (CBP.devDraft && CBP.devDraft[id]) delete CBP.devDraft[id][secKey];
+    devLog(g.p, 'Concept section saved: ' + sec.title + (sec.edited ? ' (edited)' : ' (as generated)') +
+      ' — ' + CBP.userName(g.u.id), { stage: 'concept' });
+    return done({ id: id, section: secKey, edited: sec.edited });
+  };
+  A.devSectionReset = function (id, secKey) {
+    var g = devGuard(id, 'concept'); if (g.err) return g.err;
+    if (!g.sg.draft) return fail('dev', 'Generate the pre-draft first.');
+    var sec = g.sg.draft.sections.filter(function (s) { return s.key === secKey; })[0];
+    if (!sec) return fail('dev', 'Unknown section “' + secKey + '”.');
+    sec.html = sec.generated_html; sec.edited = false;
+    if (S().ui.devDraft && S().ui.devDraft[id]) delete S().ui.devDraft[id][secKey];
+    if (CBP.devDraft && CBP.devDraft[id]) delete CBP.devDraft[id][secKey];
+    devLog(g.p, 'Concept section reset to generated: ' + sec.title + ' — ' + CBP.userName(g.u.id), { stage: 'concept' });
+    return done({ id: id, section: secKey });
+  };
+
+  /* dev-doc-generate — builds the document model for the stage's kind */
+  A.devDocGenerate = function (id, key) {
+    var g = devGuard(id, key); if (g.err) return g.err;
+    var kind = CBP.docgen.KIND_OF_STAGE[key];
+    if (!kind) return fail('dev', 'The ' + stageRow(key).label + ' stage has no generated document.');
+    if (kind === 'concept' && !g.sg.draft) A.devConceptGenerateQuiet(g);
+    var model = CBP.docgen.build(kind, g.p, g.rec);
+    var n = CBP.devNextSeq();
+    model.id = 'doc-' + id + '-' + key + '-' + n;
+    model.by = g.u.id;
+    g.sg.docs.push({ id: model.id, kind: kind, title: model.title, at: TODAY(), by: g.u.id, model: model });
+    if (g.sg.status === 'notstarted') g.sg.status = 'inprogress';
+    g.sg.updated_by = g.u.id; g.sg.updated_at = TODAY();
+    devLog(g.p, 'Document generated: ' + model.title + ' (' + model.id + ') — ' + CBP.userName(g.u.id), { stage: key, doc_id: model.id });
+    return done({ id: id, doc: model.id });
+  };
+  /* used by devDocGenerate when the concept has no pre-draft yet (no render, no log) */
+  A.devConceptGenerateQuiet = function (g) {
+    var c = g.rec.stages.concept;
+    c.draft = { generated_at: TODAY(), by: g.u.id, sections: CBP.docgen.draftSections(g.p, g.rec) };
+  };
+
+  /* dev-doc-docx / dev-doc-print / dev-doc-pdf — anyone who can view the record */
+  A.devDocDocx = function (docId) {
+    var hit = D.devDocById(docId);
+    if (!hit) return fail('dev', 'Document ' + docId + ' not found.');
+    var ok = CBP.docgen.download(hit.doc.model, hit.doc.title);
+    if (!ok) { CBP.notice('Download not available in this browser.'); }
+    S().ui.err = null;
+    return { ok: true, downloaded: ok, doc: docId };
+  };
+  A.devDocPdf = function () {
+    try { if (typeof window !== 'undefined' && typeof window.print === 'function') { window.print(); return { ok: true }; } } catch (e) {}
+    CBP.notice('Printing is not available in this browser.');
+    return { ok: false };
+  };
+
+  /* dev-link-mint / dev-link-revoke — token rv-<pid>-<stage>-<seq>, tied to the latest doc */
+  A.devLinkMint = function (id, key) {
+    var g = devGuard(id, key); if (g.err) return g.err;
+    var doc = g.sg.docs[g.sg.docs.length - 1];
+    if (!doc) return fail('dev', 'Generate the document first — a review link opens the latest document.');
+    g.sg.links.forEach(function (l) { l.active = false; });     /* one active link per stage */
+    var aud = D.devAudience(g.p, key);
+    var link = { token: 'rv-' + id + '-' + key + '-' + CBP.devNextSeq(), audience: aud.key,
+                 doc_id: doc.id, created_at: TODAY(), by: g.u.id, active: true };
+    g.sg.links.push(link);
+    devLog(g.p, 'Review link created for ' + aud.label + ': ' + link.token + ' (' + doc.title + ') — ' + CBP.userName(g.u.id), { stage: key, token: link.token });
+    return done({ id: id, token: link.token, url: reviewUrl(link.token) });
+  };
+  A.devLinkRevoke = function (id, token) {
+    var g = devGuard(id); if (g.err) return g.err;
+    var hit = null, key = null;
+    Object.keys(g.rec.stages).forEach(function (k) {
+      (g.rec.stages[k].links || []).forEach(function (l) { if (l.token === token) { hit = l; key = k; } });
+    });
+    if (!hit) return fail('dev', 'Review link not found.');
+    if (!hit.active) return fail('dev', 'That review link is already inactive.');
+    hit.active = false; hit.revoked_at = TODAY(); hit.revoked_by = g.u.id;
+    devLog(g.p, 'Review link revoked: ' + token + ' — ' + CBP.userName(g.u.id), { stage: key, token: token });
+    return done({ id: id, token: token });
+  };
+
+  var EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  A.EMAIL = EMAIL;
+
+  /* dev-mail-send — to: string (comma-separated) | [strings] */
+  A.devMailSend = function (id, key, fields) {
+    var g = devGuard(id, key); if (g.err) return g.err;
+    var f = fields || {};
+    var to = (typeof f.to === 'string' ? f.to.split(/[,;\s]+/) : (f.to || [])).map(function (x) { return x.trim(); }).filter(Boolean);
+    if (!to.length) return fail('dev', 'Enter at least one recipient e-mail address.');
+    var bad = to.filter(function (x) { return !EMAIL.test(x); });
+    if (bad.length) return fail('dev', 'Not an e-mail address: ' + bad.join(', '));
+    var subject = (f.subject || '').trim();
+    if (!subject) return fail('dev', 'A subject is required.');
+    var body = (f.body || '').trim();
+    if (!body) return fail('dev', 'Write a message before sending.');
+    var aud = D.devAudience(g.p, key);
+    var link = g.sg.links.filter(function (l) { return l.active; }).slice(-1)[0] || null;
+    /* v1.2.7 F2 — no active review link, no send */
+    if (!link) return fail('dev', 'Create a review link first — the mail must point reviewers to an active link.');
+    var lines = body.split('\n');
+    if (link && body.indexOf(link.token) === -1) lines.push('Review link: ' + reviewUrl(link.token));
+    send('SYS-DEV', g.p, [], subject, lines, null, { external: { to: to, reply_to: aud.reply_to }, silent: true });
+    g.sg.mails = g.sg.mails || [];
+    g.sg.mails.push({ at: TODAY(), by: g.u.id, to: to, subject: subject, reply_to: aud.reply_to, token: link ? link.token : null });
+    devLog(g.p, 'Mail sent from the portal to ' + to.join(', ') + ' (reply-to ' + aud.reply_to + '): ' + subject + ' — ' + CBP.userName(g.u.id), { stage: key });
+    return done({ id: id, to: to });
+  };
+
+  /* dev-release — M1 / Admin, all four Done */
+  A.devRelease = function (id) {
+    var u = me(), p = CBP.projectById(id);
+    if (!p) return fail('dev', 'Project ' + id + ' not found.');
+    if (p.status !== 4) return fail('dev', 'Only a status-4 project can be released to submission.');
+    if (D.devReleased(p)) return fail('dev', 'This project is already released to submission.');
+    if (!D.can(u, 'dev_release', p)) return fail('dev', 'Only the Regional Manager or Admin can release a project to submission.');
+    if (!D.devAllDone(p)) return fail('dev', 'All four development stages must be Done before release (' + D.devDoneCount(p) + ' of 4).');
+    var rec = CBP.devRecord(id);
+    rec.released = true; rec.released_by = u.id; rec.released_at = TODAY();
+    send('SYS-DEV-RELEASE', p, ['owner', 'm2'],
+      '[Development] ' + p.id + ': released to submission',
+      ['All four in-development stages are Done. ' + CBP.userName(u.id) + ' released the project on ' +
+       D.fmtDateY(TODAY()) + ' — it is now ready for Request submitted (4 → 3).'],
+      null, { silent: true });
+    devLog(p, 'Released to submission by ' + CBP.userName(u.id) + ' — all four stages Done. Owner and Area Manager notified.', { release: true });
+    return done({ id: id });
+  };
+
+  /* review-comment — the public page; no persona involved */
+  A.reviewComment = function (token, fields) {
+    var f = fields || {};
+    var hit = D.reviewByToken(token);
+    if (!hit || !hit.link.active || !hit.p) return fail('review', 'This review link is no longer active.');
+    var email = (f.email || '').trim(), name = (f.name || '').trim(), body = (f.body || '').trim();
+    var problems = [];
+    if (!email) problems.push({ field: 'rvEmail', msg: 'Enter your e-mail address so the team can reply to you.' });
+    else if (!EMAIL.test(email)) problems.push({ field: 'rvEmail', msg: 'Enter an e-mail address in the format name@example.org.' });
+    if (!body) problems.push({ field: 'rvBody', msg: 'Write a comment before sending.' });
+    if (problems.length) {
+      S().ui.err = { key: 'review', msg: 'Please fix ' + problems.length + ' thing' + (problems.length === 1 ? '' : 's') + ' before sending:', problems: problems };
+      return { ok: false, error: S().ui.err.msg, problems: problems };
+    }
+    var rec = CBP.devRecord(hit.p.id), sg = rec.stages[hit.stageKey];
+    var c = { id: 'rc' + CBP.devNextSeq(), at: TODAY(), email: email, name: name, body: body, via: token, doc_id: hit.link.doc_id };
+    sg.comments.push(c);
+    send('SYS-DEV-COMMENT', hit.p, ['owner'],
+      '[Development] ' + hit.p.id + ': new review comment on ' + D.devStageLabel(hit.stageKey),
+      [(name || email) + ' <' + email + '> commented on ' + (hit.doc ? hit.doc.title : 'the document') + ':', body],
+      null, { silent: true });
+    CBP.addLog(hit.p.id, 'system', 'Review comment received on ' + D.devStageLabel(hit.stageKey) + ' from ' +
+      (name ? name + ' <' + email + '>' : email) + ' via ' + token + ' — owner notified.',
+      { dev: true, author: 'external', stage: hit.stageKey, comment_id: c.id });
+    S().ui.reviewSent = S().ui.reviewSent || {};
+    S().ui.reviewSent[token] = { id: c.id, name: name, email: email, body: body, at: c.at };
+    return done({ token: token, comment: c.id });
+  };
+
   var HANDLERS = {
+
+    /* ------------------------------------------------ v1.2.7 · dev-* ----- */
+    'dev-stage-status': function (t) {
+      var stage = t.getAttribute('data-stage');
+      A.devStageStatus(pidOf(t), stage, t.getAttribute('data-value') || t.getAttribute('data-v'), val('devNote-' + stage));
+      return true;
+    },
+    'dev-assess-save': function (t) {
+      var id = pidOf(t), rec = CBP.devRecord(id), sg = rec.stages.assessment, obs;
+      var list = document.getElementById('devObsList');
+      if (list) obs = list.value.split('\n');
+      else obs = sg.observations.map(function (o) {
+        var el = document.getElementById('devObs-' + o.id);
+        return { id: o.id, text: el ? el.value : o.text };
+      });
+      A.devAssessSave(id, { observations: obs, justification: val('devJust') });
+      return true;
+    },
+    'dev-obs-add': function (t) {
+      keepObs(pidOf(t));
+      A.devObsAdd(pidOf(t), val('devObsNew'));
+      return true;
+    },
+    'dev-obs-del': function (t) { keepObs(pidOf(t)); A.devObsDel(pidOf(t), t.getAttribute('data-obs')); return true; },
+    'dev-img-del': function (t) { A.devImgDel(pidOf(t), t.getAttribute('data-img')); return true; },
+    'dev-img-caption': function (t) {
+      var img = t.getAttribute('data-img');
+      A.devImgCaption(pidOf(t), img, val('devCap-' + img));
+      return true;
+    },
+    'dev-concept-generate': function (t) { A.devConceptGenerate(pidOf(t), !!t.getAttribute('data-force')); return true; },
+    'dev-section-save': function (t) {
+      var id = pidOf(t), sec = t.getAttribute('data-sec');
+      var html = null;
+      if (CBP.devDraft && CBP.devDraft[id] && typeof CBP.devDraft[id][sec] === 'string') html = CBP.devDraft[id][sec];
+      else if (S().ui.devDraft && S().ui.devDraft[id] && typeof S().ui.devDraft[id][sec] === 'string') html = S().ui.devDraft[id][sec];
+      else { var el = document.getElementById('ed-' + sec); html = el ? el.innerHTML : ''; }
+      A.devSectionSave(id, sec, html);
+      return true;
+    },
+    'dev-section-reset': function (t) { A.devSectionReset(pidOf(t), t.getAttribute('data-sec')); return true; },
+    'dev-doc-generate': function (t) { A.devDocGenerate(pidOf(t), t.getAttribute('data-stage')); return true; },
+    'dev-doc-docx': function (t) { A.devDocDocx(t.getAttribute('data-doc')); return true; },
+    'dev-doc-print': function (t) { S().ui.err = null; location.hash = '#/doc/' + t.getAttribute('data-doc'); return true; },
+    'dev-doc-pdf': function () { A.devDocPdf(); return false; },   /* no re-render: keep the sheet as printed */
+    'dev-link-mint': function (t) { A.devLinkMint(pidOf(t), t.getAttribute('data-stage')); return true; },
+    'dev-link-revoke': function (t) { A.devLinkRevoke(pidOf(t), t.getAttribute('data-token')); return true; },
+    'dev-link-copy': function (t) {
+      var token = t.getAttribute('data-token');
+      var el = document.getElementById('devLink-' + token);
+      var text = el ? el.value : reviewUrl(token);
+      var copied = false;
+      try {
+        if (el && el.select) { el.select(); copied = !!document.execCommand('copy'); }
+      } catch (e) { copied = false; }
+      try {
+        if (!copied && navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text); copied = true; }
+      } catch (e2) {}
+      CBP.notice(copied ? 'Review link copied.' : 'Copy the link from the box: ' + text);
+      return true;
+    },
+    'dev-mail-send': function (t) {
+      var stage = t.getAttribute('data-stage');
+      A.devMailSend(pidOf(t), stage, { to: val('devMailTo-' + stage), subject: val('devMailSubj-' + stage), body: val('devMailBody-' + stage) });
+      return true;
+    },
+    'dev-release': function (t) { A.devRelease(pidOf(t)); return true; },
+    'review-comment': function (t) {
+      var token = t.getAttribute('data-token');
+      if (t.getAttribute('data-again')) {
+        if (S().ui.reviewSent) delete S().ui.reviewSent[token];
+        S().ui.err = null;
+        return true;
+      }
+      A.reviewComment(token, { name: val('rvName'), email: val('rvEmail'), body: val('rvBody') });
+      return true;
+    },
 
     /* ---------------------------------------------------------- P4 tabs -- */
     'p4tab': function (t) {
@@ -1754,6 +2172,34 @@
     if (!t || !t.id) return;
     if (t.id === 'actBody' || t.id === 'actAssignee') { keepDraft(); return; }
     if (S().ui.modal) keepModalValues();
+  });
+
+  /* v1.2.7 — dev-img-add: a file input <input type="file" data-act="dev-img-add"
+     data-id="<pid>" accept="image/png,image/jpeg"> (delegated change). Each
+     file is read to a data URL and handed to A.devImgAdd, which enforces the
+     PNG/JPEG · 400 KB · 6-per-project caps and renders. */
+  document.addEventListener('change', function (ev) {
+    var t = ev.target;
+    if (!t || !t.getAttribute || t.getAttribute('data-act') !== 'dev-img-add') return;
+    var id = pidOf(t);
+    var files = t.files ? Array.prototype.slice.call(t.files) : [];
+    if (!files.length || typeof FileReader === 'undefined') return;
+    files.forEach(function (file) {
+      if (!/^image\/(png|jpeg)$/.test(file.type)) {
+        fail('dev', 'Only PNG or JPEG images can be added (' + file.name + ').');
+        CBP.render();
+        return;
+      }
+      var r = new FileReader();
+      r.onload = function () {
+        var res = A.devImgAdd(id, { name: file.name, data: String(r.result), size: file.size });
+        /* a refusal (size / count cap) only sets ui.err — paint it (Lane D fix) */
+        if (res && res.ok === false) CBP.render();
+      };
+      r.onerror = function () { fail('dev', 'Could not read ' + file.name + '.'); CBP.render(); };
+      r.readAsDataURL(file);
+    });
+    try { t.value = ''; } catch (e) {}
   });
 
 })();

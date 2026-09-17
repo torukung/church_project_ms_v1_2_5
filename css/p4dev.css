@@ -1,0 +1,249 @@
+/* p4dev.css — v1.2.7 Lane C.
+   .pdc-  P4 aside "In development" card (replaces the gate cards while unreleased)
+   .pd-   P4 Development tab: progress, stage accordion, status control, blocks
+   .ed-   Concept block editor (RESEARCH_v1.2.7_editor)
+   .ml-   Send-from-portal form (RESEARCH_v1.2.7_review)
+   .p8-ext Sent-log external/reply-to line (needs the .p8-mailtx prefix: that
+          rule sets display/colour on every span inside it)
+   Tokens only. Control edges use --muted (--line is < 3:1 on --card). Status is
+   never colour alone: glyph (○ ◐ ✓) + word. */
+
+/* ------------------------------------------------------------ shared -- */
+.pd-chip{display:inline-flex;align-items:center;gap:5px;flex:0 0 auto;font-size:11.5px;font-weight:700;
+  line-height:1.2;padding:3px 9px;border-radius:999px;border:1px solid transparent;white-space:nowrap}
+.pd-chip.is-done{color:var(--verd);background:var(--verd-bg)}
+.pd-chip.is-inprogress{color:var(--brass);background:var(--brass-bg)}
+.pd-chip.is-notstarted{color:var(--slate);background:var(--card);border-color:var(--muted);border-style:dashed}
+
+.pd-prog{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;min-width:0}
+.pd-bar{display:inline-grid;grid-template-columns:repeat(4,22px);gap:4px}
+.pd-bar i{display:block;height:8px;border-radius:4px;border:1px solid var(--muted);background:var(--card)}
+.pd-bar i.on{background:var(--verd);border-color:var(--verd)}
+.pd-cnt{font-size:12.5px;color:var(--slate)}
+.pd-cnt b{color:var(--ink)}
+
+/* --------------------------------------------------- aside card (.pdc) -- */
+.pdc .pd-prog{margin:0 0 10px}
+.pdc-list{list-style:none;margin:0;padding:0;display:grid;gap:0;border-top:1px solid var(--line)}
+.pdc-i{padding:9px 0 9px 12px;border-bottom:1px solid var(--line);box-shadow:inset 3px 0 0 var(--muted);min-width:0}
+.pdc-i.is-done{box-shadow:inset 3px 0 0 var(--verd)}
+.pdc-i.is-inprogress{box-shadow:inset 3px 0 0 var(--brass)}
+.pdc-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 8px}
+.pdc-lb{font-size:14px;font-weight:600;color:var(--ink);min-width:0;text-wrap:balance;overflow-wrap:anywhere}
+.pdc-by{margin:3px 0 0;font-size:12.5px;color:var(--slate)}
+.pdc-note{margin:3px 0 0;font-size:12.5px;color:var(--ink);overflow-wrap:anywhere}
+.pdc-act{margin-top:12px}
+.pdc-hint,.pdc-wait{margin:6px 0 0;font-size:12.5px;color:var(--slate);text-wrap:pretty}
+.pdc-wait{color:var(--ink);background:var(--brass-bg);border-radius:var(--r);padding:8px 10px;margin-top:12px}
+.pdc-go{margin:10px 0 0;font-size:12.5px}
+.pdc-rel{display:flex;gap:8px;align-items:flex-start;margin:0 0 12px;padding:8px 10px;font-size:12.5px;
+  color:var(--ink);background:var(--verd-bg);border-radius:var(--r);overflow-wrap:anywhere}
+.pdc-relic{color:var(--verd);font-weight:700}
+
+/* ---------------------------------------------------- Development tab -- */
+.pd{container-type:inline-size;container-name:pd}
+.pd-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;margin:0 0 6px}
+.pd-top h2{margin:0}
+.pd-lede{margin:0 0 12px;font-size:12.5px;color:var(--slate);max-width:72ch;text-wrap:pretty}
+.pd-ro{margin:0 0 12px;padding:8px 12px;font-size:12.5px;color:var(--ink);background:var(--raise);
+  border-radius:var(--r);border-left:3px solid var(--muted)}
+.pd-err{margin:0 0 12px}
+.pd-stages{display:grid;gap:10px}
+
+.pd-stage{border:1px solid var(--line);border-radius:var(--r);background:var(--card);min-width:0;
+  box-shadow:inset 3px 0 0 var(--muted)}
+.pd-stage.is-done{box-shadow:inset 3px 0 0 var(--verd)}
+.pd-stage.is-inprogress{box-shadow:inset 3px 0 0 var(--brass)}
+.pd-hd{display:flex;align-items:center;gap:10px;padding:12px 14px 10px 16px}
+.pd-num{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;
+  border-radius:50%;border:1.5px solid var(--muted);color:var(--ink);font-size:12.5px;font-weight:700}
+.pd-stage.is-done .pd-num{background:var(--verd);border-color:var(--verd);color:var(--card)}
+.pd-stage.is-inprogress .pd-num{border-color:var(--brass);color:var(--brass)}
+.pd-ttl{flex:1 1 auto;min-width:0}
+.pd-ttl h3{margin:0;font-size:16px;font-weight:700;color:var(--ink);text-wrap:balance;overflow-wrap:anywhere}
+.pd-meta{margin:2px 0 0;font-size:12.5px;color:var(--slate)}
+
+.pd-ctl{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:0 14px 12px 16px}
+.pd-seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--muted);border-radius:var(--r);overflow:hidden}
+.pd-sb{display:inline-flex;align-items:center;gap:5px;min-height:32px;padding:0 11px;font:inherit;font-size:12.5px;
+  font-weight:600;color:var(--ink);background:var(--card);border:0;border-left:1px solid var(--muted);cursor:pointer}
+.pd-sb:first-child{border-left:0}
+.pd-sb:hover{background:var(--hover)}
+.pd-sb.on{background:var(--ink);color:var(--paper)}
+.pd-sb:focus-visible{outline:2px solid var(--glass);outline-offset:-2px}
+.pd-notef{display:flex;align-items:center;gap:8px;flex:1 1 240px;min-width:0}
+.pd-notef label{font-size:12.5px;font-weight:600;color:var(--slate)}
+.pd-notef .inp{flex:1 1 auto;min-width:0}
+.pd-noteRo{margin:0;padding:0 14px 12px 16px;font-size:12.5px;color:var(--ink);overflow-wrap:anywhere}
+.pd-noteRo b{color:var(--slate);margin-right:6px}
+
+.pd-det{border-top:1px solid var(--line)}
+.pd-det > summary{display:block;position:relative;padding:9px 14px 9px 34px;
+  cursor:pointer;list-style:none;font-size:12.5px;font-weight:600;color:var(--ink)}
+.pd-det > summary::-webkit-details-marker{display:none}
+.pd-det > summary::before{content:'\25B8';position:absolute;left:16px;top:9px;color:var(--slate);font-size:11.5px}
+.pd-det[open] > summary::before{content:'\25BE'}
+.pd-det > summary:hover{background:var(--hover)}
+.pd-det > summary:focus-visible{outline:2px solid var(--glass);outline-offset:-2px}
+.pd-sumt{display:inline-block;margin-right:10px}   /* v1.2.7 D: a wrapped inline title boxed so the count sits beside or below it, never inside its line box */
+/* v1.2.7 D: a closed stage's work area takes no layout (native <details> only hides it visually) */
+.pd-det:not([open]) > .pd-body{display:none}
+.pd-sumc{display:inline-block;font-weight:400;font-size:12.5px;color:var(--slate)}
+.pd-body{padding:4px 14px 14px 16px;display:grid;gap:12px;min-width:0}
+
+.pd .inp,.pd-in{border-color:var(--muted)}
+.pd .inp:focus-visible{outline:2px solid var(--glass);outline-offset:1px}
+.pd .inp[readonly]{background:var(--raise);color:var(--ink)}
+.pd textarea.inp{resize:vertical;line-height:1.5}
+
+.pd-blk{min-width:0}
+.pd-blk h4,.pd-bh h4{margin:0 0 8px;font-size:14px;font-weight:700;color:var(--ink)}
+.pd-bh{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 10px;margin:0 0 8px}
+.pd-bh h4{margin:0}
+.pd-n{display:inline-block;min-width:20px;text-align:center;font-size:11.5px;padding:0 6px;border-radius:999px;
+  background:var(--raise);color:var(--ink);margin-left:4px}
+.pd-aud{font-size:12.5px;color:var(--slate)}
+.pd-aud b{color:var(--ink)}
+.pd-lab{display:block;margin:0 0 6px;font-size:14px;font-weight:700;color:var(--ink)}
+.pd-sub{margin:0;font-size:12.5px;color:var(--slate);text-wrap:pretty}
+.pd-hint{font-size:12.5px;color:var(--slate);text-wrap:pretty}
+.pd-hint b,.pd-hint .num{display:inline-block}   /* v1.2.7 D: long doc titles/dates wrap as boxes, not across the sentence's line boxes */
+.pd-empty{margin:0;font-size:12.5px;color:var(--slate);font-style:italic}
+.pd-actrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:10px}
+.pd-grid2{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+@container pd (min-width:720px){ .pd-grid2{grid-template-columns:repeat(2,minmax(0,1fr))} }
+
+/* Assessment */
+.pd-obs{margin:0 0 8px;padding:0 0 0 22px;display:grid;gap:6px}
+.pd-obs li{padding-left:2px}
+.pd-obs li > .inp{display:inline-block;width:calc(100% - 90px);vertical-align:middle}
+.pd-obs li > .btn{margin-left:6px;vertical-align:middle;min-width:76px;justify-content:center}
+.pd-obsro{margin:0;padding-left:20px;font-size:14px;color:var(--ink);display:grid;gap:4px}
+.pd-just{margin:0;font-size:14px;color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere}
+.pd-add{display:flex;gap:6px;align-items:center}
+.pd-add .inp{flex:1 1 auto;min-width:0}
+.pd-imgs{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:12px}
+.pd-img{min-width:0;display:grid;gap:6px;align-content:start;padding:8px;border:1px solid var(--line);
+  border-radius:var(--r);background:var(--card)}
+.pd-img figure{margin:0;display:grid;gap:4px}
+.pd-img img{display:block;max-width:160px;max-height:160px;width:auto;height:auto;border-radius:4px;
+  border:1px solid var(--line);background:var(--raise)}
+.pd-noimg{width:160px;height:90px;display:flex;align-items:center;justify-content:center;font-size:11.5px;
+  color:var(--slate);border:1px dashed var(--muted);border-radius:4px}
+.pd-img figcaption{display:flex;flex-wrap:wrap;gap:0 6px;font-size:11.5px;color:var(--slate);min-width:0}
+.pd-img figcaption b{color:var(--ink);font-weight:600;overflow-wrap:anywhere;min-width:0}
+.pd-cap{flex:0 0 100%;color:var(--ink);font-style:italic}
+.pd-img .inp{font-size:12.5px;padding:5px 8px}
+.pd-imact{display:flex;flex-wrap:wrap;gap:6px}
+.pd-file{position:relative;cursor:pointer}
+.pd-file:focus-within{outline:2px solid var(--glass);outline-offset:2px}
+
+/* Documents / link / comments */
+.pd-docs,.pd-cms,.pd-sent{list-style:none;margin:0;padding:0;display:grid;gap:0;border-top:1px solid var(--line)}
+.pd-docs li{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 10px;
+  padding:8px 0;border-bottom:1px solid var(--line)}
+.pd-dtx{display:grid;gap:1px;min-width:0;flex:1 1 200px}
+.pd-dtx b{font-size:12.5px;font-weight:600;color:var(--ink);overflow-wrap:anywhere;text-wrap:pretty}
+.pd-dtx > span{font-size:12.5px;color:var(--slate)}
+.pd-dact,.pd-lact{display:flex;flex-wrap:wrap;gap:6px}
+.pd-link{display:grid;gap:6px}
+.pd-link .inp{font-size:12.5px;font-family:ui-monospace,Menlo,Consolas,monospace}
+.pd-link + .pd-hint{margin:6px 0 0}
+.pd-blk > .pd-hint{margin:6px 0 0}
+.pd-cm{padding:8px 0;border-bottom:1px solid var(--line);min-width:0}
+.pd-cmh{display:flex;flex-wrap:wrap;gap:0 8px;align-items:baseline}
+.pd-cmh b{font-size:12.5px;color:var(--ink)}
+.pd-cmh span{font-size:12.5px;color:var(--slate);overflow-wrap:anywhere}
+.pd-cm p{margin:4px 0 0;font-size:14px;color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere}
+.pd-sent li{padding:6px 0;border-bottom:1px solid var(--line);display:grid;gap:1px}
+.pd-sent b{font-size:12.5px;font-weight:600;color:var(--ink);overflow-wrap:anywhere}
+.pd-sent span{font-size:12.5px;color:var(--slate);overflow-wrap:anywhere}
+
+/* ------------------------------------------------ block editor (.ed) -- */
+.pd-draft .pd-sub{margin:0 0 10px}
+.ed-block{border:1px solid var(--line);border-radius:var(--r);background:var(--card);margin:0 0 10px;min-width:0}
+.ed-block.dirty{border-color:var(--brass);box-shadow:inset 3px 0 0 var(--brass)}
+.ed-hd{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding:7px 10px 7px 12px;border-bottom:1px solid var(--line)}
+.ed-hd h5{font-size:14px;font-weight:700;color:var(--ink);margin:0;flex:1 1 auto;min-width:0;text-wrap:balance}
+.ed-flag{font-size:11.5px;font-weight:600;color:var(--brass);background:var(--brass-bg);border-radius:999px;padding:2px 8px}
+.ed-tb{display:inline-flex;gap:4px}
+.ed-tb button{min-width:32px;min-height:30px;padding:0 8px;border:1px solid var(--muted);border-radius:var(--r);
+  background:var(--card);color:var(--slate);font:inherit;font-size:12.5px;font-weight:700;line-height:1;cursor:pointer}
+.ed-tb button:hover{color:var(--ink)}
+.ed-tb button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.ed-tb button:focus-visible,.ed-area:focus-visible{outline:2px solid var(--glass);outline-offset:2px}
+.ed-tb .i{font-style:italic;font-family:Georgia,serif}
+.ed-area{min-height:72px;padding:10px 12px;color:var(--ink);background:var(--card);font-size:14px;line-height:1.55;
+  overflow-wrap:anywhere;cursor:text;border-radius:0 0 var(--r) var(--r)}
+.ed-area:focus{outline:none;box-shadow:inset 0 0 0 1px var(--muted)}
+.ed-area h3{font-size:16px;font-weight:700;margin:10px 0 4px}
+.ed-area h3:first-child{margin-top:0}
+.ed-area p{margin:0 0 8px}
+.ed-area p:last-child,.ed-area ul:last-child{margin-bottom:0}
+.ed-area ul,.ed-area ol{margin:0 0 8px 22px;padding:0}
+.ed-area:empty::before{content:attr(data-placeholder);color:var(--slate)}
+.ed-ro{cursor:default;min-height:0}
+.ed-roblk .ed-hd{border-bottom-style:dashed}
+.ed-ft{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;padding:7px 10px 7px 12px;border-top:1px solid var(--line)}
+.ed-ft .ed-state{font-size:12.5px;color:var(--slate);margin-right:auto}
+.ed-block.dirty .ed-state{color:var(--ink);font-weight:600}
+.ed-confirm{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;font-size:12.5px;color:var(--ink);width:100%}
+.ed-confirm > span{margin-right:auto}
+
+/* ------------------------------------------ Send from portal (.ml) ---- */
+.ml{border:1px solid var(--line);border-radius:var(--r);background:var(--card);padding:10px 14px 12px;margin:0;min-width:0}
+.ml legend{font-size:14px;font-weight:700;padding:0 4px;color:var(--ink)}
+.ml .inp{border-color:var(--muted)}
+.ml .inp:focus-visible{outline:2px solid var(--glass);outline-offset:1px}
+.ml textarea.inp{font-size:12.5px;line-height:1.5}
+.ml-row{display:grid;grid-template-columns:76px minmax(0,1fr);gap:4px 10px;align-items:start;margin:0 0 10px}
+.ml-row > label,.ml-row > .k{font-size:12.5px;font-weight:600;color:var(--slate);padding-top:8px}
+.ml-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.ml-chips:empty{display:none}
+.ml-chip{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;padding:2px 10px;border-radius:999px;
+  border:1px solid var(--muted);color:var(--ink);background:var(--card);max-width:100%;overflow-wrap:anywhere}
+.ml-chip.bad{border-color:var(--rose);color:var(--rose)}
+.ml-ro{font-size:12.5px;color:var(--ink);background:var(--raise);border:1px dashed var(--muted);border-radius:var(--r);
+  padding:7px 11px;overflow-wrap:anywhere}
+.ml-note{font-size:12.5px;color:var(--slate);margin:4px 0 0}
+.ml .pd-lab{margin-top:12px;font-size:12.5px;color:var(--slate)}
+@media (max-width:560px){
+  .ml-row{grid-template-columns:minmax(0,1fr)}
+  .ml-row > label,.ml-row > .k{padding-top:0}
+  .pd-hd{padding:10px 12px 8px 14px;align-items:flex-start;flex-wrap:wrap}
+  .pd-hd .pd-chip{margin-left:36px}
+  .pd-ctl,.pd-noteRo{padding:0 12px 10px 14px}
+  .pd-det > summary{padding:9px 12px 9px 30px}
+  .pd-det > summary::before{left:14px}
+  .pd-body{padding:4px 12px 12px 14px}
+  .pd-seg{width:100%}
+  .pd-sb{flex:1 1 0;justify-content:center;min-height:40px;padding:0 6px}
+  .pd-notef{flex-basis:100%}
+  .pd-obs li > .inp{width:100%}
+  .pd-obs li > .btn{margin:6px 0 0}
+  .ed-hd h5{flex-basis:100%}
+  .ed-tb button{min-width:40px;min-height:40px}
+  .pd-imgs{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+  .pd-img img{max-width:100%}
+}
+
+/* ------------------------------------------------ P8 Sent log (R-2a) -- */
+.p8-mailtx .p8-ext{display:block;font-size:12.5px;color:var(--slate);overflow-wrap:anywhere;margin-top:2px}
+.p8-mailtx .p8-extchip{display:inline-block;font-size:11.5px;font-weight:600;color:var(--glass);background:var(--glass-bg);
+  border-radius:999px;padding:1px 8px;margin:0 6px 0 0}
+
+/* ------------------------------------------------- P6 release row ---- */
+.p6-devdone{font-size:12.5px;color:var(--slate)}
+
+/* .card p (app.css) sets 14px / --slate at 0,1,1: restate the scale for the
+   paragraph-level classes above */
+.card p.pd-hint,.card p.ml-note,.card p.pdc-hint,.card p.pdc-by,.card p.pd-meta,.card p.pdc-go,
+.card p.pdc-rel{font-size:12.5px}
+.card p.pd-sub,.card p.pd-lede,.card p.pd-empty,.card p.pd-ro,.card p.pd-noteRo,.card p.pdc-note{font-size:12.5px}
+.card p.pdc-note,.card p.pdc-rel,.card p.pdc-wait,.card p.pd-ro,.card p.pd-noteRo,.card p.pd-just,.card .pd-cm p{color:var(--ink)}
+.card p.pdc-wait{font-size:12.5px}
+.card p.pd-just,.card .pd-cm p{font-size:14px}
+.card p + p.pd-hint,.card p + p.pd-empty{margin-top:6px}
+/* eight book tabs (Development first): a little tighter so the row fits */
+.p4-tabs.bk-strip.bk-many{gap:2px}
+.p4-tabs.bk-many .p4-tab.bk-tab{padding:0 8px}
